@@ -749,12 +749,11 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 
 ### References
 
-- [Alex DeBrie Best Practices](https://www.youtube.com/watch?v=8Ww1YW3AChE)
-- [DocumentClient SDK Reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html)
 - [DynamoDB Book](https://www.dynamodbbook.com/)
-- [DynamoD Guide.](https://www.dynamodbguide.com/)
+- [Alex DeBrie Best Practices Video](https://www.youtube.com/watch?v=8Ww1YW3AChE)
+- [DocumentClient SDK Reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html)
+- [DynamoD Guide](https://www.dynamodbguide.com/)
 - [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox)
-- [DynamoDB Comparison Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html)
 - [Best Practices for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
 
 ### Participate
@@ -765,4 +764,4 @@ All feedback, contributions and bug reports are very welcome.
 
 ### SenseDeep
 
-Please try our Serverless trouble shooter [SenseDeep](https://www.sensedeep.com/)
+Please try our Serverless trouble shooter [SenseDeep](https://www.sensedeep.com/).

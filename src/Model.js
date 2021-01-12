@@ -257,7 +257,7 @@ export default class Model {
         }
         for (let [index, item] of Object.entries(items)) {
             if (expression.params.high && item[this.typeField] != this.name) continue
-            let type = item[this.typeField] ? item[this.typeField]] : this.name
+            let type = item[this.typeField] ? item[this.typeField] : this.name
             let model = this.table.models[type] ? this.table.models[type] : this
             if (model) {
                 if (model == this.table.unique) continue
