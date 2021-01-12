@@ -41,7 +41,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 
 ## Installation
 
-    npm i @sensedeep/dynamodb-onetable
+    npm i dynamodb-onetable
 
 ## Quick Tour
 
