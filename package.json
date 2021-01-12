@@ -1,7 +1,7 @@
 {
     "name": "dynamodb-onetable",
     "version": "0.6.1",
-    "description": "DynamoDB OneTable (DOT) ===",
+    "description": "DynamoDB OneTable",
     "keywords": [
         "dynamodb",
         "onetable",
