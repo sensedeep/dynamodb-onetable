@@ -127,6 +127,7 @@ export default class Expression {
 
     /*
         Conditions for create | delete | update
+        May also be used by 'get' in fallback mode.
      */
     addConditions(op) {
         let {conditions, params} = this
@@ -288,8 +289,8 @@ export default class Expression {
         if (params.index) {
             if (params.index != 'primary') {
                 index = indexes[params.index]
-                if (op == 'get' || op == 'delete' || op == 'update') {
-                    //  Non primary indexes require find/query assist
+                if (op != 'find' && op != 'scan') {
+                    //  Non primary indexes only supported with find/scan
                     this.fallback = true
                 }
             }

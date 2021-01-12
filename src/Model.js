@@ -50,7 +50,7 @@ export default class Model {
         @param name Name of the model.
         @param options Hash of options.
      */
-    constructor(table, name, options) {
+    constructor(table, name, options = {}) {
         this.table = table
         this.name = name
         this.options = options
@@ -230,7 +230,7 @@ export default class Model {
                 items.count = metrics.Count
                 items.scanned = metrics.ScannedCount
                 items.capacity = metrics.ConsumedCapacity
-                items.next = result.LastEvaluatedKey
+                items.start = result.LastEvaluatedKey
             }
             if (result.LastEvaluatedKey) {
                 /*
@@ -257,7 +257,8 @@ export default class Model {
         }
         for (let [index, item] of Object.entries(items)) {
             if (expression.params.high && item[this.typeField] != this.name) continue
-            let model = item[this.typeField] ? this.table.models[item[this.typeField]] : this
+            let type = item[this.typeField] ? item[this.typeField]] : this.name
+            let model = this.table.models[type] ? this.table.models[type] : this
             if (model) {
                 if (model == this.table.unique) continue
                 items[index] = model.mapReadData('find', item)
@@ -265,8 +266,6 @@ export default class Model {
         }
         return items
     }
-
-    //  Low level API
 
     async create(properties, params = {}) {
         params = Object.assign({parse: true, high: true}, params)
@@ -426,8 +425,8 @@ export default class Model {
         return await this.run('find', expression)
     }
 
-    async scanItems(properties, params = {}) {
-        let expression = new Expression(this, 'scan', properties, params)
+    async scanItems(params = {}) {
+        let expression = new Expression(this, 'scan', {}, params)
         return await this.run('scan', expression)
     }
 
@@ -546,8 +545,12 @@ export default class Model {
                 }
             }
             if (value === undefined) {
-                if (field.default) {
-                    value = field.default(this, op, properties, params)
+                if (op == 'create' && field.default) {
+                    if (typeof field.default == 'function') {
+                        value = field.default(this, fieldName, properties)
+                    } else {
+                        value = field.default
+                    }
                 }
                 if (value === undefined) {
                     continue

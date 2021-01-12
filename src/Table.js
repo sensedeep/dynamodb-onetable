@@ -33,14 +33,14 @@ export default class Table {
             client,         //  Instance of DocumentClient.
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
-            delimiter,      //  Composite sort key delimiter (default '@').
+            delimiter,      //  Composite sort key delimiter (default ':').
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
             hidden,         //  Hide key attributes in Javascript properties. Default false.
             migrate,        //  Migration function(model, operation, data). Operation: 'create', 'delete', 'put', ...
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
             schema,         //  Table models schema.
-            timestamps,     //  Make create and updated timestamps. Default true.
+            timestamps,     //  Make "created" and "updated" timestamps. Default true.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid            //  Function to create a UUID if field schema requires it.
@@ -53,7 +53,7 @@ export default class Table {
         this.client = client
         this.migrate = migrate
         this.nulls = nulls || false
-        this.delimiter = delimiter || '@'
+        this.delimiter = delimiter || '#'
         this.createdField = createdField || 'created'
         this.updatedField = updatedField || 'updated'
         this.typeField = typeField || '_type'
@@ -188,8 +188,8 @@ export default class Table {
         return await this.model.queryItems(properties, params)
     }
 
-    async scanItems(properties, params) {
-        return await this.model.scanItems(properties, params)
+    async scanItems(params) {
+        return await this.model.scanItems(params)
     }
 
     /*
