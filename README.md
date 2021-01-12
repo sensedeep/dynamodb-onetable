@@ -1,6 +1,6 @@
 # DynamoDB OneTable
 
-![OneTable](./ring.png)
+![OneTable](https://www.sensedeep.com/images/ring.png)
 
 DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.amazon.com/dynamodb/) applications that use one-table design patterns with NodeJS.
 
