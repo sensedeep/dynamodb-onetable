@@ -1,17 +1,14 @@
 # DynamoDB OneTable
 
-[![Build Status](https://travis-ci.org/jeremydaly/dynamodb-toolbox.svg?branch=master)](https://travis-ci.org/jeremydaly/dynamodb-toolbox)
-[![npm](https://img.shields.io/npm/v/dynamodb-toolbox.svg)](https://www.npmjs.com/package/dynamodb-toolbox)
-[![npm](https://img.shields.io/npm/l/dynamodb-toolbox.svg)](https://www.npmjs.com/package/dynamodb-toolbox)
-[![Coverage Status](https://coveralls.io/repos/github/jeremydaly/dynamodb-toolbox/badge.svg?branch=master)](https://coveralls.io/github/jeremydaly/dynamodb-toolbox?branch=master)
-
 ![OneTable](./ring.png)
 
-DynamoDB OneTable (OneTable) is an access library for DynamoDB applications that use one-table design patterns with NodeJS.
+DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.amazon.com/dynamodb/) applications that use one-table design patterns with NodeJS.
 
-OneTable strives to make dealing with DynamoDB and one-table design patterns dramatically easier while still providing full access to the full DynamoDB API.
+OneTable strives to make dealing with DynamoDB and one-table design patterns dramatically easier while still providing easy access to the full DynamoDB API.
 
-OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping). Rather it provides a convenience API over DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium of the DynamoDB API. It can invoke DynamoDB APIs or it can be used as a generator to create DynamoDB API parameters that you can save or execute yourself.
+OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping). Rather it provides a convenience API over the DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium working with the standard, unadorned DynamoDB API.
+
+OneTable can invoke DynamoDB APIs or it can be used as a generator to create DynamoDB API parameters that you can save or execute yourself.
 
 OneTable is not opinionated as much as possible and provides hooks for you to customize requests and responses to suit your exact needs.
 
