@@ -770,7 +770,7 @@ All feedback, contributions and bug reports are very welcome.
 
 ### Contact
 
-You can contact me (Michael O'Brien) on Twitter at: @SenseDeepCloud, or [email](mob-pub-18@sensedeep.com).
+You can contact me (Michael O'Brien) on Twitter at: [@SenseDeepCloud](https://twitter.com/SenseDeepCloud), or [email](mob-pub-18@sensedeep.com) and ready my [Blog](https://www.sensedeep.com/blog).
 
 ### SenseDeep
 
