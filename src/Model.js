@@ -552,7 +552,7 @@ export default class Model {
             let value = properties[fieldName]
             if (op == 'put') {
                 if (field.required && value == null && field.value == null) {
-                    if (context[fieldName]) {
+                    if (context[fieldName] !== undefined) {
                         value = context[fieldName]
                     } else {
                         details[fieldName] = `Missing required "${fieldName}"`
@@ -575,7 +575,7 @@ export default class Model {
             if (field.validate) {
                 if (!value) {
                     if (field.required && field.value == null) {
-                        if (context[fieldName]) {
+                        if (context[fieldName] !== undefined) {
                             value = context[fieldName]
                         } else {
                             details[fieldName] = `Value not defined for "${fieldName}"`

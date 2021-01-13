@@ -57,32 +57,28 @@ export default class Expression {
         @param properties Javascript hash of data attributes for the API
      */
     parseFields(fields, properties) {
-        //  MOB - what if properties that are not fields?
+        let op = this.op
         for (let [fieldName, field] of Object.entries(fields)) {
             let value = this.template(field, properties, this.table.context)
-            if (value == null || value == '') {
-                if (field.uuid && this.op == 'put') {
-                    //  Allocate a UUID for this item
+            if (value === undefined || value === null || value === '') {
+                if (field.uuid && op == 'put') {
                     value = this.table.uuid()
-
-                } else if (this.op != 'put' || this.model.nulls !== true) {
-                    if (field.attribute == this.hash && this.op != 'scan') {
-                        throw new Error(`dynamo: Empty primary hash key`)
-                    }
-                    if (field.name == this.sort && this.params.high) {
-                        //  High level API without sort key. Fallback to find to select the items of interest
-                        this.fallback = true
-                        return
-                    }
+                } else if (field.name == this.sort && this.params.high) {
+                    //  High level API without sort key. Fallback to find to select the items of interest
+                    this.fallback = true
+                    return
+                } else if (value === undefined || (value === null && field.nulls !== true)) {
                     continue
                 }
             } else if (typeof value == 'object') {
-                value = this.removeEmptyStrings(value)
+                value = this.removeEmptyStrings(field, value)
             }
             this.add(field, value)
             if (this.fallback) return
         }
-        let op = this.op
+        if (op != 'scan' && this.fieldValues[this.hash] == null) {
+            throw new Error(`dynamo: Empty primary hash key`)
+        }
         if (op == 'delete' || op == 'put' || op == 'update') {
             this.addConditions(op)
         } else if (op == 'find' || op == 'scan') {
@@ -376,15 +372,15 @@ export default class Expression {
         contexts.push(properties)
 
         if (s == null) {
-            let context = contexts.find(context => context[field.name] != null)
-            return context ? context[field.name] : null
+            let context = contexts.find(context => context[field.name] !== undefined)
+            return context ? context[field.name] : undefined
         }
         for (let context of contexts) {
             if (s.indexOf('${') < 0) {
                 break
             }
             s = s.replace(/\${(.*?)}/g, (match, varName) => {
-                if (context[varName] != null) {
+                if (context[varName] !== undefined) {
                     return context[varName]
                 } else {
                     return match
