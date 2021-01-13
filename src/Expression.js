@@ -373,10 +373,12 @@ export default class Expression {
      */
     template(field, properties, ...contexts) {
         let s = field.value
-        if (s == null) {
-            return properties[field.name]
-        }
         contexts.push(properties)
+
+        if (s == null) {
+            let context = contexts.find(context => context[field.name] != null)
+            return context ? context[field.name] : null
+        }
         for (let context of contexts) {
             if (s.indexOf('${') < 0) {
                 break
