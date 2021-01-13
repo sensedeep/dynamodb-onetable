@@ -405,19 +405,19 @@ export default class Expression {
                     }
                 }
             }
-            return null
+            return undefined
         }
         return s
     }
 
-    removeEmptyStrings(obj) {
+    removeEmptyStrings(field, obj) {
         let result
         if (obj !== null && typeof obj == 'object') {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
                 if (typeof value == 'object') {
-                    result[key] = this.removeEmptyStrings(value)
-                } else if (value === null && this.model.nulls !== true) {
+                    result[key] = this.removeEmptyStrings(field, value)
+                } else if (value === null && field.nulls !== true) {
                     continue
                 } else if (value !== '') {
                     result[key] = value

@@ -232,13 +232,15 @@ The Table constructor takes a parameter of type `object` with the following prop
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Default false. |
 | name | `string` | yes | The name of your DynamoDB table |
-| nulls | `boolean` | Store nulls in database attributes. Default false.
+| nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items |
 | typeField | `string` | Name of the "type" attribute. Default to "_type" |
 | uuid | `string` | Function to create a UUID if field schema requires it |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html).
+
+By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a per-attribute basis via the schema.
 
 #### Crypto
 
@@ -332,6 +334,7 @@ The following attribute properties are supported:
 | enum | `array` | List of valid string values for the attribute. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. |
 | map | `string` | Map the field value to a different attribute when storing in the database. |
+| nulls | `boolean` | Set to true to store null values. Default to table.nulls value. |
 | required | `boolean` | Set to true if the attribute is required. |
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |

@@ -108,7 +108,9 @@ export default class Model {
             }
             field.name = name
             field.attribute = this.map[name]
-
+            if (field.nulls !== true && field.nulls !== false) {
+                field.nulls = this.nulls
+            }
             if (this.indexProperties[this.map[name]]) {
                 field.isIndexed = true
                 field.hidden = field.hidden || this.table.hidden
@@ -507,7 +509,7 @@ export default class Model {
             value = this.table.documentClient.createSet(value)
         }
         if (value != null && typeof value == 'object') {
-            value = this.validateFields(value)
+            value = this.mapNestedFields(field, value)
         }
         //  Invoke custom transformation before writing data
         if (field.transform) {
@@ -517,6 +519,20 @@ export default class Model {
             value = this.encrypt(value)
         }
         return value
+    }
+
+    mapNestedFields(field, obj) {
+        for (let [key, value] of Object.entries(obj)) {
+            if (value instanceof Date) {
+                obj[key] = value.getTime()
+            } else if (value == null && field.nulls !== true) {
+                //  Skip nulls
+                continue
+            } else if (typeof value == 'object') {
+                obj[key] = this.mapNestedFields(field, value)
+            }
+        }
+        return obj
     }
 
     /*
@@ -600,20 +616,6 @@ export default class Model {
             result = this.migrate(this, this.op, result)
         }
         return result
-    }
-
-    validateFields(obj) {
-        for (let [key, value] of Object.entries(obj)) {
-            if (value instanceof Date) {
-                obj[key] = value.getTime()
-            } else if (value == null && this.nulls !== true) {
-                //  Skip nulls
-                continue
-            } else if (typeof value == 'object') {
-                obj[key] = this.validateFields(value)
-            }
-        }
-        return obj
     }
 
     /*
