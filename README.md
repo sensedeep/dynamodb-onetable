@@ -1,5 +1,8 @@
 # DynamoDB OneTable
 
+[![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
+[![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
+
 ![OneTable](https://www.sensedeep.com/images/ring.png)
 
 DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.amazon.com/dynamodb/) applications that use one-table design patterns with NodeJS.
@@ -761,6 +764,10 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 All feedback, contributions and bug reports are very welcome.
 
 * [issues](https://github.com/sensedeep/dynamodb-onetable/issues)
+
+### Contact
+
+You can contact me (Michael O'Brien) on Twitter at: @SenseDeepCloud, or [email](mob-pub-18@sensedeep.com).
 
 ### SenseDeep
 
