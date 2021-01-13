@@ -476,7 +476,7 @@ export default class Model {
             }
         }
         if (this.migrate && ReadWriteMigrations[op] == 'read') {
-            rec = this.migrate(this, op, rec)
+            rec = this.migrate(this, op, rec, result)
         }
         for (let [name, field] of Object.entries(this.fields)) {
             if (field.hidden) {
