@@ -63,7 +63,7 @@ export default class Expression {
             if (value === undefined || value === null || value === '') {
                 if (field.uuid && op == 'put') {
                     value = this.table.uuid()
-                } else if (field.name == this.sort && this.params.high) {
+                } else if (field.name == this.sort && this.params.high && op != 'scan') {
                     //  High level API without sort key. Fallback to find to select the items of interest
                     this.fallback = true
                     return
