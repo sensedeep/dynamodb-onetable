@@ -270,7 +270,7 @@ export default class Model {
             let model = this.table.models[type] ? this.table.models[type] : this
             if (model) {
                 if (model == this.table.unique) continue
-                items[index] = model.mapReadData('find', item)
+                items[index] = model.mapReadData('find', item, expression.params)
             }
         }
         return items
@@ -456,7 +456,7 @@ export default class Model {
     /*
         Map Dynamo types to Javascript types after reading data
      */
-    mapReadData(op, result) {
+    mapReadData(op, result, params) {
         if (!result) {
             return result
         }
@@ -488,7 +488,7 @@ export default class Model {
             rec = this.migrate(this, op, rec, result)
         }
         for (let [name, field] of Object.entries(this.fields)) {
-            if (field.hidden) {
+            if (field.hidden && params.hidden !== true) {
                 delete rec[name]
             }
         }
