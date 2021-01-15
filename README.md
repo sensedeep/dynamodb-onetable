@@ -183,7 +183,7 @@ await table.transaction(transaction)
 
 DynamoDB is a great [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database that comes with a learning curve. Folks migrating from SQL often have time adjusting to the NoSQL paradigm and especially to DynamoDB which offers exceptional scalability but with a fairly low-level API.
 
-The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedius to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type expressions, key, filter, condition and update expressions are anyones idea of a good time.
+The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedious to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type expressions, key, filter, condition and update expressions are anyones idea of a good time.
 
 Net/Net: it is not easy to write terse, clear, robust Dynamo code for one-table patterns.
 
@@ -373,7 +373,10 @@ The `value` property defines a literal string template that is used to compute t
 
 ### Table Contexts
 
-Each `Table` has a `context` of properties that are blended with `Model` properties before writing items to the database. The table `context` is useful to store global properties that apply to multiple models. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in the primary key for all items belonging to that account or user.
+Each `Table` has a `context` of properties that are blended with `Model` properties. The context is used to provide keys and attributes that apply to more than just one model. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user.
+
+When creating items, context properties are written to the database. When updating, context properties are not, only explicit attributes provided in the API `properties` parameter are written.
+
 
 Use the `Table.setContext` method to initialize the context and `Table.clear` to reset.
 
