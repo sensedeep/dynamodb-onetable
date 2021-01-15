@@ -315,11 +315,7 @@ export default class Model {
         return items[0]
     }
 
-    async delete(properties, params = {}) {
-        return await this.remove(properties, params)
-    }
-
-    async find(properties, params = {}) {
+    async find(properties = {}, params = {}) {
         params = Object.assign({parse: true, high: true}, params)
         return await this.queryItems(properties, params)
     }
@@ -381,8 +377,10 @@ export default class Model {
         await this.table.transact('write', params.transaction, params)
     }
 
-    async scan(properties, params = {}) {
-        params = Object.assign({parse: true}, params)
+    async scan(properties = {}, params = {}) {
+        params = Object.assign({parse: true, high: true}, params)
+        properties = Object.assign({}, properties)
+        properties[this.typeField] = this.name
         return await this.scanItems(properties, params)
     }
 
@@ -408,17 +406,17 @@ export default class Model {
 
     //  Low level API
 
-    async deleteItem(properties, params = {}) {
+    /* private */ async deleteItem(properties, params = {}) {
         let expression = new Expression(this, 'delete', properties, params)
         await this.run('delete', expression)
     }
 
-    async getItem(properties, params = {}) {
+    /* private */ async getItem(properties, params = {}) {
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
     }
 
-    async putItem(properties, params = {}) {
+    /* private */ async putItem(properties, params = {}) {
         properties = Object.assign({}, properties)
         properties[this.typeField] = this.name
         if (this.timestamps) {
@@ -429,17 +427,19 @@ export default class Model {
         return await this.run('put', expression)
     }
 
-    async queryItems(properties, params = {}) {
+    //  Note: scanItems will return all model types
+    /* private */ async queryItems(properties = {}, params = {}) {
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
     }
 
-    async scanItems(params = {}) {
-        let expression = new Expression(this, 'scan', {}, params)
+    //  Note: scanItems will return all model types
+    /* private */ async scanItems(properties = {}, params = {}) {
+        let expression = new Expression(this, 'scan', properties, params)
         return await this.run('scan', expression)
     }
 
-    async updateItem(properties, params = {}) {
+    /* private */ async updateItem(properties, params = {}) {
         properties = Object.assign({}, properties)
         properties[this.typeField] = this.name
         if (this.timestamps) {
