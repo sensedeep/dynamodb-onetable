@@ -314,10 +314,11 @@ export default class Expression {
         if (params.preFormat) {
             params.preFormat(model)
         }
+        let namesLen = Object.keys(names).length, valuesLen = Object.keys(values).length
         let args = {
             ConditionExpression: conditions.length ? this.and(conditions) : undefined,
-            ExpressionAttributeNames: Object.keys(names).length > 0 ? names : undefined,
-            ExpressionAttributeValues: Object.keys(names).length > 0 ? values : undefined,
+            ExpressionAttributeNames: namesLen > 0 ? names : undefined,
+            ExpressionAttributeValues: (namesLen > 0 && valuesLen > 0) ? values : undefined,
             FilterExpression: filters.length ? this.and(filters) : undefined,
             KeyConditionExpression: keys.length ? keys.join(' and ') : undefined,
             ProjectionExpression: fields.length ? fields.join(', ') : undefined,
