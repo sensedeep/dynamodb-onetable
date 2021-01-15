@@ -103,8 +103,15 @@ export default class Table {
         this.models[name] = new Model(this, name, {indexes: schema.indexes, fields, migrate})
     }
 
+    /*
+        Thows exception if model cannot be found
+     */
     getModel(name) {
-        return this.models[name]
+        let model = this.models[name]
+        if (!model) {
+            throw new Error(`Cannot find model ${model}`)
+        }
+        return model
     }
 
     removeModel(name) {
