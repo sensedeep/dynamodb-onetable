@@ -10,6 +10,14 @@ export default class Expression {
         @param params Options hash
      */
     constructor(model, op, properties, params) {
+        this.init(model, op, properties, params)
+
+        if (!this.fallback) {
+            this.parseFields(this.model.fields, properties)
+        }
+    }
+
+    init(model, op, properties, params) {
         this.model = model
         this.table = model.table
         this.op = op
@@ -42,13 +50,6 @@ export default class Expression {
         this.index = this.selectIndex(model.indexes, params)
         this.hash = this.index.hash
         this.sort = this.index.sort
-
-        /*
-            If falling back to use find, abort further processing
-         */
-        if (!this.fallback) {
-            this.parseFields(this.model.fields, properties)
-        }
     }
 
     /*
