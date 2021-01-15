@@ -38,7 +38,7 @@ const ReadWriteMigrations = {
 }
 const TransactOps = { delete: 'Delete', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
-const SanityPages = 100
+const SanityPages = 1000
 
 /*
     DynamoDB model entity class
@@ -216,8 +216,11 @@ export default class Model {
             }
             if (limit) {
                 limit -= items.length
+                if (limit <= 0) {
+                    break
+                }
             }
-        } while (result.LastEvaulatedKey && pages++ < SanityPages && limit > 0)
+        } while (result.LastEvaluatedKey && (limit == null || pages++ < SanityPages))
 
         if (params.parse) {
             items = this.parseResponse(op, expression, items)
@@ -242,6 +245,10 @@ export default class Model {
                 let properties = expression.properties
                 items.next = async () => {
                     params = Object.assign({}, params, {start: result.LastEvaluatedKey})
+                    if (!params.high) {
+                        if (op == 'find') op = 'queryItems'
+                        else if (op == 'scan') op = 'scanItems'
+                    }
                     return await this[op](properties, params)
                 }
             }
