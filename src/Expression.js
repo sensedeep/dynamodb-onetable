@@ -77,6 +77,7 @@ export default class Expression {
             this.add(field, value)
             if (this.fallback) return
         }
+
         if (op != 'scan' && this.fieldValues[this.hash] == null) {
             throw new Error(`dynamo: Empty primary hash key`)
         }
@@ -86,6 +87,9 @@ export default class Expression {
             this.addFilters()
         }
         if (op == 'scan') {
+            /*
+                Setup scan filters for properties outside the model
+             */
             for (let [name, value] of Object.entries(properties)) {
                 if (fields[name] || value == null) continue
                 this.addFilter(name, value)
@@ -107,17 +111,15 @@ export default class Expression {
                     this.addKey(field, value)
                 }
             }
-        } else {
-            if (op == 'find' || op == 'scan') {
+        } else if ((op == 'find' || op == 'scan')) {
+            if (this.properties[field.name] && field.filter !== false) {
                 this.addFilter(field.attribute, value)
             }
         }
-        if (op == 'delete' || op == 'put' || op == 'update') {
-            if (op == 'put') {
-                this.values[field.attribute] = value
-            } else if (op == 'update') {
-                this.addUpdate(field, value)
-            }
+        if (op == 'put') {
+            this.values[field.attribute] = value
+        } else if (op == 'update') {
+            this.addUpdate(field, value)
         }
         this.fieldValues[field.attribute] = value
     }
@@ -142,10 +144,8 @@ export default class Expression {
         if (params.type) {
             conditions.push(`attribute_type(${sort}, ${params.type})`)
         }
-        if (op == 'update') {
-            if (params.add || params.remove || params.delete) {
-                this.addUpdates()
-            }
+        if (op == 'update' && (params.add || params.remove || params.delete)) {
+            this.addUpdates()
         }
         if (params.where && (op == 'delete' || op == 'update')) {
             conditions.push(this.makeConditions(params.where))
@@ -245,6 +245,10 @@ export default class Expression {
             return
         }
         if (params.add || params.remove || params.delete) {
+            return
+        }
+        if (field.attribute != this.hash && field.attribute != this.sort && this.properties[field.name] === undefined) {
+            //  Only update values explicitly provided by caller in properties
             return
         }
         updates.push(`#_${nindex} = :_${vindex}`)
@@ -392,11 +396,11 @@ export default class Expression {
                 }
             })
         }
+        /*
+            Remaining template variable. If sort and doing find, then use sort key prefix, (provide no where clause).
+         */
         if (s.indexOf('${') >= 0) {
             if (field.attribute == this.sort) {
-                /*
-                    Special case for find without a sort key, where clause, and with a sort key field prefix.
-                 */
                 if (this.op == 'find' && !this.params.where) {
                     s = s.replace(/\${(.*?)}/g, '')
                     let sep = this.delimiter
