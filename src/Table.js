@@ -68,10 +68,9 @@ export default class Table {
         //  Context properties always applied to create/updates
         this.context = {}
 
-        //  Model for uunique properties and for multi-table and low level API
-
+        //  Model for uunique properties and for genric access
         this.unique = new Model(this, '_Unique', {fields: UniqueSchema, timestamps: false})
-        this.model = new Model(this, '_Multi', {fields: LowLevelSchema, timestamps: false})
+        this.generic = new Model(this, '_Multi', {fields: LowLevelSchema, timestamps: false})
 
         if (schema) {
             this.prepSchema(schema)
@@ -151,13 +150,14 @@ export default class Table {
         return await model.get(properties, params)
     }
 
-    async delete(modelName, properties, params) {
-        return await this.remove(modelName, properties, params)
-    }
-
     async remove(modelName, properties, params) {
         let model = this.getModel(modelName)
         return await model.remove(properties, params)
+    }
+
+    async scan(modelName, properties, params) {
+        let model = this.getModel(modelName)
+        return await model.scan(properties, params)
     }
 
     async update(modelName, properties, params) {
@@ -191,12 +191,28 @@ export default class Table {
         return result
     }
 
-    async queryItems(properties, params) {
-        return await this.model.queryItems(properties, params)
+    async deleteItem(properties, params) {
+        return await this.generic.deleteItem(properties, params)
     }
 
-    async scanItems(params) {
-        return await this.model.scanItems(params)
+    async getItem(properties, params) {
+        return await this.generic.getItem(properties, params)
+    }
+
+    async putItem(properties, params) {
+        return await this.generic.putItem(properties, params)
+    }
+
+    async queryItems(properties, params) {
+        return await this.generic.queryItems(properties, params)
+    }
+
+    async scanItems(properties, params) {
+        return await this.generic.scanItems(properties, params)
+    }
+
+    async updateItem(properties, params) {
+        return await this.generic.updateItem(properties, params)
     }
 
     /*
