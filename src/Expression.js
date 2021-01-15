@@ -240,7 +240,10 @@ export default class Expression {
 
     addUpdate(field, value) {
         let {names, nindex, params, updates, values, vindex} = this
-        if (field.isIndexed || params.add || params.remove || params.delete) {
+        if (field.isIndexed && (field.attribute == this.hash || field.attribute == this.sort)) {
+            return
+        }
+        if (params.add || params.remove || params.delete) {
             return
         }
         updates.push(`#_${nindex} = :_${vindex}`)
@@ -263,9 +266,9 @@ export default class Expression {
             if (!Array.isArray(params.remove)) {
                 params.remove = [params.remove]
             }
-            for (let fields of params.remove) {
+            for (let field of params.remove) {
                 updates.push(`#_${nindex}`)
-                names[`#_${nindex++}`] = key
+                names[`#_${nindex++}`] = field
             }
 
         } else if (params.delete) {
