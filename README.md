@@ -203,11 +203,14 @@ import {Table} from 'dynamodb-onetable'
 const table = new Table({
     client: DocumentClientInstance,
     name: 'MyTable',
-    schema: {},
+    schema: Schema,
 })
 
 //  Fetch an item collection for Acme
 let items = await table.queryItems({pk: 'account:AcmeCorp'})
+
+//  Fetch an account by the ID which is used in the primary key
+let account = await table.get('Account', {id})
 
 //  Update Account and User in a transaction
 let transaction = {}
@@ -292,11 +295,12 @@ The `schema.indexes` property can contain one or more indexes and must contain t
 ```javascript
 {
     primary: {
-        hash: 'pk',
+        hash: 'pk',         //  Attribute name of the hash key
         sort: 'sk',
     },
+    //  Zero or more global secondary or local secondary indexes
     gs1: {
-        hash: 'gs1pk',
+        hash: 'gs1pk',      //  Omit the hash for an LSI
         sort: 'gs1sk',
     },
     ...
@@ -323,7 +327,7 @@ The `schema.models` property contains one or more models with attribute field de
 }
 ```
 
-##### Schema Model Attribute Properties
+##### Schema Attribute Properties
 
 The following attribute properties are supported:
 
@@ -338,6 +342,7 @@ The following attribute properties are supported:
 | required | `boolean` | Set to true if the attribute is required. |
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |
+| unique | `boolean` | Set to true to enforce uniqueness for this attribute. |
 | uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string` | String template to use as the value of the attribute. |
@@ -368,54 +373,17 @@ The `value` property defines a literal string template that is used to compute t
 
 ### Table Contexts
 
-Each `Table` has a `context` of properties that are blended with `Model` properties before writing items to the database. The table `context` is useful to store global properties that apply to multiple models. An example would be adding an accountID to the attributes of items that are owned by the account. Use the `Table.setContext` method to initialize the context.
+Each `Table` has a `context` of properties that are blended with `Model` properties before writing items to the database. The table `context` is useful to store global properties that apply to multiple models. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in the primary key for all items belonging to that account or user.
+
+Use the `Table.setContext` method to initialize the context and `Table.clear` to reset.
 
 ### Table Methods
+
 
 #### addModel(name, fields, migrate)
 
 Add a new model to a table. This invokes the `Model` constructor and then adds the model to the table. The previously defined `Table` indexes are used for the model.
 
-#### clear()
-
-Clear the table context properties.
-
-#### async create(modelName, properties, params = {})
-
-Create a new item in the database of the given model `modelName` as defined in the table schema.
-Wraps the `Model.create` API. See [Model.create](#model-create) for details.
-
-#### getModel(name)
-
-Return a model for the given model name.
-
-#### listModels()
-
-Return a list of models defined on the `Table`.
-
-#### removeModel(name)
-
-Remove a model from the `Table` schema.
-
-#### setContext(context = {}, merge = false)
-
-Set the table `context` properties. If `merge` is true, the properties are blended with the existing context.
-
-#### async find(modelName, properties, params = {})
-
-Find an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.find` API. See [Model.find](#model-find) for details.
-
-#### async get(modelName, properties, params = {})
-
-Get an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.get` API. See [Model.get](#model-get) for details.
-
-#### async remove(modelName, properties, params = {})
-
-Delete an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.remove` API. See [Model.remove](#model-remove) for details.
-
-#### async update(modelName, properties, params = {})
-
-Create a new item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.update` API. See [Model.update](#model-update) for details.
 
 #### async batchGet(batch, params = {})
 
@@ -423,9 +391,114 @@ Invoke a prepared batch operation and return the results. Batches are prepared b
 
 The `batch` parameter should initially be set to `{}` and then be passed to API calls via `params.batch`.
 
+For example:
+
+```javascript
+let batch = {}
+await Account.get({id: accountId}, {batch})
+await User.get({id: userId}, {batch})
+let results = await table.batchGet(batch)
+```
+
+
 #### async batchWrite(batch, params = {})
 
 Same as batchGet but for write operations.
+
+
+#### clear()
+
+Clear the table context properties. The `Table` has a `context` of properties that are blended with `Model` properties before writing items to the database.
+
+
+#### async create(modelName, properties, params = {})
+
+Create a new item in the database of the given model `modelName` as defined in the table schema.
+Wraps the `Model.create` API. See [Model.create](#model-create) for details.
+
+
+#### async deleteItem(properties, params = {})
+
+Delete an item in the database. This wraps the DynamoDB `deleteItem` method.
+
+The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
+
+Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to remove. Superfluous property fields will be ignored.
+
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
+
+The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
+
+If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
+
+If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
+
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+
+
+
+#### async getItem(properties, params = {})
+
+Get an item from the database. This API wraps the DynamoDB `getItem` method.
+
+The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
+
+Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to retrieve. Superfluous property fields will be ignored.
+
+The `get` method returns Javascript properties for the item after applying any schema mappings. Hidden attributes will not be returned.
+
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
+
+The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
+
+If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
+
+If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. By default, the unmodified DynamoDB results are returned.
+
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+
+
+
+#### async find(modelName, properties, params = {})
+
+Find an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.find` API. See [Model.find](#model-find) for details.
+
+
+#### async get(modelName, properties, params = {})
+
+Get an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.get` API. See [Model.get](#model-get) for details.
+
+
+#### getModel(name)
+
+Return a model for the given model name.
+
+
+#### listModels()
+
+Return a list of models defined on the `Table`.
+
+
+#### async putItem(properties, params = {})
+
+Create an item in the database. This API wraps the DynamoDB `putItem` method.
+
+The `properties` parameter is a Javascript hash containing all the required attributes for the item and must contain the required keys or fields that are used to create the primary key.
+
+OneTable will only write fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored.
+
+The property names are those described by the schema. NOTE: these are not the same as the attribute names stored in the Database. If a schema uses `map` to define a mapped attribute name, the Javascript field name and the DynamoDB attribute name may be different.
+
+The method returns the unmodified DynamoDB `put` response. If `params.parse` is set to true, it will return the Javascript properties created for the item with hidden attributes will not be returned.
+
+Before creating the item, all the properties will be validated according to any defined schema validations and all required properties will be checked. Similarly, properties that use a schema enum definition will be checked that their value is a valid enum value. Encrypted fields will be encrypted transparently before writing.
+
+The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
+
+If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
+
+If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
+
 
 #### async queryItems(properties, params)
 
@@ -461,6 +534,16 @@ If `params.execute` is set to false, the command will not be executed and the pr
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
 
+#### async remove(modelName, properties, params = {})
+
+Delete an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.remove` API. See [Model.remove](#model-remove) for details.
+
+
+#### removeModel(name)
+
+Remove a model from the `Table` schema.
+
+
 #### async scanItems(params)
 
 Invokes the DynamoDB `scan` API and return the results.
@@ -476,6 +559,11 @@ If `params.execute` is set to false, the command will not be executed and the pr
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
 
+#### setContext(context = {}, merge = false)
+
+Set the table `context` properties. If `merge` is true, the properties are blended with the existing context.
+
+
 #### async transact(operation, transaction, params = {})
 
 Invoke a prepared transaction and return the results. Transactions are prepared by creating a bare transaction object `{}` and passing that via `params.transaction` to the various OneTable APIs to build up a transactional operation. Finally invoking `transact` will execute the accumulated API calls within a DynamoDB transaction.
@@ -484,9 +572,37 @@ The `operation` parameter should be set to `write` or `get`.
 
 The `transaction` parameter should initially be set to `{}` and then be passed to API calls via `params.transaction`.
 
+
+#### async update(modelName, properties, params = {})
+
+Create a new item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.update` API. See [Model.update](#model-update) for details.
+
+
+#### async updateItem(properties, params)
+
+Update an item in the database. This method wraps the DynamoDB `updateItem` API.
+
+The `properties` parameter is a Javascript hash containing properties to update including the required keys or fields that are used to create the primary key.
+
+OneTable will only update fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored.
+
+The property names are those described by the schema. NOTE: these are not the same as the attribute names stored in the Database. If a schema uses `map` to define a mapped attribute name, the Javascript field name and the DynamoDB attribute name may be different.
+
+The method returns the unmodified DynamoDB response. If `params.parse` is true, the call returns the Javascript properties for the item with hidden attributes removed.
+
+The optional params are described in [Model API Params](#params).   
+
+The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
+
+If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
+
+If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
+
+
 #### uuid()
 
 Generate a simple, fast non-cryptographic UUID string.
+
 
 ## Model Class
 
@@ -508,7 +624,7 @@ let Account = new Model(table, 'Account', {
 })
 let User = table.getModel('User')
 
-//  Get an item
+//  Get an item where the name is sufficient to construct the primary key
 let account = await Account.get({name: 'Acme Airplanes'})
 let user = User.get({email: 'user@example.com'}, {index: 'gs1'})
 
@@ -545,7 +661,7 @@ The Model `options` are:
 
 Create an item in the database. This API wraps the DynamoDB `putItem` method.
 
-The `properties` parameter is a Javascript hash containing all the required attributes for the item and must contain the required keys or fields that are used to create the keys.
+The `properties` parameter is a Javascript hash containing all the required attributes for the item and must contain the required keys or fields that are used to create the primary key.
 
 OneTable will only write fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored.
 
@@ -559,20 +675,20 @@ Before creating the item, all the properties will be validated according to any 
 
 If the schema specifies that an attribute must be unique, OneTable will create a special item in the database to enforce the uniqueness. This item will be an instance of the Unique model with the primary key set to `_unique:Model:Attribute:Value`. The created item and the unique item will be created in a transparent transaction so that the item will be created only if all the unique fields are truly unique.  The `remove` API will similarly remove the special unique item.
 
-The optional params are described below in [Model API Params](#params).
+The optional params are described in [Model API Params](#params).
 
 <a name="model-find"></a>
 #### async find(properties, params = {})
 
 Find items in the database. This API wraps the DynamoDB `query` method.
 
-The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the keys.
+The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
 
 Additional fields supplied in `properties` are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
 
 If `find` is called without a sort key, `find` will utilize the model type as a sort key prefix and return all matching model items. This can be used to fetch all items that match the primary hash key and are of the specified model type.
 
-The `find` method returns a list of Javascript properties created for each item after applying any schema mappings. Hidden attributes will not be returned.
+The `find` method returns an array of items after applying any schema mappings. Hidden attributes in items will not be returned.
 
 #### Pagination
 
@@ -581,14 +697,19 @@ The `find` method will automatically invoke DynamoDB query to fetch additional i
 If the limit is exceeded, an `result.next` property is set to a callback function so you can easily invoke the API to retrieve the next page of results. Thanks to Jeremy Daly for this idea. For example:
 
 ```javascript
-let items = await db.querytems({...}, {limit: 10})
-while (items.next) {
-    items = await items.next()
+let items = await db.queryItems({...}, {limit: 100})
+while (items.length) {
+    //  process items
+    if (items.next) {
+        items = await items.next()
+    } else {
+        break
+    }
 }
 ```
 
 
-The optional params are fully described below in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
 If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
 
@@ -598,20 +719,20 @@ The `params.limit` specifies the maximum number of items to return. The `params.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
 
 <a name="model-get"></a>
 #### async get(properties, params = {})
 
-Get an item from the database. This API wraps the DynamoDB `get` method.
+Get an item from the database. This API wraps the DynamoDB `getItem` method.
 
-The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the keys.
+The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
 
 Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to retrieve. Superfluous property fields will be ignored.
 
 The `get` method returns Javascript properties for the item after applying any schema mappings. Hidden attributes will not be returned.
 
-The optional params are fully described below in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -621,16 +742,17 @@ If `params.parse` is set to false, the unmodified DynamoDB response will be retu
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
 
+
 <a name="model-remove"></a>
 #### async remove(properties, params = {})
 
-Remove an item from the database. This wraps the DynamoDB `delete` method.
+Remove an item from the database. This wraps the DynamoDB `deleteItem` method.
 
-The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the keys.
+The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
 
 Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to remove. Superfluous property fields will be ignored.
 
-The optional params are fully described below in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -642,11 +764,15 @@ The `params.where` clause may be used to define a filter expression. This will d
 
 
 <a name="model-scan"></a>
-#### async scan(params = {})
+#### async scan(properties, params = {})
 
-Scan items in the database. This wraps the DynamoDB `scan` method.
+Scan items in the database and return items of the given model type. This wraps the DynamoDB `scan` method. Use `scanItems` to return all model types.
 
-The optional params are fully described below in [Model API Params](#params). Some relevant params include:
+The `properties` parameter is a Javascript hash containing fields used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
+
+The `scan` method returns an array of items after applying any schema mappings. Hidden attributes in items will not be returned.
+
+The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -654,7 +780,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
 
 
 <a name="model-update"></a>
@@ -662,7 +788,7 @@ The `params.where` clause may be used to define a filter expression. This will d
 
 Update an item in the database. This method wraps the DynamoDB `updateItem` API.
 
-The `properties` parameter is a Javascript hash containing properties to update including the required keys or fields that are used to create the keys.
+The `properties` parameter is a Javascript hash containing properties to update including the required keys or fields that are used to create the primary key.
 
 OneTable will only update fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored.
 
@@ -670,26 +796,17 @@ The property names are those described by the schema. NOTE: these are not the sa
 
 The method returns the all the Javascript properties for the item. Hidden attributes will not be returned.
 
-The optional params are described below in [Model API Params](#params).    
+The optional params are described in [Model API Params](#params).    
 
-### Model Low-Level API
-
-The Model low-level API has similar methods to the high level API but it does not parse the returned results into Javascript objects by default. You can alter this by setting `params.parse` to true.
-
-The low-level API has the following methods:
-
-```javascript
-async deleteItem(properties, params = {})
-async getItem(properties, params = {})
-async putItem(properties, params = {})
-async queryItems(properties, params = {})
-async scanItems(properties, params = {})
-async updateItem(properties, params = {})
-```
+The `params.remove` parameter may be set to a list of attributes to remove.
+The `params.add` parameter may be set a value to add to a parameter.
+The `params.delete` parameter may be set hash where the hash keys are the attribute sets to modify and the values are the item in the sets to remove.
 
 <a name="params"></a>
 
 #### Model API params
+
+The are the parameter values that may be supplied to various `Model` and `Table` APIs that accept a `params` argument.
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
@@ -697,16 +814,17 @@ async updateItem(properties, params = {})
 | batch | `object` | Accumulated batched API calls. Invoke with `Table.batch*`|
 | capacity | `string` | Set to `INDEXES`, `TOTAL`  or `NONE` to control the capacity metric. Returned in items.capacity|
 | consistent | `boolean` | Set to true to stipulate that consistent reads are required.|
-| context | `object` | Optional context hash of properties to blend with API properties when creating or updating items.|
+| context | `object` | Optional context hash of properties to blend with API properties when creating or updating items. This overrides the Table.context. Setting to `{}` is a useful one-off way to ignore the context for this API. |
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
 | exists | `boolean` | Set to true on `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to null.|
+| hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
 | limit | `number` | Set to the maximum number of items to return from a find / scan.
 | log | `boolean` | Set to true to force the API call to be logged at the 'info' level. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
 | metrics | `boolean` | Set to true to enable returning performance metrics for find/scan. Defaults to false.|
-| parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true for the high-level API and false for the low-level `*Item` APIs.|
+| parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
