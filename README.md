@@ -19,6 +19,8 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 
 After watching the famous [Rick Houilahan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
 
+OneTable is used by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access.
+
 A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and his [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) which pointed out a better way for us to do a number of things.
 
 ## OneTable Features
@@ -376,6 +378,8 @@ The `value` property defines a literal string template that is used to compute t
 Each `Table` has a `context` of properties that are blended with `Model` properties. The context is used to provide keys and attributes that apply to more than just one model. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user.
 
 When creating items, context properties are written to the database. When updating, context properties are not, only explicit attributes provided in the API `properties` parameter are written.
+
+Context properties take precedence over supplied `properties`. This is to prevent accidental updating of context keys. To force an update, provide the context properties either by updating the context via `Table.setContext` or supplying an explicit context via `params.context`
 
 
 Use the `Table.setContext` method to initialize the context and `Table.clear` to reset.

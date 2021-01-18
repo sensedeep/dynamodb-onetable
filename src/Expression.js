@@ -59,8 +59,9 @@ export default class Expression {
      */
     parseFields(fields, properties) {
         let op = this.op
+        let context = this.params.context || this.table.context
         for (let [fieldName, field] of Object.entries(fields)) {
-            let value = this.template(field, properties, this.table.context)
+            let value = this.template(field, properties, context)
             if (value === undefined || value === null || value === '') {
                 if (field.uuid && op == 'put') {
                     value = this.table.uuid()
@@ -112,6 +113,7 @@ export default class Expression {
                 }
             }
         } else if ((op == 'find' || op == 'scan')) {
+            //  schema.filter == false disables a field from being used in a filter
             if (this.properties[field.name] && field.filter !== false) {
                 this.addFilter(field.attribute, value)
             }
