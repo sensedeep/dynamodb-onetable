@@ -248,8 +248,11 @@ export default class Expression {
             return
         }
         if (field.attribute != this.hash && field.attribute != this.sort && this.properties[field.name] === undefined) {
-            //  Only update values explicitly provided by caller in properties
-            return
+            //  Only update values explicitly provided by caller in properties.
+            //  Unless params.updateContext requires context properties to be updated too.
+            if (this.params.updateIndexes !== true) {
+                return
+            }
         }
         updates.push(`#_${nindex} = :_${vindex}`)
         names[`#_${nindex++}`] = field.attribute
