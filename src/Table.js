@@ -240,7 +240,7 @@ export default class Table {
     log(type, message, context, params) {
         if (this.logger) {
             if (params && params.log) {
-                this.logger('info', message, context)
+                this.logger.info(message, context)
             } else {
                 this.logger[type](message, context)
             }

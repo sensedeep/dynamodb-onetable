@@ -827,7 +827,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | exists | `boolean` | Set to true on `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to null.|
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
-| limit | `number` | Set to the maximum number of items to return from a find / scan.
+| limit | `number` | Set to the maximum number of items to return from a find / scan.|
 | log | `boolean` | Set to true to force the API call to be logged at the 'info' level. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
 | metrics | `boolean` | Set to true to enable returning performance metrics for find/scan. Defaults to false.|
@@ -835,13 +835,13 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
-| return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.
+| return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
 | throw | `boolean` | Set to true to throw exceptions when update constraints fail. Defaults to false.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB requried type.|
-| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is not to update index values which are defined during create. |
+| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is not to update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 <a name='where'></a>
