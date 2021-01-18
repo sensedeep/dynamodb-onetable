@@ -351,7 +351,6 @@ export default class Model {
      */
     async removeByFind(properties, params) {
         if (params.retry) {
-            //MOB - consistency in error
             throw new Error('dynamo: Remove cannot retry')
         }
         let items = await this.find(properties, params)
