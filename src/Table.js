@@ -239,8 +239,6 @@ export default class Table {
 
     log(type, message, context, params) {
         if (this.logger) {
-            //MOB - temp
-            type = 'info'
             if (params && params.log) {
                 this.logger('info', message, context)
             } else {
