@@ -17,7 +17,7 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 
 ## History and Credits
 
-After watching the famous [Rick Houilahan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
+After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
 
 OneTable is used by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access.
 
@@ -153,6 +153,12 @@ which will return:
 }
 ```
 
+To use a secondary index:
+
+```javascript
+let user = await User.get({email: 'user@example.com'}, {index: 'gs1'})
+```
+
 To find a set of items:
 
 ```javascript
@@ -178,14 +184,14 @@ To do a transactional update:
 let transaction = {}
 await Account.update({id: account.id, status: 'active'}, {transaction})
 await User.update({id: user.id, role: 'user'}, {transaction})
-await table.transaction(transaction)
+await table.transaction('write', transaction)
 ```
 
 ## Why OneTable?
 
-DynamoDB is a great [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database that comes with a learning curve. Folks migrating from SQL often have time adjusting to the NoSQL paradigm and especially to DynamoDB which offers exceptional scalability but with a fairly low-level API.
+DynamoDB is a great [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database that comes with a learning curve. Folks migrating from SQL often have a hard time adjusting to the NoSQL paradigm and especially to DynamoDB which offers exceptional scalability but with a fairly low-level API.
 
-The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedious to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type expressions, key, filter, condition and update expressions are anyones idea of a good time.
+The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedious to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type expressions, key, filter, condition and update expressions are anyone's idea of a good time.
 
 Net/Net: it is not easy to write terse, clear, robust Dynamo code for one-table patterns.
 
@@ -193,7 +199,7 @@ Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB a
 
 ## Table Class
 
-The Table class is the top-most OneTable class and it represents a single DynamoDB table. The table class configures access to a DynamoDB table, defines the model (entity) schema, indexes, crypto and defaults.
+The `Table` class is the top-most OneTable class and it represents a single DynamoDB table. The table class configures access to a DynamoDB table, defines the model (entity) schema, indexes, crypto and defaults. You can create a single `Table` instance or if you are working with multiple tables, you can create one instance per table.
 
 The Table class provides APIs for transactions and batch API operations. While most access to the database is via the `Model` methods, the Table class also provides a convenience API to wrap the `Model` methods so you can specify the required model by a string name. The is helpful for factory design patterns.
 
@@ -211,14 +217,14 @@ const table = new Table({
 //  Fetch an item collection for Acme
 let items = await table.queryItems({pk: 'account:AcmeCorp'})
 
-//  Fetch an account by the ID which is used in the primary key
+//  Fetch an account by the ID which is used to create the primary key value
 let account = await table.get('Account', {id})
 
 //  Update Account and User in a transaction
 let transaction = {}
 await table.update('Account', {id: account.id, status: 'active'}, {transaction})
 await table.update('User', {id: user.id, role: 'user'}, {transaction})
-await table.transaction(transaction)
+await table.transaction('write', transaction)
 
 //  Fetch an Account using the Account model
 let account = table.find('Account', {id})
