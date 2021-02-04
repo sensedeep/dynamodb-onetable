@@ -342,7 +342,7 @@ The following attribute properties are supported:
 | Property | Type | Description |
 | -------- | :--: | ----------- |
 | crypt | `boolean` | Set to true to encrypt the data before writing. |
-| default | `string or function` | Default value to use when creating model items.|
+| default | `string or function` | Default value to use when creating model items or when reading items without a value.|
 | enum | `array` | List of valid string values for the attribute. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. |
 | map | `string` | Map the field value to a different attribute when storing in the database. |
@@ -684,6 +684,8 @@ The method returns the Javascript properties created for the item. Hidden attrib
 
 Before creating the item, all the properties will be validated according to any defined schema validations and all required properties will be checked. Similarly, properties that use a schema enum definition will be checked that their value is a valid enum value. Encrypted fields will be encrypted transparently before writing.
 
+Set params.exists to false to ensure an item of the same key does not already exist. Otherwise, the create will overwrite.
+
 ##### Unique Fields
 
 If the schema specifies that an attribute must be unique, OneTable will create a special item in the database to enforce the uniqueness. This item will be an instance of the Unique model with the primary key set to `_unique:Model:Attribute:Value`. The created item and the unique item will be created in a transparent transaction so that the item will be created only if all the unique fields are truly unique.  The `remove` API will similarly remove the special unique item.
@@ -812,7 +814,7 @@ The method returns the all the Javascript properties for the item. Hidden attrib
 The optional params are described in [Model API Params](#params).    
 
 The `params.remove` parameter may be set to a list of attributes to remove.
-The `params.add` parameter may be set a value to add to a parameter.
+The `params.add` parameter may be set a value to add to an attribute.
 The `params.delete` parameter may be set hash where the hash keys are the attribute sets to modify and the values are the item in the sets to remove.
 
 <a name="params"></a>
@@ -830,7 +832,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | context | `object` | Optional context hash of properties to blend with API properties when creating or updating items. This overrides the Table.context. Setting to `{}` is a useful one-off way to ignore the context for this API. |
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
-| exists | `boolean` | Set to true on `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to null.|
+| exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update`.|
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
