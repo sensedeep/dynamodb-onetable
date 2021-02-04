@@ -892,7 +892,7 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 - [DynamoDB Book](https://www.dynamodbbook.com/)
 - [Alex DeBrie Best Practices Video](https://www.youtube.com/watch?v=8Ww1YW3AChE)
 - [DocumentClient SDK Reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html)
-- [DynamoD Guide](https://www.dynamodbguide.com/)
+- [DynamoDB Guide](https://www.dynamodbguide.com/)
 - [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox)
 - [Best Practices for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
 
