@@ -2,8 +2,8 @@
     Table.js - DynamoDB table class
  */
 
-import Model from './Model'
-import * as Crypto from 'crypto'
+import Crypto from 'crypto'
+import Model from './Model.js'
 
 const IV_LENGTH = 16
 

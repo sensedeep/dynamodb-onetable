@@ -1,7 +1,7 @@
 /*
     Model.js - DynamoDB model class
 */
-import Expression from './Expression'
+import Expression from './Expression.js'
 
 /*
     Default index keys if not supplied
