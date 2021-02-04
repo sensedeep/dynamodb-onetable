@@ -86,8 +86,33 @@ export default class Table {
         }
     }
 
+    getSchema() {
+        let schema = {name: this.name, models: {}, indexes: this.indexes}
+        for (let [name, model] of Object.entries(this.models)) {
+            let item = {}
+            for (let [field, properties] of Object.entries(model.fields)) {
+                item[field] = {
+                    attribute: properties.attribute,
+                    enum: properties.enum,
+                    hidden: properties.hidden,
+                    isIndexed: properties.isIndexed,
+                    name: field,
+                    nulls: properties.nulls,
+                    required: properties.required,
+                    type: (typeof properties.type == 'function') ? properties.type.name : properties.type,
+                    unique: properties.unique,
+                    value: properties.value,
+                    validate: properties.validate ? properties.validate.toString() : null,
+                }
+            }
+            schema.models[name] = item
+        }
+        return schema
+    }
+
     prepSchema(params) {
         let {models, indexes} = params
+        this.indexes = indexes
         let migrate = params.migrate || this.migrate
         for (let [name, fields] of Object.entries(models)) {
             this.models[name] = new Model(this, name, {fields, indexes, migrate})

@@ -57,7 +57,7 @@ export default class Expression {
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
-    parseFields(fields, properties) {
+    parseFields(fields, properties = {}) {
         let op = this.op
         let context = this.params.context || this.table.context
         for (let [fieldName, field] of Object.entries(fields)) {
