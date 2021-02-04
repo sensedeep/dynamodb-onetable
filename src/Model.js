@@ -467,7 +467,15 @@ export default class Model {
             let attribute = this.map[name]
             let value = result[attribute]
             if (value === undefined) {
-                continue
+                if (field.default) {
+                    if (typeof field.default == 'function') {
+                        value = field.default(this, fieldName, properties)
+                    } else {
+                        value = field.default
+                    }
+                } else {
+                    continue
+                }
             }
             if (field.crypt) {
                 value = this.decrypt(value)
@@ -567,7 +575,7 @@ export default class Model {
                 }
             }
             if (value === undefined) {
-                if (op == 'create' && field.default) {
+                if (op == 'put' && field.default) {
                     if (typeof field.default == 'function') {
                         value = field.default(this, fieldName, properties)
                     } else {
