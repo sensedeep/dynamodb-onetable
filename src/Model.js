@@ -277,7 +277,7 @@ export default class Model {
     }
 
     async create(properties, params = {}) {
-        params = Object.assign({parse: true, high: true}, params)
+        params = Object.assign({parse: true, high: true, exists: false}, params)
         let result
         if (this.hasUniqueFields) {
             result = await this.createUnique(properties, params)
@@ -334,7 +334,7 @@ export default class Model {
     }
 
     async remove(properties, params = {}) {
-        params = Object.assign({high: true}, params)
+        params = Object.assign({exists: null, high: true}, params)
         let expression = new Expression(this, 'delete', properties, params)
         if (expression.fallback) {
             return await this.removeByFind(properties, params)
@@ -384,7 +384,7 @@ export default class Model {
     }
 
     async update(properties, params = {}) {
-        params = Object.assign({parse: true, high: true}, params)
+        params = Object.assign({exists: true, parse: true, high: true}, params)
         return await this.updateItem(properties, params)
     }
 
