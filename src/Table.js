@@ -47,7 +47,7 @@ export default class Table {
         } = params
 
         this.logger = logger
-        this.log('trace', `Loading DDB`, {params})
+        this.log('trace', `Loading OneTable`, {params})
 
         this.params = params
         this.client = client
@@ -241,6 +241,21 @@ export default class Table {
 
     async updateItem(properties, params) {
         return await this.generic.updateItem(properties, params)
+    }
+
+    async scanModels(models, params) {
+        let where = []
+        for (let model of models) {
+            where.push('(${' + this.typeField + '} == {' + model + '})')
+        }
+        where = where.join(' or ')
+        params = Object.assign({where, parse: true, hidden: false}, params)
+        let items = await this.generic.scanItems({}, params)
+        let result = {}
+        for (let item of items) {
+            result[item[this.typeField]] = item
+        }
+        return result
     }
 
     /*
