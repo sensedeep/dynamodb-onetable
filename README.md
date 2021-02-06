@@ -446,7 +446,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
 
@@ -468,8 +468,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. By default, the unmodified DynamoDB results are returned.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
-
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
 #### async find(modelName, properties, params = {})
@@ -538,7 +537,7 @@ Some useful params for queryItems include:
 
 The `params.index` may be set to the desired index name.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -563,7 +562,7 @@ Invokes the DynamoDB `scan` API and return the results.
 
 Some relevant params include:
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -734,7 +733,7 @@ The `params.limit` specifies the maximum number of items to return. The `params.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
-The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 <a name="model-get"></a>
 #### async get(properties, params = {})
@@ -755,7 +754,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
 <a name="model-remove"></a>
@@ -775,7 +774,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
-The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
 <a name="model-scan"></a>
@@ -795,7 +794,7 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
-The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where) for more details.
+The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
 <a name="model-update"></a>
@@ -852,7 +851,6 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is not to update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
-<a name='where'></a>
 #### Where Clauses
 
 Using DynamoDB ExpressionAttributeNames and Values is one of the least fun parts of DynamoDB. OneTable makes this much easier via the use of templated `where` clauses.
@@ -874,7 +872,7 @@ OneTable will extract attributes defined inside `${}` braces and values inside `
 You can use the following operators with a `where` clause:
 
 ```javascript
-< <= = >= > <>
+< <= = >= >
 AND OR NOT BETWEEN IN
 ()
 attribute_exists
@@ -884,6 +882,8 @@ begins_with
 contains
 size
 ```
+
+Where clauses when used with `find` or `scan` can also use the `<>` not equals operator.
 
 See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html) for more details.
 
