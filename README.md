@@ -44,6 +44,11 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 
+## Related Packages
+
+If you require DynamoDB migration support, consider the
+[OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
+
 ## Installation
 
     npm i dynamodb-onetable
