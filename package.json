@@ -1,7 +1,14 @@
 {
     "name": "dynamodb-onetable",
-    "version": "0.6.7",
+    "version": "0.6.8",
     "description": "DynamoDB OneTable",
+    "type": "module",
+    "exports": {
+        ".": {
+            "import": "./dist/mjs/index.mjs",
+            "require": "./dist/cjs/index.cjs"
+        }
+    },
     "keywords": [
         "dynamodb",
         "onetable",
@@ -12,7 +19,7 @@
     "author": "Michael O'Brien <mob@sensedeep.com>",
     "license": "MIT",
     "scripts": {
-        "build": "tsc",
+        "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
         "lint": "eslint .",
         "prepare": "npm run build",
         "_prepublishOnly": "npm test && npm run lint",
@@ -28,7 +35,6 @@
         "url": "https://github.com/sensedeep/dynamodb-onetable/issues"
     },
     "homepage": "https://github.com/sensedeep/dynamodb-onetable",
-    "main": "dist/index.js",
     "devDependencies": {
         "@types/jest": "^26.0.19",
         "@types/node": "^14.14.16",

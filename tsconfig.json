@@ -1,27 +1,8 @@
 {
+    "extends": "./tsconfig-base.json",
     "compilerOptions": {
-        "allowJs": true,
-        "allowSyntheticDefaultImports": true,
-        "baseUrl": "src",
-        "declaration": true,
-        "esModuleInterop": true,
-        "inlineSourceMap": false,
-        "lib": ["esnext"],
-        "listEmittedFiles": false,
-        "listFiles": false,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "noFallthroughCasesInSwitch": true,
-        "outDir": "dist",
-        "pretty": true,
-        "resolveJsonModule": true,
-        "rootDir": "src",
-        "skipLibCheck": true,
-        "strict": true,
-        "target": "es2015",
-        "traceResolution": false,
-        "types": ["node", "jest"]
-    },
-    "compileOnSave": false,
-    "exclude": ["node_modules", "dist"]
+        "module": "esnext",
+        "outDir": "dist/mjs",
+        "target": "esnext"
+    }
 }

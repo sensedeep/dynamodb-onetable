@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+#   Rename to cjs/mjs after tsc build
+#
+mv dist/cjs/index.js dist/cjs/index.cjs
+mv dist/mjs/index.js dist/mjs/index.mjs
