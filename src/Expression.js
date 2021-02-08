@@ -114,7 +114,7 @@ export default class Expression {
             }
         } else if ((op == 'find' || op == 'scan')) {
             //  schema.filter == false disables a field from being used in a filter
-            if (this.properties[field.name] && field.filter !== false) {
+            if (this.properties[field.name] !== undefined && field.filter !== false) {
                 this.addFilter(field.attribute, value)
             }
         }
