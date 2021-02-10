@@ -568,6 +568,8 @@ export default class Model {
                 if (field.required && value == null && field.value == null) {
                     if (context[fieldName] !== undefined) {
                         value = context[fieldName]
+                    } else if (field.uuid) {
+                        value = this.table.uuid()
                     } else {
                         details[fieldName] = `Missing required "${fieldName}"`
                         continue

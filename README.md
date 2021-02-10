@@ -19,7 +19,7 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 
 After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
 
-OneTable is used by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access.
+OneTable was used in production by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
 A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and his [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) which pointed out a better way for us to do a number of things.
 
