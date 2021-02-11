@@ -60,7 +60,7 @@ export default class Table {
         this.name = name
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
-        this.hidden = hidden || false
+        this.hidden = hidden || true
 
         //  Schema models
         this.models = {}

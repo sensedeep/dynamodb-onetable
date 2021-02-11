@@ -1,6 +1,6 @@
 {
     "name": "dynamodb-onetable",
-    "version": "0.6.9",
+    "version": "0.6.10",
     "description": "DynamoDB OneTable",
     "type": "module",
     "exports": {

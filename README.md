@@ -246,7 +246,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | createdField | `string` | Name of the "created" timestamp attribute |
 | delimiter | `string` | Composite sort key delimiter (default ':') |
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
-| hidden | `boolean` | Hide key attributes in Javascript properties. Default false. |
+| hidden | `boolean` | Hide key attributes in Javascript properties. Default true. |
 | name | `string` | yes | The name of your DynamoDB table |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models |
