@@ -61,6 +61,12 @@ Import the library:
 import {Model, Table} from 'dynamodb-onetable'
 ```
 
+or
+
+```javascript
+const {Model, Table} = require('dynamodb-onetable')
+```
+
 Initialize your your Dynamo table instance and define your models via a schema.
 
 ```javascript

@@ -1,6 +1,16 @@
 #!/bin/bash
 #
-#   Rename to cjs/mjs after tsc build
+#   Add package.json files to cjs/mjs subtrees
 #
-mv dist/cjs/index.js dist/cjs/index.cjs
-mv dist/mjs/index.js dist/mjs/index.mjs
+
+cat >dist/cjs/package.json <<!EOF
+{
+    "type": "commonjs"
+}
+!EOF
+
+cat >dist/mjs/package.json <<!EOF
+{
+    "type": "module"
+}
+!EOF
