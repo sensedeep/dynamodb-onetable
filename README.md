@@ -22,7 +22,7 @@ After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.yo
 
 OneTable was used in production by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
-A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and his [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox) which pointed out a better way for us to do a number of things.
+A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and code. He pointed out a better way for us to do a number of things.
 
 ## OneTable Features
 
@@ -261,7 +261,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | typeField | `string` | Name of the "type" attribute. Default to "_type" |
 | uuid | `string` | Function to create a UUID if field schema requires it |
 
-The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html).
+The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
 By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a per-attribute basis via the schema.
 
@@ -270,9 +270,9 @@ By default, OneTable will not write `null` values to the database. If you set th
 The `crypto` property defines the configuration used to encrypt and decrypt attributes that specify `encrypt: true` in their schema. This is useful as an additional layer of security for passwords, keys and other especially sensitive information. The crypto property should be set to a hash that contains the `cipher` to use and an encryption secret/password.
 
 ```javascript
-"primary": {
+{
     "cipher": "aes-256-gcm",
-    "password": "7d11921f-772f-433d-9575-7a2135496b8f"
+    "password": "16719023-772f-133d-1111-aaaa7722188f"
 }
 ```
 
@@ -289,7 +289,6 @@ const table = new Table({
         console.log(tag, message, JSON.stringify)
         console.log(`${new Date}: ${type}, ${message}`)
         console.log(JSON.stringify(context, null, 4) + '\n')
-
     }
 })
 ```
