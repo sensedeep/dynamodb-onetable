@@ -16,7 +16,7 @@ const DefaultIndexes = {
 /*
     DynamoDB API methods mapped to dynamo
  */
-const DynamoMethods = {
+const DocumentClientMethods = {
     delete: 'delete',
     get: 'get',
     find: 'query',
@@ -26,9 +26,9 @@ const DynamoMethods = {
 }
 
 /*
-    Ready / write tags for migrations
+    Ready / write tags for interceptions
  */
-const ReadWriteMigrations = {
+const InterceptTags = {
     delete: 'write',
     get: 'read',
     find: 'read',
@@ -36,6 +36,7 @@ const ReadWriteMigrations = {
     scan: 'read',
     update: 'write'
 }
+
 const TransactOps = { delete: 'Delete', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const SanityPages = 1000
@@ -71,7 +72,7 @@ export default class Model {
         /*
             Migration functions can be provided to Table or via the schema.
          */
-        this.migrate = options.migrate
+        this.intercept = options.intercept
         this.indexes = options.indexes || DefaultIndexes
         this.indexProperties = this.getIndexProperties(this.indexes)
 
@@ -497,8 +498,8 @@ export default class Model {
                 rec[name] = value
             }
         }
-        if (this.migrate && ReadWriteMigrations[op] == 'read') {
-            rec = this.migrate(this, op, rec, result)
+        if (this.intercept && InterceptTags[op] == 'read') {
+            rec = this.intercept(this, op, rec, result)
         }
         for (let [name, field] of Object.entries(this.fields)) {
             if (field.hidden && params.hidden !== true) {
@@ -634,8 +635,8 @@ export default class Model {
             err.details = details
             throw err
         }
-        if (this.migrate && ReadWriteMigrations[op] == 'write') {
-            result = this.migrate(this, this.op, result)
+        if (this.intercept && InterceptTags[op] == 'write') {
+            result = this.intercept(this, this.op, result)
         }
         return result
     }
