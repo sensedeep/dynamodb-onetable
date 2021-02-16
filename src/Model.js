@@ -182,7 +182,11 @@ export default class Model {
                 if (limit) {
                     cmd.Limit = limit
                 }
-                result = await this.table.client[DynamoMethods[op]](cmd).promise()
+                if (this.table.dynamo) {
+                    result = await this.table.dynamo[op](cmd)
+                } else {
+                    result = await this.table.client[DocumentClientMethods[op]](cmd).promise()
+                }
 
             } catch (err) {
                 if (params.throw === false) {
@@ -258,11 +262,13 @@ export default class Model {
     }
 
     /*
-        Optionally parse the response into Javascript objects for the high level API.
+        Parse the response into Javascript objects for the high level API.
      */
     parseResponse(op, expression, items) {
         if (op == 'put') {
             items = [expression.getFieldValues()]
+        } else {
+            items = this.unmarshall(items)
         }
         for (let [index, item] of Object.entries(items)) {
             if (expression.params.high && item[this.typeField] != this.name) continue
@@ -653,5 +659,18 @@ export default class Model {
 
     decrypt(text, inCode = 'base64', outCode = 'utf8') {
         return this.table.decrypt(text, inCode, outCode)
+    }
+
+    unmarshall(item) {
+        if (this.table.dynamo) {
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item[i] = this.table.dynamo.unmarshall(item[i])
+                }
+            } else {
+                item = this.table.dynamo.unmarshall(item)
+            }
+        }
+        return item
     }
 }

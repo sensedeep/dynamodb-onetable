@@ -327,6 +327,8 @@ export default class Expression {
         if (params.preFormat) {
             params.preFormat(model)
         }
+        values = this.marshall(values)
+
         let namesLen = Object.keys(names).length, valuesLen = Object.keys(values).length
         let args = {
             ConditionExpression: conditions.length ? this.and(conditions) : undefined,
@@ -354,6 +356,7 @@ export default class Expression {
             }
         }
         if (op == 'delete' || op == 'get' || op == 'update') {
+            key = this.marshall(key)
             if (params.batch) {
                 args.Keys = key
             } else {
@@ -368,7 +371,7 @@ export default class Expression {
             args.Limit = params.limit ? params.limit : undefined
             args.ScanIndexForward = params.reverse ? false : true
             if (params.start) {
-                args.ExclusiveStartKey = params.start
+                args.ExclusiveStartKey = this.marshall(params.start)
             }
         }
         args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
@@ -459,5 +462,18 @@ export default class Expression {
             return 'delete'
         }
         return 'set'
+    }
+
+    marshall(item) {
+        if (this.table.dynamo) {
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item[i] = this.table.dynamo.marshall(item[i])
+                }
+            } else {
+                item = this.table.dynamo.marshall(item)
+            }
+        }
+        return item
     }
 }

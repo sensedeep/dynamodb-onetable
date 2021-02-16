@@ -39,15 +39,15 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Compound and templated key management.
 * Encrypted fields.
 * Support for Batch, Transactions, GSI, LSI indexes.
-* Hooks to modify DynamoDB requests and responses and for item/attribute migrations.
+* Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.
 * Simple, easy to read source to modify (< 1000 lines).
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 
-## Related Packages
+## Database Migrations
 
-If you require DynamoDB migration support, consider the
+To manage your database migrations, consider the
 [OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
 
 ## Installation
@@ -58,13 +58,13 @@ If you require DynamoDB migration support, consider the
 
 Import the library:
 
+If you are using the AWS V2 SDK:
+
 ```javascript
 import {Model, Table} from 'dynamodb-onetable'
-```
 
-or
+// or
 
-```javascript
 const {Model, Table} = require('dynamodb-onetable')
 ```
 
@@ -77,6 +77,30 @@ const table = new Table({
     schema: MySchema,
 })
 ```
+
+OneTable currently has early, prototype support for the AWS V3 SDK. Please do not yet use in production.
+
+If you are using the AWS V3 SDK:
+
+```javascript
+import {Dynamo, Model, Table} from 'dynamodb-onetable'
+
+// or
+
+const {Dynamo, Model, Table} = require('dynamodb-onetable')
+```
+
+Initialize your your Dynamo table instance and define your models via a schema. The `Dynamo` helper class will create the V3 DynamoDBClient instance using the supplied `params`.
+
+```javascript
+const table = new Table({
+    dynamo: new Dynamo(params),
+    name: 'MyTable',
+    schema: MySchema,
+})
+```
+
+If you wish to use your own AWS V3 DynamoDBClient instance, pass it via `new Dynamo({client: dynamoDbClient})`.
 
 Schemas look like this and define how items will be stored in your database.
 
@@ -248,18 +272,19 @@ The Table constructor takes a parameter of type `object` with the following prop
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
-| client | `DocumentClient` | An AWS [DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html) instance |
-| crypto | `object` | Optional properties defining a crypto configuration to encrypt properties |
-| createdField | `string` | Name of the "created" timestamp attribute |
-| delimiter | `string` | Composite sort key delimiter (default ':') |
+| client | `DocumentClient` | An AWS [DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html) instance. |
+| crypto | `object` | Optional properties defining a crypto configuration to encrypt properties. |
+| createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
+| delimiter | `string` | Composite sort key delimiter (default ':'). |
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Default true. |
-| name | `string` | yes | The name of your DynamoDB table |
+| name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
-| schema | `string` | Definition of your DynamoDB indexes and models |
-| timestamps | `boolean` | Make "created" and "updated" timestamps in items |
-| typeField | `string` | Name of the "type" attribute. Default to "_type" |
-| uuid | `string` | Function to create a UUID if field schema requires it |
+| schema | `string` | Definition of your DynamoDB indexes and models. |
+| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
+| typeField | `string` | Name of the "type" attribute. Default "_type". |
+| updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
+| uuid | `string` | Function to create a UUID if field schema requires it. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -305,7 +330,7 @@ The valid properties of the `schema` object are:
 | -------- | :--: | ----------- |
 | indexes | `object` | Hash of indexes used by the table |
 | models | `object` | Hash of model entities describing the model keys, indexes and attributes |
-| migrate | `function` | Hook function to be invoked on reads and writes to migrate data |
+| intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 
 #### Indexes
 

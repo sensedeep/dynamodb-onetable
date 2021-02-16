@@ -31,6 +31,7 @@ export default class Table {
     constructor(params = {}) {
         let {
             client,         //  Instance of DocumentClient.
+            dynamo,         //  Instance of DynamoDBClient (prototype).
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
@@ -43,7 +44,8 @@ export default class Table {
             timestamps,     //  Make "created" and "updated" timestamps. Default true.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
-            uuid            //  Function to create a UUID if field schema requires it.
+            uuid,           //  Function to create a UUID if field schema requires it.
+            utils           //  Data marshaling utilities for @aws-sdk/util-dynamodb
         } = params
 
         this.logger = logger
@@ -61,6 +63,9 @@ export default class Table {
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
         this.hidden = hidden || true
+
+        //  prototype for AWS V3
+        this.dynamo = dynamo
 
         //  Schema models
         this.models = {}
@@ -199,7 +204,11 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo batchGet on "${this.name}"`, {batch}, params)
-            result = await this.client.batchGet(batch).promise()
+            if (this.dynamo) {
+                result = await this.dynamo.batchGet(batch)
+            } else {
+                result = await this.client.batchGet(batch).promise()
+            }
         } catch (err) {
             this.log('info', `BatchGet error`, {message: err.message, batch})
             throw err
@@ -211,7 +220,11 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo batchWrite on "${this.name}"`, {batch}, params)
-            result = await this.client.batchWrite(batch).promise()
+            if (this.dynamo) {
+                result = await this.dynamo.batchWrite(batch)
+            } else {
+                result = await this.client.batchWrite(batch).promise()
+            }
         } catch (err) {
             this.log('info', `BatchWrite error`, {message: err.message, batch})
             throw err
@@ -265,10 +278,18 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
-            if (op == 'write') {
-                result = await this.client.transactWrite(transaction).promise()
+            if (this.dynamo) {
+                if (op == 'write') {
+                    result = await this.dynamo.transactWrite(transaction)
+                } else {
+                    result = await this.dynamo.transactGet(transaction)
+                }
             } else {
-                result = await this.client.transactGet(transaction).promise()
+                if (op == 'write') {
+                    result = await this.client.transactWrite(transaction).promise()
+                } else {
+                    result = await this.client.transactGet(transaction).promise()
+                }
             }
         } catch (err) {
             this.log('info', `Transaction error`, {message: err.message, transaction})
