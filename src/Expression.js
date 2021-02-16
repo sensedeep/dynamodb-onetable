@@ -80,7 +80,7 @@ export default class Expression {
         }
 
         if (op != 'scan' && this.fieldValues[this.hash] == null) {
-            throw new Error(`dynamo: Empty primary hash key`)
+            throw new Error(`dynamo: Empty hash key`)
         }
         if (op == 'delete' || op == 'put' || op == 'update') {
             this.addConditions(op)

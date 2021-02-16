@@ -61,11 +61,11 @@ Import the library:
 If you are using the AWS V2 SDK:
 
 ```javascript
-import {Model, Table} from 'dynamodb-onetable'
+import {Table} from 'dynamodb-onetable'
 
 // or
 
-const {Model, Table} = require('dynamodb-onetable')
+const {Table} = require('dynamodb-onetable')
 ```
 
 Initialize your your Dynamo table instance and define your models via a schema.
@@ -78,19 +78,23 @@ const table = new Table({
 })
 ```
 
-OneTable currently has early, prototype support for the AWS V3 SDK. Please do not yet use in production.
+OneTable has prototype support for the AWS V3 SDK. Please do not yet use in production.
 
 If you are using the AWS V3 SDK:
 
 ```javascript
-import {Dynamo, Model, Table} from 'dynamodb-onetable'
+import {Table} from 'dynamodb-onetable'
+import Dynamo from 'dynamodb-onetable/Dynamo'
 
 // or
 
-const {Dynamo, Model, Table} = require('dynamodb-onetable')
+const {Table} = require('dynamodb-onetable')
+const Dynamo = require('dynamodb-onetable/Dynamo')
 ```
 
-Initialize your your Dynamo table instance and define your models via a schema. The `Dynamo` helper class will create the V3 DynamoDBClient instance using the supplied `params`.
+The `Dynamo` helper class will create the AWS V3 `DynamoDBClient` instance using the supplied `params`.
+
+Then, create your OneTable `Table` instance by specifying your table name and database schema.
 
 ```javascript
 const table = new Table({
@@ -100,9 +104,17 @@ const table = new Table({
 })
 ```
 
-If you wish to use your own AWS V3 DynamoDBClient instance, pass it via `new Dynamo({client: dynamoDbClient})`.
+This will initialize your your OneTable Table instance and define your models via a schema.
 
-Schemas look like this and define how items will be stored in your database.
+If you wish to use your own AWS V3 DynamoDBClient instance, pass it to the `Dynamo` Constructor.
+
+```javascript
+new Dynamo({client: dynamoDbClient})
+```
+
+## Schemas
+
+Schemas define how items will be stored in your database and look like this:
 
 ```javascript
 const MySchema = {

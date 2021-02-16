@@ -6,6 +6,10 @@
         ".": {
             "import": "./dist/mjs/index.js",
             "require": "./dist/cjs/index.js"
+        },
+        "./Dynamo": {
+            "import": "./dist/mjs/Dynamo.js",
+            "require": "./dist/cjs/Dynamo.js"
         }
     },
     "keywords": [
@@ -38,6 +42,8 @@
     },
     "homepage": "https://github.com/sensedeep/dynamodb-onetable",
     "devDependencies": {
+        "@aws-sdk/client-dynamodb": "^3.5.0",
+        "@aws-sdk/util-dynamodb": "^3.5.0",
         "@types/jest": "^26.0.19",
         "@types/node": "^14.14.16",
         "aws-sdk": "^2.718.0",
