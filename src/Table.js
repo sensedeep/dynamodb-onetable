@@ -45,9 +45,14 @@ export default class Table {
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid,           //  Function to create a UUID if field schema requires it.
-            utils           //  Data marshaling utilities for @aws-sdk/util-dynamodb
         } = params
 
+        if (!name) {
+            throw new Error('Missing "name" property')
+        }
+        if (!client && !dynamo) {
+            throw new Error('Missing "client" or "dynamo" property')
+        }
         this.logger = logger
         this.log('trace', `Loading OneTable`, {params})
 
