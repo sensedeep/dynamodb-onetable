@@ -30,8 +30,7 @@ export default class Table {
 
     constructor(params = {}) {
         let {
-            client,         //  Instance of DocumentClient.
-            dynamo,         //  Instance of DynamoDBClient (prototype).
+            client,         //  Instance of DocumentClient or Dynamo. Use client.V3 to test for Dynamo V3.
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
@@ -50,14 +49,15 @@ export default class Table {
         if (!name) {
             throw new Error('Missing "name" property')
         }
-        if (!client && !dynamo) {
-            throw new Error('Missing "client" or "dynamo" property')
+        if (!client) {
+            throw new Error('Missing "client" property')
         }
         this.logger = logger
         this.log('trace', `Loading OneTable`, {params})
 
         this.params = params
         this.client = client
+        this.V3 = client.V3
         this.migrate = migrate
         this.nulls = nulls || false
         this.delimiter = delimiter || '#'
@@ -68,9 +68,6 @@ export default class Table {
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
         this.hidden = hidden || true
-
-        //  prototype for AWS V3
-        this.dynamo = dynamo
 
         //  Schema models
         this.models = {}
@@ -209,8 +206,8 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo batchGet on "${this.name}"`, {batch}, params)
-            if (this.dynamo) {
-                result = await this.dynamo.batchGet(batch)
+            if (this.V3) {
+                result = await this.client.batchGet(batch)
             } else {
                 result = await this.client.batchGet(batch).promise()
             }
@@ -225,8 +222,8 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo batchWrite on "${this.name}"`, {batch}, params)
-            if (this.dynamo) {
-                result = await this.dynamo.batchWrite(batch)
+            if (this.V3) {
+                result = await this.client.batchWrite(batch)
             } else {
                 result = await this.client.batchWrite(batch).promise()
             }
@@ -283,11 +280,11 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
-            if (this.dynamo) {
+            if (this.V3) {
                 if (op == 'write') {
-                    result = await this.dynamo.transactWrite(transaction)
+                    result = await this.client.transactWrite(transaction)
                 } else {
-                    result = await this.dynamo.transactGet(transaction)
+                    result = await this.client.transactGet(transaction)
                 }
             } else {
                 if (op == 'write') {

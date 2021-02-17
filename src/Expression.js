@@ -465,13 +465,15 @@ export default class Expression {
     }
 
     marshall(item) {
-        if (this.table.dynamo) {
+        let client = this.table.client
+        if (client.V3) {
+            let options = client.params.marshall
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
-                    item[i] = this.table.dynamo.marshall(item[i])
+                    item[i] = client.marshall(item[i], options)
                 }
             } else {
-                item = this.table.dynamo.marshall(item)
+                item = client.marshall(item, options)
             }
         }
         return item

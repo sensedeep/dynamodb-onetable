@@ -56,61 +56,38 @@ To manage your database migrations, consider the
 
 ## Quick Tour
 
-Import the library:
-
-If you are using the AWS V2 SDK:
+Import the OneTable library. If you are not using ES modules or Typescript, use `require` to import the libraries.
 
 ```javascript
 import {Table} from 'dynamodb-onetable'
-
-// or
-
-const {Table} = require('dynamodb-onetable')
 ```
 
-Initialize your your Dynamo table instance and define your models via a schema.
+If you are using the AWS SDK V2, import the AWS `DynamoDB` class and create a `DocumentClient` instance.
 
 ```javascript
-const table = new Table({
-    client: DocumentClientInstance,
-    name: 'MyTable',
-    schema: MySchema,
-})
+import DynamoDB from 'aws-sdk/clients/dynamodb'
+const client = new DynamoDB.DocumentClient({...})
 ```
 
-OneTable has prototype support for the AWS V3 SDK. Please do not yet use in production.
-
-If you are using the AWS V3 SDK:
+If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DocumentDBClient` instance and Dynamo wrapper instance.
 
 ```javascript
-import {Table} from 'dynamodb-onetable'
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import Dynamo from 'dynamodb-onetable/Dynamo'
-
-// or
-
-const {Table} = require('dynamodb-onetable')
-const Dynamo = require('dynamodb-onetable/Dynamo')
+const client = new Dynamo({client: new DynamoDBClient({...})})
 ```
 
-The `Dynamo` helper class will create the AWS V3 `DynamoDBClient` instance using the supplied `params`.
-
-Then, create your OneTable `Table` instance by specifying your table name and database schema.
+Initialize your your OneTable `Table` instance and define your models via a schema.
 
 ```javascript
 const table = new Table({
-    dynamo: new Dynamo(params),
+    client: client,
     name: 'MyTable',
     schema: MySchema,
 })
 ```
 
 This will initialize your your OneTable Table instance and define your models via a schema.
-
-If you wish to use your own AWS V3 DynamoDBClient instance, pass it to the `Dynamo` Constructor.
-
-```javascript
-new Dynamo({client: dynamoDbClient})
-```
 
 ## Schemas
 
@@ -239,11 +216,25 @@ await table.transaction('write', transaction)
 
 DynamoDB is a great [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database that comes with a learning curve. Folks migrating from SQL often have a hard time adjusting to the NoSQL paradigm and especially to DynamoDB which offers exceptional scalability but with a fairly low-level API.
 
-The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedious to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type expressions, key, filter, condition and update expressions are anyone's idea of a good time.
+The standard DynamoDB API requires a lot of boiler-plate syntax and expressions. This is tedious to use and can unfortunately can be error prone at times. I doubt that creating complex attribute type, key, filter, condition and update expressions are anyone's idea of a good time.
 
 Net/Net: it is not easy to write terse, clear, robust Dynamo code for one-table patterns.
 
 Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB and to remove the tedium and provide a more natural, "Javascripty" way to interact with DynamoDB without obscuring any of the power of DynamoDB itself.
+
+## Dynamo Class
+
+The Dynamo class is used ease the configuration of the AWS SDK V3. The class is only used to wrap the DynamoDBClient instance and provide helper methods for OneTable. It does not expose any other methods.
+
+### Dynamo Constructor
+
+The Dynamo constructor takes a parameter of type `object` with the following properties:
+
+| Property | Type | Description |
+| -------- | :--: | ----------- |
+| client | `DynamoDB` | An AWS SDK V3 [DynamoDBClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/dynamodbclient.html) instance. |
+| marshall | `object` | Marshall options for converting to DynamoDB attribute types. See: [util-dynamodb](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html) for details. |
+| unmarshall | `object` | Unmarshall options for converting from DynamoDB attribute types. See: [util-dynamodb](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html) for details. |
 
 ## Table Class
 

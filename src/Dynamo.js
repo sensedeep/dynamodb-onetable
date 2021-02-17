@@ -1,7 +1,9 @@
 /*
     Dynamo.js -- AWS V3 SDK API
 
-    import {Dynamo, Model, Table} from 'dynamodb-onetable'
+    import {Model, Table} from 'dynamodb-onetable'
+    import Dynamo from 'dynamodb-onetable/Dynamo'
+
     const dynamo = new Dynamo(params)
     const table = new Table({ dynamo, ... })
 */
@@ -10,7 +12,6 @@ import {
     BatchGetItemCommand,
     BatchWriteItemCommand,
     DeleteItemCommand,
-    DynamoDBClient,
     GetItemCommand,
     PutItemCommand,
     QueryCommand,
@@ -23,10 +24,12 @@ import {
 import Utils from '@aws-sdk/util-dynamodb'
 
 export default class Dynamo {
-    constructor(params) {
-        this.dynamo = params.dynamo || new DynamoDBClient(params)
+    constructor(params = {}) {
+        this.client = params.client
+        this.params = params
         this.marshall = Utils.marshall
         this.unmarshall = Utils.unmarshall
+        this.V3 = true
     }
 
     async delete(params) {
@@ -80,6 +83,6 @@ export default class Dynamo {
     }
 
     async send(cmd) {
-        return await this.dynamo.send(cmd)
+        return await this.client.send(cmd)
     }
 }

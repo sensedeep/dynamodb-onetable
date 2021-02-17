@@ -57,6 +57,7 @@ export default class Model {
         this.options = options
 
         //  Cache table properties
+        this.V3 = table.V3
         this.createdField = table.createdField
         this.delimiter = table.delimiter
         this.log = table.log.bind(table)
@@ -183,8 +184,8 @@ export default class Model {
                 if (limit) {
                     cmd.Limit = limit
                 }
-                if (this.table.dynamo) {
-                    result = await this.table.dynamo[op](cmd)
+                if (this.V3) {
+                    result = await this.table.client[op](cmd)
                 } else {
                     result = await this.table.client[DocumentClientMethods[op]](cmd).promise()
                 }
@@ -663,13 +664,15 @@ export default class Model {
     }
 
     unmarshall(item) {
-        if (this.table.dynamo) {
+        if (this.V3) {
+            let client = this.table.client
+            let options = client.params.unmarshall
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
-                    item[i] = this.table.dynamo.unmarshall(item[i])
+                    item[i] = client.unmarshall(item[i], options)
                 }
             } else {
-                item = this.table.dynamo.unmarshall(item)
+                item = client.unmarshall(item, options)
             }
         }
         return item
