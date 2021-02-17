@@ -44,6 +44,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Simple, easy to read source to modify (< 1000 lines).
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
+* Support for the AWS SDK v3
 
 ## Database Migrations
 
@@ -66,15 +67,17 @@ If you are using the AWS SDK V2, import the AWS `DynamoDB` class and create a `D
 
 ```javascript
 import DynamoDB from 'aws-sdk/clients/dynamodb'
-const client = new DynamoDB.DocumentClient({...})
+const client = new DynamoDB.DocumentClient(params)
 ```
 
-If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DocumentDBClient` instance and Dynamo wrapper instance.
+This version includes prototype support for the AWS SDK v3.
+
+If you are using the AWS SDK v3, import the AWS v3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DocumentDBClient` instance and Dynamo wrapper instance.
 
 ```javascript
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import Dynamo from 'dynamodb-onetable/Dynamo'
-const client = new Dynamo({client: new DynamoDBClient({...})})
+const client = new Dynamo({client: new DynamoDBClient(params)})
 ```
 
 Initialize your your OneTable `Table` instance and define your models via a schema.
@@ -224,7 +227,7 @@ Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB a
 
 ## Dynamo Class
 
-The Dynamo class is used ease the configuration of the AWS SDK V3. The class is only used to wrap the DynamoDBClient instance and provide helper methods for OneTable. It does not expose any other methods.
+The Dynamo class is used ease the configuration of the AWS SDK v3. The class is only used to wrap the DynamoDBClient instance and provide helper methods for OneTable. It does not expose any other methods.
 
 ### Dynamo Constructor
 
@@ -232,7 +235,7 @@ The Dynamo constructor takes a parameter of type `object` with the following pro
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
-| client | `DynamoDB` | An AWS SDK V3 [DynamoDBClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/dynamodbclient.html) instance. |
+| client | `DynamoDB` | An AWS SDK v3 [DynamoDBClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-dynamodb/classes/dynamodbclient.html) instance. |
 | marshall | `object` | Marshall options for converting to DynamoDB attribute types. See: [util-dynamodb](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html) for details. |
 | unmarshall | `object` | Unmarshall options for converting from DynamoDB attribute types. See: [util-dynamodb](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/modules/_aws_sdk_util_dynamodb.html) for details. |
 
