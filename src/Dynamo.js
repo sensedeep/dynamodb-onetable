@@ -21,14 +21,14 @@ import {
     UpdateItemCommand,
 } from '@aws-sdk/client-dynamodb'
 
-import Utils from '@aws-sdk/util-dynamodb'
+import {marshall, unmarshall} from '@aws-sdk/util-dynamodb'
 
 export default class Dynamo {
     constructor(params = {}) {
         this.client = params.client
         this.params = params
-        this.marshall = Utils.marshall
-        this.unmarshall = Utils.unmarshall
+        this.marshall = marshall
+        this.unmarshall = unmarshall
         this.V3 = true
     }
 

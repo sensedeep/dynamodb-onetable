@@ -212,7 +212,7 @@ To do a transactional update:
 let transaction = {}
 await Account.update({id: account.id, status: 'active'}, {transaction})
 await User.update({id: user.id, role: 'user'}, {transaction})
-await table.transaction('write', transaction)
+await table.transact('write', transaction)
 ```
 
 ## Why OneTable?
@@ -266,7 +266,7 @@ let account = await table.get('Account', {id})
 let transaction = {}
 await table.update('Account', {id: account.id, status: 'active'}, {transaction})
 await table.update('User', {id: user.id, role: 'user'}, {transaction})
-await table.transaction('write', transaction)
+await table.transact('write', transaction)
 
 //  Fetch an Account using the Account model
 let account = table.find('Account', {id})
