@@ -274,7 +274,6 @@ export default class Table {
                 result = result.promise()
             }
             if (op == 'get') {
-                debugger;
                 if (params.parse) {
                     let items = []
                     for (let r of result.Responses) {
