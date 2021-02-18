@@ -299,6 +299,29 @@ export default class Table {
         return result
     }
 
+    /*
+        Convert items into a map of items by model type
+     */
+    groupByType(items) {
+        let result = {}
+        for (let [index, item] of Object.entries(items)) {
+            let type = item[this.typeField] || '_unknown'
+            let list = result[type] = result[type] || []
+            list.push(item)
+        }
+        return result
+    }
+
+    /*
+    parseResponse(item, params) {
+        item = this.unmarshall(item)
+        let model = this.models[item[this.typeField]]
+        if (model && model != this.unique) {
+            item = model.mapReadData('get', item, params)
+        }
+        return item
+    } */
+
     log(type, message, context, params) {
         if (this.logger) {
             if (params && params.log) {
