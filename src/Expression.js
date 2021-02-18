@@ -228,7 +228,7 @@ export default class Expression {
     addKeys(field, value) {
         let {keys, names, nindex, op, values, vindex} = this
 
-        if (typeof value == 'object' && Object.keys(value).length > 1) {
+        if (typeof value == 'object' && Object.keys(value).length > 0) {
             //  Supported operations: = | <= | < | >= | > | begins_with | between
             //  Note: or is not supported
             let [action,vars] = Object.entries(value)[0]
