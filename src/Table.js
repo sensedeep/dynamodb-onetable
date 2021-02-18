@@ -8,22 +8,6 @@ import Model from './Model.js'
 const IV_LENGTH = 16
 
 /*
-    Item schema to create uniqueness records. Implements unique fields.
- */
-const UniqueSchema = {
-    pk: { value: '_unique:${pk}' },
-    sk: { value: '_unique:' },
-}
-
-/*
-    Schema for the low level API
- */
-const LowLevelSchema = {
-    pk: { },
-    sk: { },
-}
-
-/*
     Represent a single DynamoDB table
  */
 export default class Table {
@@ -75,13 +59,28 @@ export default class Table {
         //  Context properties always applied to create/updates
         this.context = {}
 
-        //  Model for uunique properties and for genric access
-        this.unique = new Model(this, '_Unique', {fields: UniqueSchema, timestamps: false})
-        this.generic = new Model(this, '_Multi', {fields: LowLevelSchema, timestamps: false})
-
         if (schema) {
             this.prepSchema(schema)
         }
+        /*
+            Model for unique attributes and for genric low-level API access
+         */
+        let primary = this.indexes.primary
+        this.unique = new Model(this, '_Unique', {
+            fields: {
+                [primary.hash]: { value: '_unique:${' + primary.hash + '}'},
+                [primary.sort]: { value: '_unique:'},
+            },
+            timestamps: false
+        })
+        this.generic = new Model(this, '_Generic', {
+            fields: {
+                [primary.hash]: {},
+                [primary.sort]: {},
+            },
+            timestamps: false
+        })
+
         if (crypto) {
             this.initCrypto(crypto)
             this.crypto = Object.assign(crypto || {})
