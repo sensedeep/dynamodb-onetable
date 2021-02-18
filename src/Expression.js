@@ -333,7 +333,7 @@ export default class Expression {
         if (params.preFormat) {
             params.preFormat(model)
         }
-        values = this.marshall(values)
+        values = this.table.marshall(values)
 
         let namesLen = Object.keys(names).length, valuesLen = Object.keys(values).length
         let args = {
@@ -362,7 +362,7 @@ export default class Expression {
             }
         }
         if (op == 'delete' || op == 'get' || op == 'update') {
-            key = this.marshall(key)
+            key = this.table.marshall(key)
             if (params.batch) {
                 args.Keys = key
             } else {
@@ -377,7 +377,7 @@ export default class Expression {
             args.Limit = params.limit ? params.limit : undefined
             args.ScanIndexForward = params.reverse ? false : true
             if (params.start) {
-                args.ExclusiveStartKey = this.marshall(params.start)
+                args.ExclusiveStartKey = this.table.marshall(params.start)
             }
         }
         args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
@@ -411,7 +411,8 @@ export default class Expression {
             })
         }
         /*
-            Remaining template variable. If sort and doing find, then use sort key prefix, (provide no where clause).
+            Remaining template variable.
+            If field is the sort key and doing find, then use sort key prefix and begins_with, (provide no where clause).
          */
         if (s.indexOf('${') >= 0) {
             if (field.attribute == this.sort) {
@@ -468,20 +469,5 @@ export default class Expression {
             return 'delete'
         }
         return 'set'
-    }
-
-    marshall(item) {
-        let client = this.table.client
-        if (client.V3) {
-            let options = client.params.marshall
-            if (Array.isArray(item)) {
-                for (let i = 0; i < item.length; i++) {
-                    item[i] = client.marshall(item[i], options)
-                }
-            } else {
-                item = client.marshall(item, options)
-            }
-        }
-        return item
     }
 }

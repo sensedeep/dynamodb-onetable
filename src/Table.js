@@ -365,4 +365,34 @@ export default class Table {
         }
         return text
     }
+
+    marshall(item) {
+        let client = this.client
+        if (client.V3) {
+            let options = client.params.marshall
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item[i] = client.marshall(item[i], options)
+                }
+            } else {
+                item = client.marshall(item, options)
+            }
+        }
+        return item
+    }
+
+    unmarshall(item) {
+        if (this.V3) {
+            let client = this.client
+            let options = client.params.unmarshall
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item[i] = client.unmarshall(item[i], options)
+                }
+            } else {
+                item = client.unmarshall(item, options)
+            }
+        }
+        return item
+    }
 }

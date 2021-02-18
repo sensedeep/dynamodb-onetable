@@ -267,17 +267,24 @@ export default class Model {
         Parse the response into Javascript objects for the high level API.
      */
     parseResponse(op, expression, items) {
+        let table = this.table
         if (op == 'put') {
             items = [expression.getFieldValues()]
         } else {
-            items = this.unmarshall(items)
+            items = table.unmarshall(items)
         }
         for (let [index, item] of Object.entries(items)) {
-            if (expression.params.high && item[this.typeField] != this.name) continue
+            if (expression.params.high && item[this.typeField] != this.name) {
+                //  High level API and item for a different model
+                continue
+            }
             let type = item[this.typeField] ? item[this.typeField] : this.name
-            let model = this.table.models[type] ? this.table.models[type] : this
+            let model = table.models[type] ? table.models[type] : this
             if (model) {
-                if (model == this.table.unique) continue
+                if (model == table.unique) {
+                    //  Special "unique" model for unique fields. Don't return in result.
+                    continue
+                }
                 items[index] = model.mapReadData('find', item, expression.params)
             }
         }
@@ -661,20 +668,5 @@ export default class Model {
 
     decrypt(text, inCode = 'base64', outCode = 'utf8') {
         return this.table.decrypt(text, inCode, outCode)
-    }
-
-    unmarshall(item) {
-        if (this.V3) {
-            let client = this.table.client
-            let options = client.params.unmarshall
-            if (Array.isArray(item)) {
-                for (let i = 0; i < item.length; i++) {
-                    item[i] = client.unmarshall(item[i], options)
-                }
-            } else {
-                item = client.unmarshall(item, options)
-            }
-        }
-        return item
     }
 }
