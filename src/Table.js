@@ -142,7 +142,7 @@ export default class Table {
         }
         let model = this.models[name]
         if (!model) {
-            throw new Error(`Cannot find model ${model}`)
+            throw new Error(`Cannot find model ${name}`)
         }
         return model
     }
