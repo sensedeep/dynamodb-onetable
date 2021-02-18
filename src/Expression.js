@@ -108,6 +108,12 @@ export default class Expression {
             if (field.attribute == this.hash || field.attribute == this.sort) {
                 if (op == 'find') {
                     this.addKeys(field, value)
+
+                } else if (op == 'scan') {
+                    if (this.properties[field.name] !== undefined && field.filter !== false) {
+                        this.addFilter(field.attribute, value)
+                    }
+
                 } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
                     this.addKey(field, value)
                 }
@@ -219,7 +225,7 @@ export default class Expression {
     addKeys(field, value) {
         let {keys, names, nindex, op, values, vindex} = this
 
-        if (typeof value == 'object') {
+        if (typeof value == 'object' && Object.keys(value).length > 1) {
             //  Supported operations: = | <= | < | >= | > | begins_with | between
             //  Note: or is not supported
             let [action,vars] = Object.entries(value)[0]
