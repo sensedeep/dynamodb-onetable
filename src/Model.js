@@ -37,7 +37,7 @@ const InterceptTags = {
     update: 'write'
 }
 
-const TransactOps = { delete: 'Delete', put: 'Put', update: 'Update' }
+const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const SanityPages = 1000
 
@@ -157,6 +157,8 @@ export default class Model {
                 params.expression = expression
                 let items = t.TransactItems = t.TransactItems || []
                 return items.push({[top]: cmd})
+            } else {
+                throw new Error(`Unknown transaction operation ${op}`)
             }
         }
         /*
