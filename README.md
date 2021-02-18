@@ -257,7 +257,12 @@ const table = new Table({
 })
 
 //  Fetch an item collection for Acme
-let items = await table.queryItems({pk: 'account:AcmeCorp'})
+let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true})
+
+//  Group items into arrays by model type
+items = db.groupByType(items)
+let users = items.Users
+let products = items.Products
 
 //  Fetch an account by the ID which is used to create the primary key value
 let account = await table.get('Account', {id})
@@ -386,14 +391,15 @@ The following attribute properties are supported:
 | crypt | `boolean` | Set to true to encrypt the data before writing. |
 | default | `string or function` | Default value to use when creating model items or when reading items without a value.|
 | enum | `array` | List of valid string values for the attribute. |
+| filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. |
 | map | `string` | Map the field value to a different attribute when storing in the database. |
-| nulls | `boolean` | Set to true to store null values. Default to table.nulls value. |
-| required | `boolean` | Set to true if the attribute is required. |
+| nulls | `boolean` | Set to true to store null values. Default false. |
+| required | `boolean` | Set to true if the attribute is required. Default false. |
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |
-| unique | `boolean` | Set to true to enforce uniqueness for this attribute. |
-| uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. |
+| unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
+| uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string` | String template to use as the value of the attribute. |
 
@@ -626,6 +632,19 @@ The `operation` parameter should be set to `write` or `get`.
 
 The `transaction` parameter should initially be set to `{}` and then be passed to API calls via `params.transaction`.
 
+A `get` operation will return an array containing the items retrieved.
+
+The `Table.groupBy` can be used to organize the returned items by model. E.g.
+
+```javascript
+let transaction = {}
+await db.get('Account', {id: accountId}, {transaction})
+await db.get('User', {id: userId}, {transaction})
+let items = await db.transact('get', transaction, {parse: true})
+items = db.groupByType(items).
+let accounts = items.Account
+let users = items.Users
+```
 
 #### async update(modelName, properties, params = {})
 

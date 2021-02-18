@@ -257,39 +257,37 @@ export default class Table {
         return await this.generic.updateItem(properties, params)
     }
 
-    async scanModels(models, params) {
-        let where = []
-        for (let model of models) {
-            where.push('(${' + this.typeField + '} == {' + model + '})')
-        }
-        where = where.join(' or ')
-        params = Object.assign({where, parse: true, hidden: false}, params)
-        let items = await this.generic.scanItems({}, params)
-        let result = {}
-        for (let item of items) {
-            result[item[this.typeField]] = item
-        }
-        return result
-    }
-
     /*
         Invoke a prepared transaction
+        Note: transactGet does not work on non-primary indexes
      */
     async transact(op, transaction, params = {}) {
         let result
         try {
             this.log('trace', `Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
-            if (this.V3) {
-                if (op == 'write') {
-                    result = await this.client.transactWrite(transaction)
-                } else {
-                    result = await this.client.transactGet(transaction)
-                }
+            if (op == 'write') {
+                result = await this.client.transactWrite(transaction)
             } else {
-                if (op == 'write') {
-                    result = await this.client.transactWrite(transaction).promise()
-                } else {
-                    result = await this.client.transactGet(transaction).promise()
+                result = await this.client.transactGet(transaction)
+            }
+            if (!this.V3) {
+                result = result.promise()
+            }
+            if (op == 'get') {
+                debugger;
+                if (params.parse) {
+                    let items = []
+                    for (let r of result.Responses) {
+                        if (r.Item) {
+                            let item = this.unmarshall(r.Item)
+                            let type = item[this.typeField] || '_unknown'
+                            let model = this.models[type]
+                            if (model && model != this.unique) {
+                                items.push(model.mapReadData('get', item, params))
+                            }
+                        }
+                    }
+                    result = items
                 }
             }
         } catch (err) {
