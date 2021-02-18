@@ -205,11 +205,28 @@ export default class Table {
         let result
         try {
             this.log('trace', `Dynamo batchGet on "${this.name}"`, {batch}, params)
+            batch.ConsistentRead = params.ConsistenRead ? true : false
             if (this.V3) {
                 result = await this.client.batchGet(batch)
             } else {
                 result = await this.client.batchGet(batch).promise()
             }
+            let response = result.Responses
+            if (params.parse && response) {
+                result = []
+                for (let [tableName, items] of Object.entries(response)) {
+                    for (let item of items) {
+                        item = this.unmarshall(item)
+                        let type = item[this.typeField] || '_unknown'
+                        let model = this.models[type]
+                        if (model && model != this.unique) {
+                            result.push(model.mapReadData('get', item, params))
+                            //KEEP item._table = tableName
+                        }
+                    }
+                }
+            }
+
         } catch (err) {
             this.log('info', `BatchGet error`, {message: err.message, batch})
             throw err

@@ -168,9 +168,14 @@ export default class Model {
         if (b) {
             params.expression = expression
             let items = b.RequestItems = b.RequestItems || {}
-            let list = items[this.tableName] = items[this.tableName] || []
-            let bop = BatchOps[op]
-            return list.push({[bop]: cmd})
+            if (op == 'get') {
+                let list = items[this.tableName] = items[this.tableName] || {Keys: []}
+                return list.Keys.push(cmd.Keys)
+            } else {
+                let list = items[this.tableName] = items[this.tableName] || []
+                let bop = BatchOps[op]
+                return list.push({[bop]: cmd})
+            }
         }
 
         /*

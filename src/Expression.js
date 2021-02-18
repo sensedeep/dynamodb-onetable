@@ -104,6 +104,7 @@ export default class Expression {
      */
     add(field, value) {
         let op = this.op
+
         if (field.isIndexed) {
             if (field.attribute == this.hash || field.attribute == this.sort) {
                 if (op == 'find') {
@@ -124,8 +125,10 @@ export default class Expression {
                 this.addFilter(field.attribute, value)
             }
         }
-        if (op == 'put') {
+        if (op == 'put' || (this.params.batch && op == 'update')) {
+            //  Batch does not use update expressions (Ugh!)
             this.values[field.attribute] = value
+
         } else if (op == 'update') {
             this.addUpdate(field, value)
         }
@@ -333,51 +336,58 @@ export default class Expression {
         if (params.preFormat) {
             params.preFormat(model)
         }
+        let namesLen = Object.keys(names).length
+        let valuesLen = Object.keys(values).length
+
         values = this.table.marshall(values)
+        key = this.table.marshall(key)
 
-        let namesLen = Object.keys(names).length, valuesLen = Object.keys(values).length
-        let args = {
-            ConditionExpression: conditions.length ? this.and(conditions) : undefined,
-            ExpressionAttributeNames: namesLen > 0 ? names : undefined,
-            ExpressionAttributeValues: (namesLen > 0 && valuesLen > 0) ? values : undefined,
-            FilterExpression: filters.length ? this.and(filters) : undefined,
-            KeyConditionExpression: keys.length ? keys.join(' and ') : undefined,
-            ProjectionExpression: fields.length ? fields.join(', ') : undefined,
-        }
-        if (!params.batch) {
-            args.TableName = this.tableName
-        }
-        if (params.metrics) {
-            args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
-            args.ReturnItemCollectionMetrics || 'SIZE'                  // SIZE | NONE
-        }
-        if (op == 'put') {
-            args.Item = values
-            args.ReturnValues = params.return || 'NONE'
-
-        } else if (op == 'update') {
-            args.ReturnValues = params.return || 'ALL_NEW'
-            if (this.updates.length) {
-                args.UpdateExpression = `${this.getAction(params)} ${this.updates.join(', ')}`
+        let args
+        if (params.batch) {
+            if (op == 'get') {
+                args = { Keys: key }
+            } else if (op == 'delete') {
+                args = { Key: key }
+            } else if (op == 'update') {
+                args = { Item: values }
             }
-        }
-        if (op == 'delete' || op == 'get' || op == 'update') {
-            key = this.table.marshall(key)
-            if (params.batch) {
-                args.Keys = key
-            } else {
+        } else {
+            args = {
+                ConditionExpression: conditions.length ? this.and(conditions) : undefined,
+                ExpressionAttributeNames: namesLen > 0 ? names : undefined,
+                ExpressionAttributeValues: (namesLen > 0 && valuesLen > 0) ? values : undefined,
+                FilterExpression: filters.length ? this.and(filters) : undefined,
+                KeyConditionExpression: keys.length ? keys.join(' and ') : undefined,
+                ProjectionExpression: fields.length ? fields.join(', ') : undefined,
+                TableName: this.tableName
+            }
+            if (params.metrics) {
+                args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
+                args.ReturnItemCollectionMetrics || 'SIZE'                  // SIZE | NONE
+            }
+            if (op == 'put') {
+                args.Item = values
+                args.ReturnValues = params.return || 'NONE'
+
+            } else if (op == 'update') {
+                args.ReturnValues = params.return || 'ALL_NEW'
+                if (this.updates.length) {
+                    args.UpdateExpression = `${this.getAction(params)} ${this.updates.join(', ')}`
+                }
+            }
+            if (op == 'delete' || op == 'get' || op == 'update') {
                 args.Key = key
             }
-        }
-        if (op == 'find' || op == 'get' || op == 'scan') {
-            args.ConsistentRead = params.consistent ? true : false,
-            args.IndexName = params.index ? params.index : null
-        }
-        if (op == 'find' || op == 'scan') {
-            args.Limit = params.limit ? params.limit : undefined
-            args.ScanIndexForward = params.reverse ? false : true
-            if (params.start) {
-                args.ExclusiveStartKey = this.table.marshall(params.start)
+            if (op == 'find' || op == 'get' || op == 'scan') {
+                args.ConsistentRead = params.consistent ? true : false,
+                args.IndexName = params.index ? params.index : null
+            }
+            if (op == 'find' || op == 'scan') {
+                args.Limit = params.limit ? params.limit : undefined
+                args.ScanIndexForward = params.reverse ? false : true
+                if (params.start) {
+                    args.ExclusiveStartKey = this.table.marshall(params.start)
+                }
             }
         }
         args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
