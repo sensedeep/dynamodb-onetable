@@ -218,7 +218,7 @@ export default class Expression {
             }
             if (action == 'begins_with' || action == 'begins') {
                 this.filters.push(`begins_with(#_${nindex}, :_${vindex})`)
-                values[`:_${vindex++}`] = value[action]
+                values[`:_${vindex++}`] = vars
 
             } else if (action == 'between') {
                 this.filters.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
@@ -258,7 +258,7 @@ export default class Expression {
             }
             if (action == 'begins_with' || action == 'begins') {
                 keys.push(`begins_with(#_${nindex}, :_${vindex})`)
-                values[`:_${vindex++}`] = vars[action]
+                values[`:_${vindex++}`] = vars
 
             } else if (action == 'between') {
                 keys.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
