@@ -2,6 +2,8 @@
     Expression.js - DynamoDB API command builder
 */
 
+const Operators = [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
+
 export default class Expression {
     /*
         Create an Expression
@@ -164,7 +166,7 @@ export default class Expression {
     }
 
     /*
-        Make a conditions expression. Replace: ${var} = {value}.
+        Make a conditions expression. Replace: ${var} and {value} tokens.
      */
     makeConditions(where) {
         let {names, nindex, values, vindex} = this
@@ -208,9 +210,30 @@ export default class Expression {
      */
     addFilter(attribute, value) {
         let {names, nindex, values, vindex} = this
-        this.filters.push(`#_${nindex} = :_${vindex}`)
+
+        if (typeof value == 'object' && Object.keys(value).length > 0) {
+            let [action,vars] = Object.entries(value)[0]
+            if (Operators.indexOf(action) < 0) {
+                throw new Error(`Invalid FilterCondition operator "${action}"`)
+            }
+            if (action == 'begins_with' || action == 'begins') {
+                this.filters.push(`begins_with(#_${nindex}, :_${vindex})`)
+                values[`:_${vindex++}`] = value[action]
+
+            } else if (action == 'between') {
+                this.filters.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
+                values[`:_${vindex++}`] = vars[0]
+                values[`:_${vindex++}`] = vars[1]
+
+            } else {
+                this.filters.push(`#_${nindex} ${action} :_${vindex}`)
+                values[`:_${vindex++}`] = value[action]
+            }
+        } else {
+            this.filters.push(`#_${nindex} = :_${vindex}`)
+            values[`:_${vindex++}`] = value
+        }
         names[`#_${nindex++}`] = attribute
-        values[`:_${vindex++}`] = value
         this.nindex = nindex
         this.vindex = vindex
     }
@@ -223,23 +246,28 @@ export default class Expression {
     }
 
     /*
-        Add KeyConditionExpressions for find. Conditions will be joined with ' and ' when prepared.
+        Add KeyConditionExpressions for find. Conditions will be joined with 'and' when prepared.
      */
     addKeys(field, value) {
         let {keys, names, nindex, op, values, vindex} = this
 
         if (typeof value == 'object' && Object.keys(value).length > 0) {
-            //  Supported operations: = | <= | < | >= | > | begins_with | between
-            //  Note: or is not supported
             let [action,vars] = Object.entries(value)[0]
-            if (action == 'begins' || action == 'begins_with') {
+            if (Operators.indexOf(action) < 0) {
+                throw new Error(`Invalid KeyCondition operator "${action}"`)
+            }
+            if (action == 'begins_with' || action == 'begins') {
                 keys.push(`begins_with(#_${nindex}, :_${vindex})`)
-                values[`:_${vindex++}`] = vars
+                values[`:_${vindex++}`] = vars[action]
 
             } else if (action == 'between') {
                 keys.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
                 values[`:_${vindex++}`] = vars[0]
                 values[`:_${vindex++}`] = vars[1]
+
+            } else {
+                keys.push(`#_${nindex} ${action} :_${vindex}`)
+                values[`:_${vindex++}`] = value[action]
             }
         } else {
             keys.push(`#_${nindex} = :_${vindex}`)

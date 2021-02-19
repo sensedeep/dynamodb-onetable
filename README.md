@@ -194,6 +194,8 @@ let users = await User.find({accountId: account.id})
 
 let adminUsers = await User.find({accountId: account.id, role: 'admin'})
 
+let user = await User.find({accountId: account.id, activity: {'>': lastMonth}})
+
 let adminUsers = await User.find({accountId: account.id}, {
     where: '${balance} > {100.00}'
 })
@@ -571,6 +573,7 @@ A key condition may be defined by setting the key property to an object that def
 ```javascript
 let user = await table.queryItems({pk, sk: {begins: 'user:john'}})
 let tickets = await table.queryItems({pk, sk: {between: [1000, 2000]}})
+let invoices = await table.queryItems({pk, balance {'<=': 1000}})
 ```
 
 The operators include:
@@ -922,7 +925,7 @@ For example:
 
 ```javascript
 let adminUsers = await User.find({}, {
-    where: '(${role} == {admin}) and (${status} == {current})'
+    where: '(${role} = {admin}) and (${status} = {current})'
 })
 ```
 
