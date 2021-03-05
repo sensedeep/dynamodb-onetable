@@ -196,7 +196,7 @@ let adminUsers = await User.find({accountId: account.id, role: 'admin'})
 
 let user = await User.find({accountId: account.id, activity: {'>': lastMonth}})
 
-let adminUsers = await User.find({accountId: account.id}, {
+let users = await User.find({accountId: account.id}, {
     where: '${balance} > {100.00}'
 })
 ```
@@ -425,7 +425,7 @@ value = transform(model, operation, name, value)
 
 Where `operation` is either `read` or `write`. The `name` argument is set to the field attribute name.
 
-The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Array, Buffer (or `Binary`) and `Set`. The Object type is mapped to a `map`, the Array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps. Binary data is supplied via `Buffer` types and is stored as base64 strings in DynamoDB.
+The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or `Binary`) and `Set`. The Object type is mapped to a `map`, the Array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps. Binary data is supplied via `Buffer` types and is stored as base64 strings in DynamoDB.
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
@@ -807,6 +807,8 @@ If `params.parse` is set to false, the unmodified DynamoDB response will be retu
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
+If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which reduces the size of the database.
+
 <a name="model-get"></a>
 #### async get(properties, params = {})
 
@@ -828,6 +830,7 @@ If `params.parse` is set to false, the unmodified DynamoDB response will be retu
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
+If the `params.follow` is set to true, the item will be re-fetched using the retrieved keys for the item. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the item using the primary index. This incurs an additional request, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which reduces the size of the database.
 
 <a name="model-remove"></a>
 #### async remove(properties, params = {})

@@ -239,6 +239,25 @@ export default class Model {
         if (params.parse) {
             items = this.parseResponse(op, expression, items)
         }
+        if (params.follow) {
+            if (op == 'get') {
+                return await this.get(items[0])
+            }
+            if (op == 'find') {
+                let results = [], promises = []
+                for (let item of items) {
+                    promises.push(this.get(item))
+                    if (promises.length > FollowThreads) {
+                        results = results.concat(await Promise.all(promises))
+                        promises = []
+                    }
+                }
+                if (promises.length) {
+                    results = results.concat(await Promise.all(promises))
+                }
+                return results
+            }
+        }
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
@@ -543,7 +562,9 @@ export default class Model {
                 value = value.toString('base64')
             }
         } else if (field.type == 'Set') {
-            value = this.table.documentClient.createSet(value)
+            if (!Array.isArray(value)) {
+                throw new Error('Set value must be an array')
+            }
         }
         if (value != null && typeof value == 'object') {
             value = this.mapNestedFields(field, value)
