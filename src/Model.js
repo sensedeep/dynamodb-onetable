@@ -40,6 +40,7 @@ const InterceptTags = {
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const SanityPages = 1000
+const FollowThreads = 10
 
 /*
     DynamoDB model entity class
@@ -590,6 +591,8 @@ export default class Model {
                 if (field.required && value == null && field.value == null) {
                     if (context[fieldName] !== undefined) {
                         value = context[fieldName]
+                    } else if (field.ulid) {
+                        value = this.table.ulid()
                     } else if (field.uuid) {
                         value = this.table.uuid()
                     } else {

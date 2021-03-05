@@ -4,6 +4,7 @@
 
 import Crypto from 'crypto'
 import Model from './Model.js'
+import ULID from './ULID.js'
 
 const IV_LENGTH = 16
 
@@ -27,6 +28,7 @@ export default class Table {
             timestamps,     //  Make "created" and "updated" timestamps. Default true.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
+            ulid,           //  Function to create a ULID if field schema requires it.
             uuid,           //  Function to create a UUID if field schema requires it.
         } = params
 
@@ -51,6 +53,7 @@ export default class Table {
         this.name = name
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
+        this.ulid = ulid || this.ulid
         this.hidden = hidden || true
 
         //  Schema models
@@ -349,9 +352,13 @@ export default class Table {
     // Simple non-crypto UUID. See node-uuid if you require crypto UUIDs.
     uuid() {
         return 'xxxxxxxxxxxxxxxxyxxxxxxxxxyxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
+            let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
+            return v.toString(16)
         })
+    }
+
+    ulid() {
+        return new ULID().toString()
     }
 
     initCrypto(crypto) {

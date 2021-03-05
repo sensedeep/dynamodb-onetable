@@ -297,6 +297,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
+| ulid | `string` | Function to create a ULID if field schema requires it. |
 | uuid | `string` | Function to create a UUID if field schema requires it. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
@@ -401,6 +402,7 @@ The following attribute properties are supported:
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
+| ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
 | uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string` | String template to use as the value of the attribute. |
@@ -678,6 +680,12 @@ If `params.parse` is set to true, the results will be parsed and mapped into a s
 #### uuid()
 
 Generate a simple, fast non-cryptographic UUID string.
+
+
+#### ulid()
+
+Generate a ULID, fast non-cryptographic UUID string.
+Generate a [ULIDs](https://github.com/ulid/spec)for when you need a time-based sortable, unique sequential number.
 
 
 ## Model Class
