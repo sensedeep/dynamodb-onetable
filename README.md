@@ -807,7 +807,7 @@ If `params.parse` is set to false, the unmodified DynamoDB response will be retu
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
-If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which reduces the size of the database.
+If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which may greatly reduce the size (and cost) of the secondary index.
 
 <a name="model-get"></a>
 #### async get(properties, params = {})
