@@ -562,11 +562,21 @@ export default class Model {
      */
     mapWriteData(field, value) {
         if (field.type == Date) {
-            //  Convert dates to unix epoch
-            if (value instanceof Date) {
-                value = value.getTime()
-            } else if (typeof value == 'string') {
-                value = (new Date(Date.parse(value))).getTime()
+            if (this.table.isoDates) {
+                if (value instanceof Date) {
+                    value = value.toISOString()
+                } else if (typeof value == 'string') {
+                    value = (new Date(Date.parse(value))).toISOString()
+                } else if (typeof value == 'number') {
+                    value = (new Date(value)).toISOString()
+                }
+            } else {
+                //  Convert dates to unix epoch
+                if (value instanceof Date) {
+                    value = value.getTime()
+                } else if (typeof value == 'string') {
+                    value = (new Date(Date.parse(value))).getTime()
+                }
             }
 
         } else if (field.type == Buffer || field.type == 'Binary') {

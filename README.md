@@ -289,9 +289,10 @@ The Table constructor takes a parameter of type `object` with the following prop
 | crypto | `object` | Optional properties defining a crypto configuration to encrypt properties. |
 | createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
 | delimiter | `string` | Composite sort key delimiter (default ':'). |
-| logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Default true. |
+| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
+| logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
@@ -871,7 +872,7 @@ The `params.where` clause may be used to define a filter expression. This will d
 
 Scan items in the database and return items of the given model type. This wraps the DynamoDB `scan` method and uses a filter expression to extract the designated model type. Use `scanItems` to return all model types. NOTE: this will still scan the entire database.
 
-An alternative to using scan to retrieve all items of a give model type is to create a GSI and index the model `type` field and then use `query` to retrieve the items. This index can be a sparse index if only a subset of models are indexed. 
+An alternative to using scan to retrieve all items of a give model type is to create a GSI and index the model `type` field and then use `query` to retrieve the items. This index can be a sparse index if only a subset of models are indexed.
 
 The `properties` parameter is a Javascript hash containing fields used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
 

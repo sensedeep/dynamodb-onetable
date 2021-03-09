@@ -19,9 +19,10 @@ export default class Table {
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
+            hidden,         //  Hide key attributes in Javascript properties. Default false.
+            isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
             ksuid,          //  Function to create a KSUID if field schema requires it.
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
-            hidden,         //  Hide key attributes in Javascript properties. Default false.
             migrate,        //  Migration function(model, operation, data). Operation: 'create', 'delete', 'put', ...
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
@@ -50,6 +51,7 @@ export default class Table {
         this.delimiter = delimiter || '#'
         this.createdField = createdField || 'created'
         this.updatedField = updatedField || 'updated'
+        this.isoDates = isoDates || false
         this.typeField = typeField || '_type'
         this.name = name
         this.timestamps = timestamps || true
