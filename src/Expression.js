@@ -417,6 +417,14 @@ export default class Expression {
                     args.ExclusiveStartKey = this.table.marshall(params.start)
                 }
             }
+            if (op == 'scan') {
+                if (params.segments != null) {
+                    args.TotalSegments = params.segments
+                }
+                if (params.segment != null) {
+                    args.Segment = params.segment
+                }
+            }
         }
         args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
         if (params.postFormat) {
