@@ -19,6 +19,7 @@ export default class Table {
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
+            ksuid,          //  Function to create a KSUID if field schema requires it.
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
             hidden,         //  Hide key attributes in Javascript properties. Default false.
             migrate,        //  Migration function(model, operation, data). Operation: 'create', 'delete', 'put', ...
@@ -54,6 +55,7 @@ export default class Table {
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
         this.ulid = ulid || this.ulid
+        this.ksuid = ksuid
         this.hidden = hidden || true
 
         //  Schema models
