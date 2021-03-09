@@ -276,7 +276,7 @@ await table.update('User', {id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 
 //  Fetch an Account using the Account model
-let account = table.find('Account', {id})
+let account = await table.find('Account', {id})
 ```
 
 ### Table Constructor
@@ -291,14 +291,15 @@ The Table constructor takes a parameter of type `object` with the following prop
 | delimiter | `string` | Composite sort key delimiter (default ':'). |
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Default true. |
+| ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| ulid | `string` | Function to create a ULID if field schema requires it. |
-| uuid | `string` | Function to create a UUID if field schema requires it. |
+| ulid | `string` | Function to create a ULID if field schema requires it. If not defined, internal implementation is used. |
+| uuid | `string` | Function to create a UUID if field schema requires it. If not defined, internal implementation is used. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -396,6 +397,7 @@ The following attribute properties are supported:
 | enum | `array` | List of valid string values for the attribute. |
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. |
+| ksuid | `boolean` | Set to true to automatically create a new KSUID (time-based sortable unique string) for the attribute when creating. Default false. This requires an implementation be passed to the Table constructor. |
 | map | `string` | Map the field value to a different attribute when storing in the database. |
 | nulls | `boolean` | Set to true to store null values. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
@@ -623,6 +625,18 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
+The scan method supports parallel scan where you invoke scan simultaneously from multiple workers. Using the async/await pattern, you can start the workers and then use a Promise.all to wait for their completion.
+To perform parallel scans, you should set the `params.segments` to the number of parallel segements and the `params.segment` to the numeric segment to be scaned for that worker.
+
+```javacript
+const segments = 4
+let promises = []
+for (let segment = 0; segment < segments; segment++) {
+    promises.push(table.scanItems({}, {segment, segments}))
+}
+let results = await Promise.all(promises)
+```
+
 
 #### setContext(context = {}, merge = false)
 
@@ -710,13 +724,13 @@ let User = table.getModel('User')
 
 //  Get an item where the name is sufficient to construct the primary key
 let account = await Account.get({name: 'Acme Airplanes'})
-let user = User.get({email: 'user@example.com'}, {index: 'gs1'})
+let user = await User.get({email: 'user@example.com'}, {index: 'gs1'})
 
 //  find (query) items
-let users = User.find({accountName: 'Acme Airplanes'})
+let users = await User.find({accountName: 'Acme Airplanes'})
 
 //  Update an item
-let user = User.update({email: 'user@example.com', balance: 0}, {index: 'gs1'})
+let user = await User.update({email: 'user@example.com', balance: 0}, {index: 'gs1'})
 ```
 
 ### Model Constructor
@@ -855,7 +869,9 @@ The `params.where` clause may be used to define a filter expression. This will d
 <a name="model-scan"></a>
 #### async scan(properties, params = {})
 
-Scan items in the database and return items of the given model type. This wraps the DynamoDB `scan` method. Use `scanItems` to return all model types.
+Scan items in the database and return items of the given model type. This wraps the DynamoDB `scan` method and uses a filter expression to extract the designated model type. Use `scanItems` to return all model types. NOTE: this will still scan the entire database.
+
+An alternative to using scan to retrieve all items of a give model type is to create a GSI and index the model `type` field and then use `query` to retrieve the items. This index can be a sparse index if only a subset of models are indexed. 
 
 The `properties` parameter is a Javascript hash containing fields used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
 
@@ -870,6 +886,18 @@ If `params.execute` is set to false, the command will not be executed and the pr
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
+
+The scan method supports parallel scan where you invoke scan simultaneously from multiple workers. Using the async/await pattern, you can start the workers and then use a Promise.all to wait for their completion.
+To perform parallel scans, you should set the `params.segments` to the number of parallel segements and the `params.segment` to the numeric segment to be scaned for that worker.
+
+```javacript
+const segments = 4
+let promises = []
+for (let segment = 0; segment < segments; segment++) {
+    promises.push(table.scan({}, {segment, segments}))
+}
+let results = await Promise.all(promises)
+```
 
 
 <a name="model-update"></a>
