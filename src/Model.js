@@ -53,6 +53,15 @@ export default class Model {
         @param options Hash of options.
      */
     constructor(table, name, options = {}) {
+        if (!table) {
+            throw new Error('Missing table argument')
+        }
+        if (!table.typeField || !table.ulid) {
+            throw new Error('Invalid table instance')
+        }
+        if (!name) {
+            throw new Error('Missing name of model')
+        }
         this.table = table
         this.name = name
         this.options = options
@@ -319,6 +328,7 @@ export default class Model {
     }
 
     async create(properties, params = {}) {
+        this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true, exists: false}, params)
         let result
         if (this.hasUniqueFields) {
@@ -358,11 +368,13 @@ export default class Model {
     }
 
     async find(properties = {}, params = {}) {
+        this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
         return await this.queryItems(properties, params)
     }
 
     async get(properties, params = {}) {
+        this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
         let expression = new Expression(this, 'get', properties, params)
         if (expression.fallback) {
@@ -376,6 +388,7 @@ export default class Model {
     }
 
     async remove(properties, params = {}) {
+        this.checkArgs(properties, params)
         params = Object.assign({exists: null, high: true}, params)
         let expression = new Expression(this, 'delete', properties, params)
         if (expression.fallback) {
@@ -419,6 +432,7 @@ export default class Model {
     }
 
     async scan(properties = {}, params = {}) {
+        this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
         properties = Object.assign({}, properties)
         properties[this.typeField] = this.name
@@ -468,7 +482,6 @@ export default class Model {
         return await this.run('put', expression)
     }
 
-    //  Note: scanItems will return all model types
     /* private */ async queryItems(properties = {}, params = {}) {
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
@@ -614,6 +627,8 @@ export default class Model {
                         value = context[fieldName]
                     } else if (field.ulid) {
                         value = this.table.ulid()
+                    } else if (field.ksuid) {
+                        value = this.table.ksuid()
                     } else if (field.uuid) {
                         value = this.table.uuid()
                     } else {
@@ -699,5 +714,14 @@ export default class Model {
 
     decrypt(text, inCode = 'base64', outCode = 'utf8') {
         return this.table.decrypt(text, inCode, outCode)
+    }
+
+    checkArgs(properties, params) {
+        if (!properties) {
+            throw new Error('Invalid properties')
+        }
+        if (typeof params != 'object') {
+            throw new Error('Invalid type for params')
+        }
     }
 }

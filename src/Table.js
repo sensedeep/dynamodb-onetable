@@ -121,6 +121,12 @@ export default class Table {
 
     prepSchema(params) {
         let {models, indexes} = params
+        if (!models || typeof models != 'object') {
+            throw new Error('Schema is missing models')
+        }
+        if (!indexes || typeof indexes != 'object') {
+            throw new Error('Schema is missing indexes')
+        }
         this.indexes = indexes
         let migrate = params.migrate || this.migrate
         for (let [name, fields] of Object.entries(models)) {
@@ -151,7 +157,9 @@ export default class Table {
     }
 
     removeModel(name) {
-        delete this.models[name]
+        if (this.getModel(name)) {
+            delete this.models[name]
+        }
     }
 
     /*
@@ -329,16 +337,6 @@ export default class Table {
         return result
     }
 
-    /*
-    parseResponse(item, params) {
-        item = this.unmarshall(item)
-        let model = this.models[item[this.typeField]]
-        if (model && model != this.unique) {
-            item = model.mapReadData('get', item, params)
-        }
-        return item
-    } */
-
     log(type, message, context, params) {
         if (this.logger) {
             if (params && params.log) {
@@ -357,6 +355,7 @@ export default class Table {
         })
     }
 
+    // Simple time-based, sortable unique ID.
     ulid() {
         return new ULID().toString()
     }
