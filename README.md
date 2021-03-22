@@ -42,6 +42,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.
 * Simple, easy to read source to modify (< 1000 lines).
+* Integrated metrics.
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 * Support for the AWS SDK v3
