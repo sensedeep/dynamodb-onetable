@@ -1,7 +1,7 @@
 {
     "name": "dynamodb-onetable",
-    "version": "1.0.0",
-    "description": "DynamoDB OneTable",
+    "version": "0.7.2",
+    "description": "DynamoDB access library for single-table designs",
     "exports": {
         ".": {
             "import": "./dist/mjs/index.js",

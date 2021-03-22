@@ -2,7 +2,8 @@
     Expression.js - DynamoDB API command builder
 */
 
-const Operators = [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
+const KeyOperators = [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
+const FilterOperators = [ '<', '<=', '=', '<>', '>=', '>', 'begins', 'begins_with', 'between' ]
 
 export default class Expression {
     /*
@@ -213,7 +214,7 @@ export default class Expression {
 
         if (typeof value == 'object' && Object.keys(value).length > 0) {
             let [action,vars] = Object.entries(value)[0]
-            if (Operators.indexOf(action) < 0) {
+            if (FilterOperators.indexOf(action) < 0) {
                 throw new Error(`Invalid FilterCondition operator "${action}"`)
             }
             if (action == 'begins_with' || action == 'begins') {
@@ -253,7 +254,7 @@ export default class Expression {
 
         if (typeof value == 'object' && Object.keys(value).length > 0) {
             let [action,vars] = Object.entries(value)[0]
-            if (Operators.indexOf(action) < 0) {
+            if (KeyOperators.indexOf(action) < 0) {
                 throw new Error(`Invalid KeyCondition operator "${action}"`)
             }
             if (action == 'begins_with' || action == 'begins') {

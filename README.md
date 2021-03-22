@@ -432,7 +432,7 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string template that is used to compute the attribute value. The `value` is a template string that may contain `${name}` references to other model attributes. This is useful for computing key values from other attributes and for creating compound (composite) sort keys.
+The `value` property defines a literal string template, similar to JavaScript string templates, that is used to compute the attribute value. The template string may contain `${name}` references to other model attributes. This is useful for computing key values from other attributes and for creating compound (composite) sort keys.
 
 ### Table Contexts
 
@@ -588,6 +588,8 @@ The operators include:
 begins or begins_with
 between
 ```
+
+For non-key attributes, you can also use '<>' for not equals.
 
 Some useful params for queryItems include:
 
@@ -987,7 +989,7 @@ contains
 size
 ```
 
-Where clauses when used with `find` or `scan` can also use the `<>` not equals operator.
+Where clauses when used with `find` or `scan` on non-key attribugtes can also use the `<>` not equals operator.
 
 See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html) for more details.
 
