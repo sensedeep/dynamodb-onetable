@@ -64,10 +64,15 @@ export default class Expression {
         let op = this.op
         let context = this.params.context || this.table.context
         for (let [fieldName, field] of Object.entries(fields)) {
+            //  Expand any field.value template, otherwise use value from properties or context
             let value = this.template(field, properties, context)
             if (value === undefined || value === null || value === '') {
                 if (field.uuid && op == 'put') {
                     value = this.table.uuid()
+                } else if (field.ulid && op == 'put') {
+                    value = this.table.ulid()
+                } else if (field.ksuid && op == 'put') {
+                    value = this.table.ksuid()
                 } else if (field.name == this.sort && this.params.high && op != 'scan') {
                     //  High level API without sort key. Fallback to find to select the items of interest
                     this.fallback = true
