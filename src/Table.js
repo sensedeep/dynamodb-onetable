@@ -99,23 +99,30 @@ export default class Table {
         }
     }
 
+    //  Return the current schema. This may include model schema defined at run-time
     getSchema() {
         let schema = {name: this.name, models: {}, indexes: this.indexes}
         for (let [name, model] of Object.entries(this.models)) {
             let item = {}
             for (let [field, properties] of Object.entries(model.fields)) {
                 item[field] = {
-                    attribute: properties.attribute,
+                    crypt: properties.crypt,
                     enum: properties.enum,
+                    foreign: properties.foreign,
                     hidden: properties.hidden,
-                    isIndexed: properties.isIndexed,
+                    map: properties.map,
                     name: field,
                     nulls: properties.nulls,
                     required: properties.required,
+                    size: properties.size,
                     type: (typeof properties.type == 'function') ? properties.type.name : properties.type,
                     unique: properties.unique,
-                    value: properties.value,
                     validate: properties.validate ? properties.validate.toString() : null,
+                    value: properties.value,
+
+                    //  Computed state
+                    attribute: properties.attribute,    //  Attribute 'map' name
+                    isIndexed: properties.isIndexed,
                 }
             }
             schema.models[name] = item
