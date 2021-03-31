@@ -79,10 +79,6 @@ export default class Model {
             this.timestamps = table.timestamps || true
         }
         this.updatedField = table.updatedField
-
-        /*
-            Migration functions can be provided to Table or via the schema.
-         */
         this.intercept = options.intercept
         this.indexes = options.indexes || DefaultIndexes
         this.indexProperties = this.getIndexProperties(this.indexes)
@@ -98,6 +94,20 @@ export default class Model {
 
     /*
         Prepare a model based on field schema and compute the attribute mapping/reverse mapping.
+        Field properties:
+
+        crypt           Boolean
+        enum            Array of values
+        foreign         model:key-attribute
+        hidden          Boolean
+        map             String
+        nulls           Boolean
+        required        Boolean
+        size            Number (not implemented)
+        type            String, Boolean, Number, Date, 'set', Buffer, Binary, Set, Object, Array
+        unique          Boolean
+        validate        RegExp or "/regexp/qualifier"
+        value           String template, function, array
      */
     prepModel(fields) {
         fields = Object.assign({}, fields)
