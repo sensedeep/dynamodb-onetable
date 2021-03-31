@@ -409,7 +409,7 @@ The following attribute properties are supported:
 | ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
 | uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
-| value | `string` | String template to use as the value of the attribute. |
+| value | `string|function` | Template to use to derive the value of the attribute. |
 
 If the `hidden` property is set to true, the attribute will be defined in the DynamoDB database table, but will be omitted in the returned Javascript results.
 
@@ -433,7 +433,11 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string template, similar to JavaScript string templates, that is used to compute the attribute value. The template string may contain `${name}` references to other model attributes. This is useful for computing key values from other attributes and for creating compound (composite) sort keys.
+The `value` property defines a literal string or function template that are used to compute the attribute value. This is useful for computing key values from other attributes and for creating compound (composite) sort keys.
+
+String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes.
+
+The `value` may also be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName: String, properties, ...contexts)` where `properties` are the other attributes provided to the API call and contexts is an array of Table contexts (see below).
 
 ### Table Contexts
 

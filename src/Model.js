@@ -659,7 +659,8 @@ export default class Model {
                     continue
                 }
             }
-            if (field.validate) {
+            let validate = field.validate
+            if (validate) {
                 if (!value) {
                     if (field.required && field.value == null) {
                         if (context[fieldName] !== undefined) {
@@ -668,14 +669,29 @@ export default class Model {
                             details[fieldName] = `Value not defined for "${fieldName}"`
                         }
                     }
-                } else if (typeof field.validate == 'function') {
-                    ({error, value} = field.validate(this, field, value))
+                } else if (typeof validate == 'function') {
+                    ({error, value} = validate(this, field, value))
                     if (error) {
                         details[fieldName] = msg
                     }
-                } else if (field.validate instanceof RegExp) {
-                    if (!field.validate.exec(value)) {
+                } else if (validate instanceof RegExp) {
+                    if (!validate.exec(value)) {
                         details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                    }
+                } else {
+                    let pattern = validate.toString()
+                    if (pattern[0] == '/' && pattern.lastIndexOf('/') > 0) {
+                        let parts = pattern.split('/')
+                        let qualifiers = parts.pop()
+                        let pat = parts.slice(1).join('/')
+                        validate = new RegExp(pat, qualifiers)
+                        if (!validate.exec(value)) {
+                            details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                        }
+                    } else {
+                        if (!value.match(pattern)) {
+                            details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                        }
                     }
                 }
                 if (field.length && value) {

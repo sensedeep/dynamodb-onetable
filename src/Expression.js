@@ -56,7 +56,7 @@ export default class Expression {
     }
 
     /*
-        Calculate property values by applying templates and removing empty values
+        Calculate property values by applying templates from field.value and removing empty values
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
@@ -435,7 +435,8 @@ export default class Expression {
     }
 
     /*
-        Expand string template by substituting ${variable} values from properties and context
+        Expand string template in field.value by substituting ${variable} values
+        from properties and context.
      */
     template(field, properties, ...contexts) {
         let s = field.value
@@ -444,6 +445,8 @@ export default class Expression {
         if (s == null) {
             let context = contexts.find(context => context[field.name] !== undefined)
             return context ? context[field.name] : undefined
+        } else if (typeof s == 'function') {
+            return s(field.name, properties, ...contexts)
         }
         for (let context of contexts) {
             if (s.indexOf('${') < 0) {

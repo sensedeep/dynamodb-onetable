@@ -57,7 +57,7 @@ export default class Table {
         this.timestamps = timestamps || true
         this.uuid = uuid || this.uuid
         this.ulid = ulid || this.ulid
-        this.ksuid = ksuid
+        this.ksuid = ksuid // No default implementation
         this.hidden = hidden || true
 
         //  Schema models
