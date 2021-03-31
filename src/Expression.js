@@ -354,7 +354,7 @@ export default class Expression {
         Create the Dynamo command parameters
      */
     prepare() {
-        let {conditions, fields, filters, key, keys, hash, names, op, params, sort, values} = this
+        let {conditions, fields, filters, key, keys, hash, model, names, op, params, sort, values} = this
 
         if (this.fallback) {
             return null
@@ -444,20 +444,28 @@ export default class Expression {
         from properties and context.
      */
     template(field, properties, ...contexts) {
-        let s = field.value
+        let v = field.value
         contexts.push(properties)
 
-        if (s == null) {
+        if (v == null) {
             let context = contexts.find(context => context[field.name] !== undefined)
             return context ? context[field.name] : undefined
-        } else if (typeof s == 'function') {
-            return s(field.name, properties, ...contexts)
+        } else if (typeof v == 'function') {
+            return v(field.name, properties, ...contexts)
+        } else if (Array.isArray(v)) {
+            let packed = {}
+            for (let item of v) {
+                if (this.model.fields[item]) {
+                    packed[item] = this.template(this.model.fields[item], properties, ...contexts)
+                }
+            }
+            return packed
         }
         for (let context of contexts) {
-            if (s.indexOf('${') < 0) {
+            if (v.indexOf('${') < 0) {
                 break
             }
-            s = s.replace(/\${(.*?)}/g, (match, varName) => {
+            v = v.replace(/\${(.*?)}/g, (match, varName) => {
                 if (context[varName] !== undefined) {
                     return context[varName]
                 } else {
@@ -469,20 +477,20 @@ export default class Expression {
             Remaining template variable.
             If field is the sort key and doing find, then use sort key prefix and begins_with, (provide no where clause).
          */
-        if (s.indexOf('${') >= 0) {
+        if (v.indexOf('${') >= 0) {
             if (field.attribute == this.sort) {
                 if (this.op == 'find' && !this.params.where) {
-                    s = s.replace(/\${(.*?)}/g, '')
+                    v = v.replace(/\${(.*?)}/g, '')
                     let sep = this.delimiter
-                    s = s.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
-                    if (s) {
-                        return {begins: s}
+                    v = v.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
+                    if (v) {
+                        return {begins: v}
                     }
                 }
             }
             return undefined
         }
-        return s
+        return v
     }
 
     removeEmptyStrings(field, obj) {
