@@ -78,6 +78,7 @@ export default class Table {
                 [primary.hash]: { value: '_unique:${' + primary.hash + '}'},
                 [primary.sort]: { value: '_unique:'},
             },
+            indexes: this.indexes,
             timestamps: false
         })
         this.generic = new Model(this, '_Generic', {
@@ -85,6 +86,7 @@ export default class Table {
                 [primary.hash]: {},
                 [primary.sort]: {},
             },
+            indexes: this.indexes,
             timestamps: false
         })
 
