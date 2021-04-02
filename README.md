@@ -134,8 +134,7 @@ const MySchema = {
 Alternatively, you can define models one by one:
 
 ```javascript
-const Card = new Model(table, {
-    name: 'Card',
+const Card = new Model(table, 'Card', {
     fields: { /* Model schema field definitions */ }
 })
 ```
