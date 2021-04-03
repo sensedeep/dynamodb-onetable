@@ -2,8 +2,8 @@
     Expression.js - DynamoDB API command builder
 */
 
-const KeyOperators = [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
-const FilterOperators = [ '<', '<=', '=', '<>', '>=', '>', 'begins', 'begins_with', 'between' ]
+const KeyOperators =    [ '<', '<=', '=',       '>=', '>', 'begins', 'begins_with', 'between' ]
+const KeyOnlyOp = { get: true, delete: true }
 
 export default class Expression {
     /*
@@ -16,7 +16,7 @@ export default class Expression {
         this.init(model, op, properties, params)
 
         if (!this.fallback) {
-            this.parseFields(this.model.fields, properties)
+            this.prepare(this.model.fields, properties)
         }
     }
 
@@ -36,7 +36,7 @@ export default class Expression {
         this.updates = []           //  Update expressions
         this.names = {}             //  Expression names
         this.values = {}            //  Expression values
-        this.fieldValues = {}       //  Hash of attribute values
+        this.item = {}              //  Hash of attribute values for the item
 
         this.nindex = 0             //  Next index into names
         this.vindex = 0             //  Next index into values
@@ -60,23 +60,33 @@ export default class Expression {
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
-    parseFields(fields, properties = {}) {
+    prepare(fields, properties = {}) {
         let op = this.op
         let context = this.params.context || this.table.context
+
         for (let [fieldName, field] of Object.entries(fields)) {
+
+            if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
+                continue
+            }
             //  Expand any field.value template, otherwise use value from properties or context
-            let value = this.template(field, properties, context)
+            let value = this.getValue(field, context, properties)
+
             if (value === undefined || value === null || value === '') {
                 if (field.uuid && op == 'put') {
                     value = this.table.uuid()
+
                 } else if (field.ulid && op == 'put') {
                     value = this.table.ulid()
+
                 } else if (field.ksuid && op == 'put') {
                     value = this.table.ksuid()
-                } else if (field.name == this.sort && this.params.high && op != 'scan') {
-                    //  High level API without sort key. Fallback to find to select the items of interest
+
+                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan') {
+                    //  High level API without sort key. Fallback to find to select the items of interest.
                     this.fallback = true
                     return
+
                 } else if (value === undefined || (value === null && field.nulls !== true)) {
                     continue
                 }
@@ -86,24 +96,30 @@ export default class Expression {
             this.add(field, value)
             if (this.fallback) return
         }
-
-        if (op != 'scan' && this.fieldValues[this.hash] == null) {
-            throw new Error(`dynamo: Empty hash key`)
+        if (this.mapped) {
+            for (let [k,v] of Object.entries(this.mapped)) {
+                this.add({attribute: [k], name: k, filter: false}, v)
+            }
         }
-        if (op == 'delete' || op == 'put' || op == 'update') {
-            this.addConditions(op)
-        } else if (op == 'find' || op == 'scan') {
+        if (op == 'find') {
             this.addFilters()
-        }
-        if (op == 'scan') {
+
+        } else if (op == 'delete' || op == 'put' || op == 'update') {
+            this.addConditions(op)
+
+        } else if (op == 'scan') {
+            this.addFilters()
             /*
                 Setup scan filters for properties outside the model
              */
             for (let [name, value] of Object.entries(properties)) {
                 if (fields[name] || value == null) continue
                 this.addFilter(name, value)
-                this.fieldValues[name] = value
+                this.item[name] = value
             }
+        }
+        if (op != 'scan' && this.item[this.hash] == null) {
+            throw new Error(`dynamo: Empty hash key`)
         }
     }
 
@@ -113,34 +129,54 @@ export default class Expression {
     add(field, value) {
         let op = this.op
 
-        if (field.isIndexed) {
-            if (field.attribute == this.hash || field.attribute == this.sort) {
-                if (op == 'find') {
-                    this.addKeys(field, value)
+        let attribute = field.attribute
+        if (/* op == 'update' && */ attribute.length > 1) {
+            //  Mapped (packed) field
+            let mapped = this.mapped
+            if (!mapped) {
+                mapped = this.mapped = {}
+                this.properties = Object.assign({}, this.properties)
+            }
+            let [k,v] = attribute
+            mapped[k] = mapped[k] || {}
+            mapped[k][v] = value
+            this.properties[k] = value
+            return
+        }
+        this.item[attribute[0]] = value
 
-                } else if (op == 'scan') {
-                    if (this.properties[field.name] !== undefined && field.filter !== false) {
-                        this.addFilter(field.attribute, value)
-                    }
+        if (attribute[0] == this.hash || attribute[0] == this.sort) {
+            if (op == 'find') {
+                this.addKey(op, field, value)
 
-                } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
-                    this.addKey(field, value)
+            } else if (op == 'scan') {
+                if (this.properties[field.name] !== undefined && field.filter !== false) {
+                    this.addFilter(attribute[0], value)
                 }
-            }
-        } else if ((op == 'find' || op == 'scan')) {
-            //  schema.filter == false disables a field from being used in a filter
-            if (this.properties[field.name] !== undefined && field.filter !== false) {
-                this.addFilter(field.attribute, value)
-            }
-        }
-        if (op == 'put' || (this.params.batch && op == 'update')) {
-            //  Batch does not use update expressions (Ugh!)
-            this.values[field.attribute] = value
 
-        } else if (op == 'update') {
-            this.addUpdate(field, value)
+            } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
+                this.addKey(op, field, value)
+
+            } else if (op == 'put' || (this.params.batch && op == 'update')) {
+                //  Batch does not use update expressions (Ugh!)
+                this.values[attribute] = value
+            }
+
+        } else {
+            if ((op == 'find' || op == 'scan')) {
+                //  schema.filter == false disables a field from being used in a filter
+                if (this.properties[field.name] !== undefined && field.filter !== false) {
+                    this.addFilter(attribute[0], value)
+                }
+
+            } else if (op == 'put' || (this.params.batch && op == 'update')) {
+                //  Batch does not use update expressions (Ugh!)
+                this.values[attribute] = value
+
+            } else if (op == 'update') {
+                this.addUpdate(field, value)
+            }
         }
-        this.fieldValues[field.attribute] = value
     }
 
     /*
@@ -178,7 +214,8 @@ export default class Expression {
         let {names, nindex, values, vindex} = this
 
         where = where.replace(/\${(.*?)}/g, (match, varName) => {
-            let attribute = this.model.map[varName] || varName
+            let field = this.model.fields[varName]
+            let attribute = field ? field.attribute[0] : varName
             names[`#_${nindex++}`] = attribute
             return `#_${nindex - 1}`
         })
@@ -216,29 +253,8 @@ export default class Expression {
      */
     addFilter(attribute, value) {
         let {names, nindex, values, vindex} = this
-
-        if (typeof value == 'object' && Object.keys(value).length > 0) {
-            let [action,vars] = Object.entries(value)[0]
-            if (FilterOperators.indexOf(action) < 0) {
-                throw new Error(`Invalid FilterCondition operator "${action}"`)
-            }
-            if (action == 'begins_with' || action == 'begins') {
-                this.filters.push(`begins_with(#_${nindex}, :_${vindex})`)
-                values[`:_${vindex++}`] = vars
-
-            } else if (action == 'between') {
-                this.filters.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
-                values[`:_${vindex++}`] = vars[0]
-                values[`:_${vindex++}`] = vars[1]
-
-            } else {
-                this.filters.push(`#_${nindex} ${action} :_${vindex}`)
-                values[`:_${vindex++}`] = value[action]
-            }
-        } else {
-            this.filters.push(`#_${nindex} = :_${vindex}`)
-            values[`:_${vindex++}`] = value
-        }
+        this.filters.push(`#_${nindex} = :_${vindex}`)
+        values[`:_${vindex++}`] = value
         names[`#_${nindex++}`] = attribute
         this.nindex = nindex
         this.vindex = vindex
@@ -247,60 +263,55 @@ export default class Expression {
     /*
         Add key for delete, get or update
      */
-    addKey(field, value) {
-        this.key[field.attribute] = value
-    }
+    addKey(op, field, value) {
+        if (op == 'find') {
+            let {keys, names, nindex, values, vindex} = this
 
-    /*
-        Add KeyConditionExpressions for find. Conditions will be joined with 'and' when prepared.
-     */
-    addKeys(field, value) {
-        let {keys, names, nindex, op, values, vindex} = this
+            if (field.attribute[0] == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
+                let [action,vars] = Object.entries(value)[0]
+                if (KeyOperators.indexOf(action) < 0) {
+                    throw new Error(`Invalid KeyCondition operator "${action}"`)
+                }
+                if (action == 'begins_with' || action == 'begins') {
+                    keys.push(`begins_with(#_${nindex}, :_${vindex})`)
+                    values[`:_${vindex++}`] = vars
 
-        if (typeof value == 'object' && Object.keys(value).length > 0) {
-            let [action,vars] = Object.entries(value)[0]
-            if (KeyOperators.indexOf(action) < 0) {
-                throw new Error(`Invalid KeyCondition operator "${action}"`)
-            }
-            if (action == 'begins_with' || action == 'begins') {
-                keys.push(`begins_with(#_${nindex}, :_${vindex})`)
-                values[`:_${vindex++}`] = vars
+                } else if (action == 'between') {
+                    keys.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
+                    values[`:_${vindex++}`] = vars[0]
+                    values[`:_${vindex++}`] = vars[1]
 
-            } else if (action == 'between') {
-                keys.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
-                values[`:_${vindex++}`] = vars[0]
-                values[`:_${vindex++}`] = vars[1]
-
+                } else {
+                    keys.push(`#_${nindex} ${action} :_${vindex}`)
+                    values[`:_${vindex++}`] = value[action]
+                }
             } else {
-                keys.push(`#_${nindex} ${action} :_${vindex}`)
-                values[`:_${vindex++}`] = value[action]
+                keys.push(`#_${nindex} = :_${vindex}`)
+                values[`:_${vindex++}`] = value
             }
+            names[`#_${nindex++}`] = field.attribute[0]
+            this.nindex = nindex
+            this.vindex = vindex
         } else {
-            keys.push(`#_${nindex} = :_${vindex}`)
-            values[`:_${vindex++}`] = value
+            this.key[field.attribute[0]] = value
         }
-        names[`#_${nindex++}`] = field.attribute
-        this.nindex = nindex
-        this.vindex = vindex
     }
 
     addUpdate(field, value) {
         let {names, nindex, params, updates, values, vindex} = this
-        if (field.isIndexed && (field.attribute == this.hash || field.attribute == this.sort)) {
+        if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
         if (params.add || params.remove || params.delete) {
             return
         }
-        if (field.attribute != this.hash && field.attribute != this.sort && this.properties[field.name] === undefined) {
-            //  Only update values explicitly provided by caller in properties.
-            //  Unless params.updateContext requires context properties to be updated too.
-            if (this.params.updateIndexes !== true) {
+        if (this.properties[field.name] === undefined) {
+            if (field.isIndexed && this.params.updateIndexes !== true) {
                 return
             }
         }
         updates.push(`#_${nindex} = :_${vindex}`)
-        names[`#_${nindex++}`] = field.attribute
+        names[`#_${nindex++}`] = field.attribute[0]
         values[`:_${vindex++}`] = value
         this.nindex = nindex
         this.vindex = vindex
@@ -342,7 +353,7 @@ export default class Expression {
             if (params.index != 'primary') {
                 index = indexes[params.index]
                 if (op != 'find' && op != 'scan') {
-                    //  Non primary indexes only supported with find/scan
+                    //  GSIs only support find and scan
                     this.fallback = true
                 }
             }
@@ -353,7 +364,7 @@ export default class Expression {
     /*
         Create the Dynamo command parameters
      */
-    prepare() {
+    command() {
         let {conditions, fields, filters, key, keys, hash, model, names, op, params, sort, values} = this
 
         if (this.fallback) {
@@ -440,45 +451,55 @@ export default class Expression {
     }
 
     /*
-        Expand string template in field.value by substituting ${variable} values
-        from properties and context.
+        Get a property value from the context or properties. If undefined,
+        then consider the field.value template. Expand string template in
+        field.value by substituting ${variable} values from context and properties.
      */
-    template(field, properties, ...contexts) {
-        let v = field.value
-        contexts.push(properties)
+    getValue(field, context, properties) {
+        let v = context[field.name] !== undefined ? context[field.name] : properties[field.name]
+        if (v != null) {
+            return v
+        }
 
+        v = field.value
         if (v == null) {
-            let context = contexts.find(context => context[field.name] !== undefined)
-            return context ? context[field.name] : undefined
+            return undefined
+
         } else if (typeof v == 'function') {
-            return v(field.name, properties, ...contexts)
+            return v(field.name, context, properties)
+
         } else if (Array.isArray(v)) {
-            let packed = {}
-            for (let item of v) {
-                if (this.model.fields[item]) {
-                    packed[item] = this.template(this.model.fields[item], properties, ...contexts)
+            let values = {}
+            for (let name of v) {
+                if (this.model.fields[name]) {
+                    values[name] = this.template(this.model.fields[name], properties, context)
+                    if (values[name] === undefined) {
+                        return undefined
+                    }
                 }
             }
-            return packed
+            return JSON.stringify(values)
         }
-        for (let context of contexts) {
+        //  Context take precedence
+        for (let obj of [context, properties]) {
             if (v.indexOf('${') < 0) {
                 break
             }
             v = v.replace(/\${(.*?)}/g, (match, varName) => {
-                if (context[varName] !== undefined) {
-                    return context[varName]
+                if (obj[varName] !== undefined) {
+                    return obj[varName]
                 } else {
                     return match
                 }
             })
         }
         /*
-            Remaining template variable.
-            If field is the sort key and doing find, then use sort key prefix and begins_with, (provide no where clause).
+            Consider unresolved template variables.
+            If field is the sort key and doing find, then use sort key prefix and
+            begins_with, (provide no where clause).
          */
         if (v.indexOf('${') >= 0) {
-            if (field.attribute == this.sort) {
+            if (field.attribute[0] == this.sort) {
                 if (this.op == 'find' && !this.params.where) {
                     v = v.replace(/\${(.*?)}/g, '')
                     let sep = this.delimiter
@@ -488,6 +509,11 @@ export default class Expression {
                     }
                 }
             }
+            /*
+                Return undefined if any variables remain undefined.
+                This is critical to stop updating templates which do not have all the
+                required properties to complete
+            */
             return undefined
         }
         return v
@@ -500,7 +526,8 @@ export default class Expression {
             for (let [key, value] of Object.entries(obj)) {
                 if (typeof value == 'object') {
                     result[key] = this.removeEmptyStrings(field, value)
-                } else if (value === null && field.nulls !== true) {
+                } else if (value == null && field.nulls !== true) {
+                    //  Match null and undefined
                     continue
                 } else if (value !== '') {
                     result[key] = value
@@ -512,8 +539,8 @@ export default class Expression {
         return result
     }
 
-    getFieldValues() {
-        return this.fieldValues
+    getItem() {
+        return this.item
     }
 
     and(terms) {

@@ -84,8 +84,19 @@ export default class Model {
         this.indexProperties = this.getIndexProperties(this.indexes)
 
         this.fields = {}            //  Attribute list for this model
-        this.map = {}               //  Map properties to attributes and vice-versa
-        this.reverse = {}
+        /*
+            Map Javascript API properties to DynamoDB attribute names.
+            The fields.map property may contain a '.' like 'obj.prop' to pack multiple
+            properties into a single attribute. The format of map is:
+
+            this.map {
+                property: [ attribute, sub-prop]
+            }
+            field.attribute = this.map[property]
+            field.attribute[0] == Table attribute name
+            field.attribute[1] == sub property (optional)
+        */
+        this.map = {}
 
         if (options.fields) {
             this.prepModel(options.fields)
@@ -93,18 +104,24 @@ export default class Model {
     }
 
     /*
-        Prepare a model based on field schema and compute the attribute mapping/reverse mapping.
+        Prepare a model based on field schema and compute the attribute mapping.
         Field properties:
 
         crypt           Boolean
+        default         Default value string or function
         enum            Array of values
-        foreign         model:key-attribute
-        hidden          Boolean
+        filter          Prevent a property from being used in a filter
+        foreign         model:key-attribute (not yet supported)
+        hidden          Boolean (index properties implicitly hidden)
+        ksuid           KSUID
         map             String
         nulls           Boolean
         required        Boolean
         size            Number (not implemented)
+        transform       Transform hook function
         type            String, Boolean, Number, Date, 'set', Buffer, Binary, Set, Object, Array
+        ulid            ULID
+        uuid            UUID
         unique          Boolean
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
@@ -116,36 +133,59 @@ export default class Model {
             fields[this.createdField] = fields[this.createdField] || { type: Date }
             fields[this.updatedField] = fields[this.updatedField] || { type: Date }
         }
+        let {indexes, map, table} = this
+        let primary = indexes.primary
+        let keys = {}
+
         for (let [name, field] of Object.entries(fields)) {
             if (!field.type) {
-                field.type = String
+                field.type = (Array.isArray(field.value)) ? Object : String
             }
             let to = field.map
             if (to) {
-                this.map[name] = to
-                this.reverse[to] = name
+                let [att, sub] = to.split('.')
+                if (sub) {
+                    if (map[name] && !Array.isArray(map[name])) {
+                        throw new Error(`dynamo: Map already defined as literal for ${this.name}.${name}`)
+                    }
+                    field.attribute = map[name] = [att, sub]
+                } else {
+                    field.attribute = map[name] = [att]
+                }
             } else {
-                this.map[name] = name
-                this.reverse[name] = name
+                field.attribute = map[name] = [name]
             }
             field.name = name
-            field.attribute = this.map[name]
+
             if (field.nulls !== true && field.nulls !== false) {
                 field.nulls = this.nulls
             }
-            if (this.indexProperties[this.map[name]]) {
+            let index = this.indexProperties[field.attribute[0]]
+            if (index) {
                 field.isIndexed = true
-                field.hidden = field.hidden || this.table.hidden
+                if (field.attribute.length > 1) {
+                    throw new Error(`dynamo: Cannot map property "${name}" to an indexed compound attribute "${this.name}.${name}"`)
+                }
+                if (index == 'primary') {
+                    field.required = true
+                    if (field.attribute[0] == primary.hash) {
+                        this.hash = name
+                    } else if (field.attribute[0] == primary.sort) {
+                        this.sort = name
+                    }
+                }
+            }
+            if (field.value) {
+                //  Templated properties are hidden by default
+                if (field.hidden != null) {
+                    field.hidden = field.hidden
+                } else {
+                    field.hidden = table.hidden != null ? table.hidden : true
+                }
             }
             this.fields[name] = field
         }
-
-        let primary = this.indexes.primary
-        let {hash, sort} = this.indexes.primary
-        this.fields[this.reverse[hash]].required = true
-        this.fields[this.reverse[sort]].required = true
-
-        if (!this.reverse[primary.hash] || !this.reverse[primary.sort]) {
+        if (!this.hash || (primary.sort && !this.sort)) {
             throw new Error(`dynamo: Cannot find primary keys for model ${this.name} in primary index`)
         }
         if (Object.values(this.fields).find(f => f.unique && f.attribute != hash && f.attribute != sort)) {
@@ -158,12 +198,12 @@ export default class Model {
         Returns [] for find/scan, cmd if !execute, else returns item.
      */
     async run(op, expression) {
-        let {properties, params} = expression
+        let {index, properties, params} = expression
 
         /*
             Get a string representation of the API request
          */
-        let cmd = expression.prepare()
+        let cmd = expression.command()
         if (!expression.execute) {
             return cmd
         }
@@ -258,9 +298,13 @@ export default class Model {
         if (params.parse) {
             items = this.parseResponse(op, expression, items)
         }
-        if (params.follow) {
+        if (params.follow || (index.follow && params.follow !== false)) {
             if (op == 'get') {
                 return await this.get(items[0])
+            }
+            if (op == 'update') {
+                properties = Object.assign({}, properties, items[0])
+                return await this.update(properties)
             }
             if (op == 'find') {
                 let results = [], promises = []
@@ -315,7 +359,7 @@ export default class Model {
     parseResponse(op, expression, items) {
         let table = this.table
         if (op == 'put') {
-            items = [expression.getFieldValues()]
+            items = [expression.getItem()]
         } else {
             items = table.unmarshall(items)
         }
@@ -331,7 +375,7 @@ export default class Model {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
-                items[index] = model.mapReadData('find', item, expression.params)
+                items[index] = model.transformReadItem('find', item, expression.params)
             }
         }
         return items
@@ -462,10 +506,8 @@ export default class Model {
         if (grid.length != 1) {
             throw new Error('dynamo: cannot update multiple items')
         }
-        let primary = this.indexes.primary
-        let {hash, sort} = primary
-        properties[hk] = grid[0][this.reverse[hash]]
-        properties[sk] = grid[0][this.reverse[sort]]
+        properties[this.hash] = grid[0][this.hash]
+        properties[this.sort] = grid[0][this.sort]
         return await this.update(properties, {retry: true})
     }
 
@@ -487,7 +529,7 @@ export default class Model {
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
-        properties = this.validate('put', properties, params)
+        properties = this.transformWriteItem('put', properties, params)
         let expression = new Expression(this, 'put', properties, params)
         return await this.run('put', expression)
     }
@@ -509,7 +551,7 @@ export default class Model {
         if (this.timestamps) {
             properties[this.updatedField] = new Date()
         }
-        properties = this.validate('update', properties, params)
+        properties = this.transformWriteItem('update', properties, params)
         let expression = new Expression(this, 'update', properties, params)
         if (expression.fallback) {
             return await this.updateByFind(properties, params)
@@ -520,120 +562,75 @@ export default class Model {
     /*
         Map Dynamo types to Javascript types after reading data
      */
-    mapReadData(op, result, params) {
-        if (!result) {
-            return result
+    transformReadItem(op, raw, params) {
+        if (!raw) {
+            return raw
         }
         let rec = {}
         let fields = this.fields
-        let reverse = this.reverse
 
         for (let [name, field] of Object.entries(this.fields)) {
-            let attribute = this.map[name]
-            let value = result[attribute]
-            if (value === undefined) {
-                if (field.default) {
-                    if (typeof field.default == 'function') {
-                        value = field.default(this, fieldName, properties)
-                    } else {
-                        value = field.default
-                    }
-                } else {
-                    continue
-                }
+            if (field.hidden && params.hidden !== true) {
+                continue
+            }
+            let [att, sub] = field.attribute
+            let value = raw[att]
+            if (sub) {
+                value = value[sub]
             }
             if (field.crypt) {
                 value = this.decrypt(value)
             }
-            //  Invoke custom data transform after reading
-            if (field.transform) {
-                rec[name] = field.transform(this, 'read', name, value)
-            } else if (field.type == Date) {
-                rec[name] = value ? new Date(value) : null
-            } else if (field.type == Buffer || field.type == 'Binary') {
-                rec[name] = new Buffer(value, 'base64')
+            if (field.default && value === undefined) {
+                if (typeof field.default == 'function') {
+                    value = field.default(this, fieldName, properties)
+                } else {
+                    value = field.default
+                }
+
+            } else if (value === undefined) {
+                if (field.required) {
+                    this.log('info', `Required field "${name}" in model "${this.name}" not defined in table item"`, {
+                        model: this.name, raw, params, field
+                    })
+                }
+                continue
+
             } else {
-                rec[name] = value
+                rec[name] = this.transformReadAttribute(field, name, value)
             }
+        }
+        if (typeof params.transform == 'function') {
+            rec = params.transform(this, 'read', rec, params, raw)
         }
         if (this.intercept && InterceptTags[op] == 'read') {
-            rec = this.intercept(this, op, rec, result)
-        }
-        for (let [name, field] of Object.entries(this.fields)) {
-            if (field.hidden && params.hidden !== true) {
-                delete rec[name]
-            }
+            rec = this.intercept(this, op, rec, params, raw)
         }
         return rec
     }
 
-    /*
-        Map types before writing data to Dynamo
-     */
-    mapWriteData(field, value) {
+    transformReadAttribute(field, name, value) {
+        if (typeof field.transform == 'function') {
+            //  Invoke custom data transform after reading
+            return field.transform(this, 'read', name, value)
+        }
         if (field.type == Date) {
-            if (this.table.isoDates) {
-                if (value instanceof Date) {
-                    value = value.toISOString()
-                } else if (typeof value == 'string') {
-                    value = (new Date(Date.parse(value))).toISOString()
-                } else if (typeof value == 'number') {
-                    value = (new Date(value)).toISOString()
-                }
-            } else {
-                //  Convert dates to unix epoch
-                if (value instanceof Date) {
-                    value = value.getTime()
-                } else if (typeof value == 'string') {
-                    value = (new Date(Date.parse(value))).getTime()
-                }
-            }
-
-        } else if (field.type == Buffer || field.type == 'Binary') {
-            // FUTURE: File, Blob, ArrayBuffer, DataView, and typed arrays
-            if (value instanceof Buffer) {
-                value = value.toString('base64')
-            }
-        } else if (field.type == 'Set') {
-            if (!Array.isArray(value)) {
-                throw new Error('Set value must be an array')
-            }
+            return value ? new Date(value) : null
         }
-        if (value != null && typeof value == 'object') {
-            value = this.mapNestedFields(field, value)
-        }
-        //  Invoke custom transformation before writing data
-        if (field.transform) {
-            value = field.transform(this, 'write', field.name, value)
-        }
-        if (field.crypt) {
-            value = this.encrypt(value)
+        if (field.type == Buffer || field.type == 'Binary') {
+            return new Buffer(value, 'base64')
         }
         return value
     }
 
-    mapNestedFields(field, obj) {
-        for (let [key, value] of Object.entries(obj)) {
-            if (value instanceof Date) {
-                obj[key] = value.getTime()
-            } else if (value == null && field.nulls !== true) {
-                //  Skip nulls
-                continue
-            } else if (typeof value == 'object') {
-                obj[key] = this.mapNestedFields(field, value)
-            }
-        }
-        return obj
-    }
-
     /*
         Validate properties and map types before writing to the database.
+        Note: this does not map names to attributes. That happens in Expression.
      */
-    validate(op, properties, params) {
+    transformWriteItem(op, properties, params) {
         let context = params.context ? params.context : this.table.context
-        let result = {}
+        let rec = {}
         let details = {}
-
         /*
             Loop over all fields and validate. Loop over fields vs properties.
             Necessary as keys, composite keys and other fields may use templates
@@ -680,7 +677,7 @@ export default class Model {
                         }
                     }
                 } else if (typeof validate == 'function') {
-                    ({error, value} = validate(this, field, value))
+                    ({error, value} = validateItem(this, field, value))
                     if (error) {
                         details[fieldName] = msg
                     }
@@ -717,7 +714,7 @@ export default class Model {
                     }
                 }
             }
-            result[fieldName] = this.mapWriteData(field, value)
+            rec[fieldName] = this.transformWriteAttribute(field, value)
         }
         if (Object.keys(details).length > 0) {
             this.log('info', `Validation error for "${this.name}"`, {model: this.name, properties, details})
@@ -725,10 +722,81 @@ export default class Model {
             err.details = details
             throw err
         }
-        if (this.intercept && InterceptTags[op] == 'write') {
-            result = this.intercept(this, this.op, result)
+        if (typeof params.transform == 'function') {
+            rec = params.transform(this, 'write', rec, params)
         }
-        return result
+        if (this.intercept && InterceptTags[op] == 'write') {
+            rec = this.intercept(this, this.op, rec, params)
+        }
+        return rec
+    }
+
+    /*
+        Transform types before writing data to Dynamo
+     */
+    transformWriteAttribute(field, value) {
+        if (field.type == Date) {
+            value = this.transformWriteDate(value)
+
+        } else if (field.type == Buffer || field.type == 'Binary') {
+            if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
+                value = value.toString('base64')
+            }
+        } else if (field.type == 'Set') {
+            if (!Array.isArray(value)) {
+                throw new Error('Set value must be an array')
+            }
+        }
+        if (value != null && typeof value == 'object') {
+            value = this.transformNestedWriteFields(field, value)
+        }
+        //  Invoke custom transformation before writing data
+        if (field.transform) {
+            value = field.transform(this, 'write', field.name, value)
+        }
+        if (field.crypt) {
+            value = this.encrypt(value)
+        }
+        return value
+    }
+
+    transformNestedWriteFields(field, obj) {
+        for (let [key, value] of Object.entries(obj)) {
+            if (value instanceof Date) {
+                obj[key] = this.transformWriteDate(value)
+
+            } else if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
+                value = value.toString('base64')
+
+            } else if (value == null && field.nulls !== true) {
+                //  Skip nulls
+                continue
+
+            } else if (value != null && typeof value == 'object') {
+                obj[key] = this.transformNestedWriteFields(field, value)
+            }
+        }
+        return obj
+    }
+
+    transformWriteDate(value) {
+        if (this.table.isoDates) {
+            if (value instanceof Date) {
+                value = value.toISOString()
+            } else if (typeof value == 'string') {
+                value = (new Date(Date.parse(value))).toISOString()
+            } else if (typeof value == 'number') {
+                value = (new Date(value)).toISOString()
+            }
+        } else {
+            //  Convert dates to unix epoch
+            if (value instanceof Date) {
+                value = value.getTime()
+            } else if (typeof value == 'string') {
+                value = (new Date(Date.parse(value))).getTime()
+            }
+        }
+        return value
     }
 
     /*
@@ -736,9 +804,9 @@ export default class Model {
      */
     getIndexProperties(indexes) {
         let properties = {}
-        for (let index of Object.values(indexes)) {
-            for (let name of Object.values(index)) {
-                properties[name] = true
+        for (let [indexName, index] of Object.entries(indexes)) {
+            for (let pname of Object.values(index)) {
+                properties[pname] = indexName
             }
         }
         return properties

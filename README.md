@@ -10,7 +10,7 @@ DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.ama
 
 OneTable strives to make dealing with DynamoDB and one-table design patterns dramatically easier while still providing easy access to the full DynamoDB API.
 
-OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping). Rather it provides a convenience API over the DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium working with the standard, unadorned DynamoDB API.
+OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping) that abstracts away DynamoDB. Rather it provides a convenience API over the DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium working with the standard, unadorned DynamoDB API.
 
 OneTable can invoke DynamoDB APIs or it can be used as a generator to create DynamoDB API parameters that you can save or execute yourself.
 
@@ -20,9 +20,9 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 
 After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
 
-OneTable was used in production by the [SenseDeep Serverless Troubleshooter](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
+OneTable was used in production by the [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
-A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and code. He pointed out a better way for us to do a number of things.
+A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and code.
 
 ## OneTable Features
 
@@ -33,10 +33,12 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Option to invoke DynamoDB or simply generate API parameters.
 * Generation of Conditional, Filter, Key and Update expressions.
 * Schema item definitions for attribute types, default values, enums and validations.
-* Powerful field level validations with required and transactional unique attributes.
+* Powerful field level validations with "required" and "unique" attributes.
 * Easy parameterization of filter and conditional queries.
 * Multi-page response aggregation.
 * Compound and templated key management.
+* Attribute mapping and packing.
+* Support for sparse GSIs that project keys and overloaded attributes.
 * Encrypted fields.
 * Support for Batch, Transactions, GSI, LSI indexes.
 * Intercept hooks to modify DynamoDB requests and responses.
@@ -45,7 +47,8 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Integrated metrics.
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
-* Support for the AWS SDK v3
+* Support for the AWS SDK v3.
+* Support Typescript apps.
 
 ## Database Migrations
 
@@ -101,7 +104,7 @@ Schemas define how items will be stored in your database and look like this:
 const MySchema = {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' }
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk' }
+        gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true }
     },
     models: {
         Account: {
@@ -115,8 +118,8 @@ const MySchema = {
         User: {
             pk:          { value: 'account:${accountName}' },
             sk:          { value: 'user:${email}', validate: EmailRegExp },
-            id:          { type: String },
-            accountName: { type: String },
+            id:          { type: String, required: true },
+            accountName: { type: String, required: true },
             email:       { type: String, required: true },
             firstName:   { type: String, required: true },
             lastName:    { type: String, required: true },
@@ -134,8 +137,7 @@ const MySchema = {
 Alternatively, you can define models one by one:
 
 ```javascript
-const Card = new Model(table, {
-    name: 'Card',
+const Card = new Model(table, 'Card', {
     fields: { /* Model schema field definitions */ }
 })
 ```
@@ -167,7 +169,7 @@ Get an item:
 
 ```javascript
 let account = await Account.get({
-    id: '8e7bbe6a-4afc-4117-9218-67081afc935b', zip
+    id: '8e7bbe6a-4afc-4117-9218-67081afc935b',
 })
 ```
 
@@ -194,8 +196,6 @@ To find a set of items:
 let users = await User.find({accountId: account.id})
 
 let adminUsers = await User.find({accountId: account.id, role: 'admin'})
-
-let user = await User.find({accountId: account.id, activity: {'>': lastMonth}})
 
 let users = await User.find({accountId: account.id}, {
     where: '${balance} > {100.00}'
@@ -290,7 +290,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | crypto | `object` | Optional properties defining a crypto configuration to encrypt properties. |
 | createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
 | delimiter | `string` | Composite sort key delimiter (default ':'). |
-| hidden | `boolean` | Hide key attributes in Javascript properties. Default true. |
+| hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
@@ -363,10 +363,13 @@ The `schema.indexes` property can contain one or more indexes and must contain t
     gs1: {
         hash: 'gs1pk',      //  Omit the hash for an LSI
         sort: 'gs1sk',
+        follow: true,
     },
     ...
 }
 ```
+
+The `follow` property is used to support GSI indexes that project KEYS_ONLY or only a subset of an items properties. When `follow` is true, any fetch of an item via the GSI will be transparently followed by a fetch of the full item using the primary index and the GSI projected keys. This incurs an additional request for each item, but for large data sets, it is useful to minimize the size of a GSI and yet retain access to full items.
 
 #### Models
 
@@ -398,7 +401,7 @@ The following attribute properties are supported:
 | default | `string or function` | Default value to use when creating model items or when reading items without a value.|
 | enum | `array` | List of valid string values for the attribute. |
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
-| hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. |
+| hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
 | ksuid | `boolean` | Set to true to automatically create a new KSUID (time-based sortable unique string) for the attribute when creating. Default false. This requires an implementation be passed to the Table constructor. |
 | map | `string` | Map the field value to a different attribute when storing in the database. |
 | nulls | `boolean` | Set to true to store null values. Default false. |
@@ -409,19 +412,19 @@ The following attribute properties are supported:
 | ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
 | uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
-| value | `string|function` | Template to use to derive the value of the attribute. |
+| value | `string, function or Array` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
 
 If the `hidden` property is set to true, the attribute will be defined in the DynamoDB database table, but will be omitted in the returned Javascript results.
 
-The `map` property can be used to set an alternate or shorter attribute name when storing in the database. This is useful if mapping attributes from different models onto keys.
+The `map` property can be used to set an alternate or shorter attribute name when storing in the database. The map value may be a simple string which will be used as the actual attribute name. Alternatively, the map value can be a pair of the form: 'obj.name', where the property will be stored in an object attribute named "obj" with the given `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. An effective design pattern is for GSIs to project only a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute.
 
-If the `default` property is set to a function and no value is provided for the attribute when creating a new item, the `default` function will be invoked to return a value for the attribute. The default signature is:
+If the `default` property defines the default value for an attribute. It may be set to a string or a function. If no value is provided for the attribute when creating a new item, the `default` value will be used. The default function signature is:
 
 ```javascript
 default(model, fieldName, attributes)
 ```
 
-The `transform` property is used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to more nature Javascript representations in your application. The transform signature is:
+The `transform` property is used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
 
 ```javascript
 value = transform(model, operation, name, value)
@@ -433,22 +436,24 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string or function template that are used to compute the attribute value. This is useful for computing key values from other attributes and for creating compound (composite) sort keys.
+The `value` property defines a literal string, function or array template that is used to compute the attribute value. This is useful for computing key values from other attributes, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
-String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes.
+String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation.
 
-The `value` may also be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName: String, properties, ...contexts)` where `properties` are the other attributes provided to the API call and contexts is an array of Table contexts (see below).
+The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName: String, context, properties)` where `properties` is the properties provided ot the API and `context` is the table context properties (see below). Note: table context properties should take precedence over the API properties.
+
+The `value` may be set to an Array of other attributes that will be packed as an object. This to pack a set of model fields in a single attribute in the table and unpack when reading the item. This is useful for GSIs that project limited attributes and you want several items to "pack" attributes into a single GSI projected attribute.
 
 ### Table Contexts
 
-Each `Table` has a `context` of properties that are blended with `Model` properties. The context is used to provide keys and attributes that apply to more than just one model. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user.
+Each `Table` has a `context` of properties that are blended with `Model` properties before executing APIs. The context is used to provide keys and attributes that apply to more than just one API invocation. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user. This is useful for multi-tennant applications.
 
 When creating items, context properties are written to the database. When updating, context properties are not, only explicit attributes provided in the API `properties` parameter are written.
 
-Context properties take precedence over supplied `properties`. This is to prevent accidental updating of context keys. To force an update, provide the context properties either by updating the context via `Table.setContext` or supplying an explicit context via `params.context`
-
+Context properties take precedence over supplied `properties`. This is to prevent accidental updating of context keys. To force an update of context attributes, provide the context properties either by updating the context via `Table.setContext` or supplying an explicit context via `params.context`.
 
 Use the `Table.setContext` method to initialize the context and `Table.clear` to reset.
+
 
 ### Table Methods
 
@@ -578,23 +583,35 @@ This API invokes the DynamoDB `query` API and return the results.
 
 The properties should include the relevant key properties.
 
-A key condition may be defined by setting the key property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value. For example:
+The sort key may be defined as a key condition by setting the property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value. For example:
 
 ```javascript
 let user = await table.queryItems({pk, sk: {begins: 'user:john'}})
 let tickets = await table.queryItems({pk, sk: {between: [1000, 2000]}})
-let invoices = await table.queryItems({pk, balance {'<=': 1000}})
+let invoices = await table.queryItems({pk, sk: {'<=': 1000}})
 ```
 
 The operators include:
 
 ```javascript
-< <= = >= > <>
+< <= = >= >
 begins or begins_with
 between
 ```
 
-For non-key attributes, you can also use '<>' for not equals.
+Additional fields supplied in `properties` are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
+
+More complex filter expressions may be created via a `params.where` property. For example:
+
+```javascript
+let invoices = await table.queryItems({pk}, {where: '${sk} <= {1000}'})
+```
+See [Where Clause](#where-clauses) for more details.
+
+If `queryItems` is called without a sort key, `queryItems` will utilize the model type as a sort key prefix and return all matching model items. This can be used to fetch all items that match the primary hash key and are of the specified model type.
+
+The `queryItems` method returns an array of items after applying any schema mappings. Hidden attributes in items will not be returned.
+
 
 Some useful params for queryItems include:
 
@@ -738,7 +755,7 @@ let user = await User.get({email: 'user@example.com'}, {index: 'gs1'})
 let users = await User.find({accountName: 'Acme Airplanes'})
 
 //  Update an item
-let user = await User.update({email: 'user@example.com', balance: 0}, {index: 'gs1'})
+let user = await User.update({email: 'user@example.com', balance: 0})
 ```
 
 ### Model Constructor
@@ -792,11 +809,38 @@ Find items in the database. This API wraps the DynamoDB `query` method.
 
 The `properties` parameter is a Javascript hash containing the required keys or fields that are used to create the primary key.
 
+The sort key may be defined as a simple value or as a key condition by setting the property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value. For example:
+
+```javascript
+let user = await table.find({pk, sk: {begins: 'user:john'}})
+let tickets = await table.find({pk, sk: {between: [1000, 2000]}})
+let invoices = await table.find({pk, sk: {'<=': 1000}})
+let invoices = await table.find({pk}, {where: '${sk} <= {1000}'})
+```
+
+The operators include:
+
+```javascript
+< <= = >= >
+begins or begins_with
+between
+```
+
 Additional fields supplied in `properties` are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
+
+More complex filter expressions may be created via a `params.where` property. For example:
+
+```javascript
+let adminUsers = await User.find({}, {
+    where: '(${role} = {admin}) and (${status} = {current})'
+})
+```
+See [Where Clause](#where-clauses) for more details.
 
 If `find` is called without a sort key, `find` will utilize the model type as a sort key prefix and return all matching model items. This can be used to fetch all items that match the primary hash key and are of the specified model type.
 
 The `find` method returns an array of items after applying any schema mappings. Hidden attributes in items will not be returned.
+
 
 #### Pagination
 
@@ -823,13 +867,14 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
+If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for large data sets, it enables the transparent use of a KEYS_ONLY secondary index which may greatly reduce the size (and cost) of the secondary index.
+
 The `params.limit` specifies the maximum number of items to return. The `params.start` defines the start point for the returned items. It is typically set to the last key returned in a previous invocation.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
-If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which may greatly reduce the size (and cost) of the secondary index.
 
 <a name="model-get"></a>
 #### async get(properties, params = {})
@@ -846,13 +891,13 @@ The optional params are fully described in [Model API Params](#params). Some rel
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
+If the `params.follow` is set to true, the item will be re-fetched using the retrieved keys for the item. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the item using the primary index. This incurs an additional request, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which reduces the size of the database.
+
 If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
-
-If the `params.follow` is set to true, the item will be re-fetched using the retrieved keys for the item. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the item using the primary index. This incurs an additional request, but for very large data sets, it enables the transparent use of a KEYS_ONLY secondary index which reduces the size of the database.
 
 <a name="model-remove"></a>
 #### async remove(properties, params = {})
@@ -959,12 +1004,12 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | throw | `boolean` | Set to true to throw exceptions when update constraints fail. Defaults to false.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
-| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is not to update index values which are defined during create.|
+| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 #### Where Clauses
 
-Using DynamoDB ExpressionAttributeNames and Values is one of the least fun parts of DynamoDB. OneTable makes this much easier via the use of templated `where` clauses.
+OneTable `where` clauses are a convenient way to express DynamoDB filter expressions. DynamoDB ExpressionAttributeNames and Values are one of the least fun parts of DynamoDB. OneTable makes this much easier via the use of templated `where` clauses to express complex filter expressions.
 
 A `where` clause may be used with `find`, `scan`, `create`, `delete` or `update` APIs to specify a Filter or Conditional update expression. OneTable will parse the `where` clause and extract the names and values to use with the DynamoDB API.
 
@@ -1000,17 +1045,20 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 
 ### References
 
+- [SenseDeep Blog](https://www.sensedeep.com/blog/)
+- [DynamoDB Checklist](https://www.sensedeep.com/blog/posts/2021/dynamodb-checklist.html)
+- [DynamoDB Articles](https://www.sensedeep.com/blog/posts/series/dynamodb/dynamodb-series.html)
 - [DynamoDB Book](https://www.dynamodbbook.com/)
 - [Alex DeBrie Best Practices Video](https://www.youtube.com/watch?v=8Ww1YW3AChE)
 - [DocumentClient SDK Reference](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html)
 - [DynamoDB Guide](https://www.dynamodbguide.com/)
-- [DynamoDB Toolbox](https://github.com/jeremydaly/dynamodb-toolbox)
 - [Best Practices for DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html)
 
 ### Participate
 
-All feedback, contributions and bug reports are very welcome.
+All feedback, discussion, contributions and bug reports are very welcome.
 
+* [discussions](https://github.com/sensedeep/dynamodb-onetable/discussions)
 * [issues](https://github.com/sensedeep/dynamodb-onetable/issues)
 
 ### Contact
@@ -1019,4 +1067,4 @@ You can contact me (Michael O'Brien) on Twitter at: [@SenseDeepCloud](https://tw
 
 ### SenseDeep
 
-Please try our Serverless trouble shooter [SenseDeep](https://www.sensedeep.com/).
+Please try our Serverless Developer Studio [SenseDeep](https://www.sensedeep.com/).

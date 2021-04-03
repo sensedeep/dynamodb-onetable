@@ -78,6 +78,7 @@ export default class Table {
                 [primary.hash]: { value: '_unique:${' + primary.hash + '}'},
                 [primary.sort]: { value: '_unique:'},
             },
+            indexes: this.indexes,
             timestamps: false
         })
         this.generic = new Model(this, '_Generic', {
@@ -85,6 +86,7 @@ export default class Table {
                 [primary.hash]: {},
                 [primary.sort]: {},
             },
+            indexes: this.indexes,
             timestamps: false
         })
 
@@ -108,6 +110,7 @@ export default class Table {
                 item[field] = {
                     crypt: properties.crypt,
                     enum: properties.enum,
+                    filter: properties.filter,
                     foreign: properties.foreign,
                     hidden: properties.hidden,
                     map: properties.map,
@@ -242,8 +245,7 @@ export default class Table {
                         let type = item[this.typeField] || '_unknown'
                         let model = this.models[type]
                         if (model && model != this.unique) {
-                            result.push(model.mapReadData('get', item, params))
-                            //KEEP item._table = tableName
+                            result.push(model.transformReadItem('get', item, params))
                         }
                     }
                 }
@@ -321,7 +323,7 @@ export default class Table {
                             let type = item[this.typeField] || '_unknown'
                             let model = this.models[type]
                             if (model && model != this.unique) {
-                                items.push(model.mapReadData('get', item, params))
+                                items.push(model.transformReadItem('get', item, params))
                             }
                         }
                     }

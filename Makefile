@@ -3,5 +3,5 @@ all: build
 build:
 	npm run build
 
-publish: build
+publish promote: build
 	npm publish
