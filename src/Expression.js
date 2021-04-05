@@ -96,6 +96,7 @@ export class Expression {
             this.add(field, value)
             if (this.fallback) return
         }
+        //  Emit mapped attributes
         if (this.mapped) {
             for (let [k,v] of Object.entries(this.mapped)) {
                 this.add({attribute: [k], name: k, filter: false}, v)
@@ -460,7 +461,6 @@ export class Expression {
         if (v != null) {
             return v
         }
-
         v = field.value
         if (v == null) {
             return undefined

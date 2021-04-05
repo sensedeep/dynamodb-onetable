@@ -25,7 +25,7 @@ type OneIndexSchema = {
     sort?: string,
     description?: string,
     follow?: boolean,
-}
+};
 
 /*
     Schema.models.Model.Field signature
@@ -47,14 +47,14 @@ type OneFieldSchema = {
     uuid?: boolean,
     validate?: RegExp | string,
     value?: ((name: string, context: {}, properties: {}) => any) | string,
-}
+};
 
 /*
     Schema.models signature
  */
 export type OneModelSchema = {
     [key: string]: OneFieldSchema;
-}
+};
 
 /*
     Schema signature
@@ -66,24 +66,24 @@ type OneSchema = {
     indexes?: {
         [key: string]: OneIndexSchema;
     },
-}
+};
 
 /*
     Schema field with required "type" property
  */
-type TypedField = {
+type OneTypedField = {
     type: OneTypes
-}
+};
 
 /*
     Schema Model of fields with a type property
  */
-type TypedModel = Record<string, TypedField>;
+type OneTypedModel = Record<string, OneTypedField>;
 
 /*
     Entity field signature generated from the schema
  */
-type EntityField<T extends TypedField> =
+type EntityField<T extends OneTypedField> =
       T['type'] extends StringConstructor ? string
     : T['type'] extends NumberConstructor ? number
     : T['type'] extends BooleanConstructor ? boolean
@@ -95,16 +95,16 @@ type EntityField<T extends TypedField> =
 /*
     Entities are objects whoes signature is based on the schema model of the same name.
  */
-export type Entity<T extends TypedModel> = {
+export type Entity<T extends OneTypedModel> = {
     [P in keyof T]?: EntityField<T[P]>;
-}
+};
 
 /*
     Any entity. Essentially untyped.
  */
 export type AnyEntity = {
     [key: string]: any;
-}
+};
 
 type ModelConstructorOptions = {
     models?: {
@@ -114,7 +114,7 @@ type ModelConstructorOptions = {
         [key: string]: OneIndexSchema;
     },
     timestamps?: boolean;
-}
+};
 
 /*
     Possible params options for all APIs
@@ -146,43 +146,43 @@ export type OneParams = {
     type?: string,
     updateIndexes?: boolean,
     where?: string,
-}
+};
 
 /*
     Properties for most APIs. Essentially untyped.
  */
 export type OneProperties = {
     [key: string]: any;
-}
+};
 
 export type AnyModel = {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    find(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    find(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
-    scan(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scan(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    queryItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
-    scanItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    queryItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scanItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-}
+};
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: T, params?: OneParams): Promise<T>;
-    find(properties?: T, params?: OneParams): Promise<T[]>;
+    find(properties: T, params?: OneParams): Promise<T[]>;
     get(properties: T, params?: OneParams): Promise<T>;
     remove(properties: T, params?: OneParams): Promise<void>;
-    scan(properties?: T, params?: OneParams): Promise<T[]>;
+    scan(properties: T, params?: OneParams): Promise<T[]>;
     update(properties: T, params?: OneParams): Promise<T>;
     deleteItem(properties: T, params?: OneParams): Promise<void>;
     getItem(properties: T, params?: OneParams): Promise<T>;
     putItem(properties: T, params?: OneParams): Promise<T>;
-    queryItems(properties?: T, params?: OneParams): Promise<T[]>;
-    scanItems(properties?: T, params?: OneParams): Promise<T[]>;
+    queryItems(properties: T, params?: OneParams): Promise<T[]>;
+    scanItems(properties: T, params?: OneParams): Promise<T[]>;
     updateItem(properties: T, params?: OneParams): Promise<T>;
-}
+};

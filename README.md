@@ -335,7 +335,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
-| logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
+| logger | `object` | Logging function(type, message, properties). Type is info|error|trace|exception. |
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
@@ -372,7 +372,7 @@ The `crypto` property defines the configuration used to encrypt and decrypt attr
 
 OneTable can log full request parameters and responses to assist you in debugging and understanding how your API requests are being translated to DynamoDB.
 
-The `logger` parameter configures a logging callback that will be invoked as required to log data. The logger function has the signature
+The `logger` parameter configures a logging callback that will be invoked as required to log data. The logger function has the signature:
 
 ```javascript
 const table = new Table({
@@ -461,17 +461,20 @@ The following attribute properties are supported:
 | ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
 | uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
-| value | `string, function or Array` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
+| value | `string or function` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
 
-If the `hidden` property is set to true, the attribute will be defined in the DynamoDB database table, but will be omitted in the returned Javascript results.
-
-The `map` property can be used to set an alternate or shorter attribute name when storing in the database. The map value may be a simple string which will be used as the actual attribute name. Alternatively, the map value can be a pair of the form: 'obj.name', where the property will be stored in an object attribute named "obj" with the given `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. An effective design pattern is for GSIs to project only a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute.
 
 If the `default` property defines the default value for an attribute. It may be set to a string or a function. If no value is provided for the attribute when creating a new item, the `default` value will be used. The default function signature is:
 
 ```javascript
 default(model, fieldName, attributes)
 ```
+
+If the `hidden` property is set to true, the attribute will be defined in the DynamoDB database table, but will be omitted in the returned Javascript results.
+
+The `map` property can be used to set an alternate or shorter attribute name when storing in the database. The map value may be a simple string that will be used as the actual attribute name.
+
+Alternatively, the map value can be a pair of the form: 'obj.name', where the attribute value will be stored in an object attribute named "obj" with the given name `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. This is helpful for the design pattern where GSIs project keys plus a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute. OneTable will automatically pack and unpack attribute values into the mapped attribute.
 
 The `transform` property is used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
 
@@ -485,13 +488,12 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string, function or array template that is used to compute the attribute value. This is useful for computing key values from other attributes, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
+The `value` property defines a literal string template or function that is used to compute the attribute value. This is useful for computing key values from other attributes, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
 String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation.
 
-The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName: String, context, properties)` where `properties` is the properties provided ot the API and `context` is the table context properties (see below). Note: table context properties should take precedence over the API properties.
+The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). Note: table context properties should take precedence over the API properties.
 
-The `value` may be set to an Array of other attributes that will be packed as an object. This to pack a set of model fields in a single attribute in the table and unpack when reading the item. This is useful for GSIs that project limited attributes and you want several items to "pack" attributes into a single GSI projected attribute.
 
 ### Table Contexts
 
