@@ -5,7 +5,7 @@
 const KeyOperators =    [ '<', '<=', '=',       '>=', '>', 'begins', 'begins_with', 'between' ]
 const KeyOnlyOp = { get: true, delete: true }
 
-export default class Expression {
+export class Expression {
     /*
         Create an Expression
         @param model Model instance

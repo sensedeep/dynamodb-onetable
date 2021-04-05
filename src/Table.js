@@ -3,15 +3,15 @@
  */
 
 import Crypto from 'crypto'
-import Model from './Model.js'
 import ULID from './ULID.js'
+import {Model} from './Model.js'
 
 const IV_LENGTH = 16
 
 /*
     Represent a single DynamoDB table
  */
-export default class Table {
+export class Table {
 
     constructor(params = {}) {
         let {
@@ -20,10 +20,10 @@ export default class Table {
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
             hidden,         //  Hide key attributes in Javascript properties. Default false.
+            intercept,      //  Intercept hook function(model, operation, item, params, raw). Operation: 'create', 'delete', 'put', ...
             isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
             ksuid,          //  Function to create a KSUID if field schema requires it.
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
-            migrate,        //  Migration function(model, operation, data). Operation: 'create', 'delete', 'put', ...
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
             schema,         //  Table models schema.
@@ -46,7 +46,7 @@ export default class Table {
         this.params = params
         this.client = client
         this.V3 = client.V3
-        this.migrate = migrate
+        this.intercept = intercept
         this.nulls = nulls || false
         this.delimiter = delimiter || '#'
         this.createdField = createdField || 'created'
@@ -142,9 +142,8 @@ export default class Table {
             throw new Error('Schema is missing indexes')
         }
         this.indexes = indexes
-        let migrate = params.migrate || this.migrate
         for (let [name, fields] of Object.entries(models)) {
-            this.models[name] = new Model(this, name, {fields, indexes, migrate})
+            this.models[name] = new Model(this, name, {fields, indexes})
         }
     }
 
@@ -152,8 +151,8 @@ export default class Table {
         return Object.keys(this.models)
     }
 
-    addModel(name, fields, migrate) {
-        this.models[name] = new Model(this, name, {indexes: schema.indexes, fields, migrate})
+    addModel(name, fields) {
+        this.models[name] = new Model(this, name, {indexes: schema.indexes, fields})
     }
 
     /*

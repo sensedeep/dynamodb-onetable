@@ -1,7 +1,7 @@
 /*
     Model.js - DynamoDB model class
 */
-import Expression from './Expression.js'
+import {Expression} from './Expression.js'
 
 /*
     Default index keys if not supplied
@@ -42,10 +42,7 @@ const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutReque
 const SanityPages = 1000
 const FollowThreads = 10
 
-/*
-    DynamoDB model entity class
- */
-export default class Model {
+export class Model {
 
     /*
         @param table Instance of Table.
@@ -79,7 +76,6 @@ export default class Model {
             this.timestamps = table.timestamps || true
         }
         this.updatedField = table.updatedField
-        this.intercept = options.intercept
         this.indexes = options.indexes || DefaultIndexes
         this.indexProperties = this.getIndexProperties(this.indexes)
 
@@ -119,7 +115,7 @@ export default class Model {
         required        Boolean
         size            Number (not implemented)
         transform       Transform hook function
-        type            String, Boolean, Number, Date, 'set', Buffer, Binary, Set, Object, Array
+        type            String, Boolean, Number, Date, 'Set', Buffer, Binary, Set, Object, Array
         ulid            ULID
         uuid            UUID
         unique          Boolean
@@ -603,8 +599,8 @@ export default class Model {
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'read', rec, params, raw)
         }
-        if (this.intercept && InterceptTags[op] == 'read') {
-            rec = this.intercept(this, op, rec, params, raw)
+        if (this.table.intercept && InterceptTags[op] == 'read') {
+            rec = this.table.intercept(this, op, rec, params, raw)
         }
         return rec
     }
@@ -725,8 +721,8 @@ export default class Model {
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'write', rec, params)
         }
-        if (this.intercept && InterceptTags[op] == 'write') {
-            rec = this.intercept(this, this.op, rec, params)
+        if (this.table.intercept && InterceptTags[op] == 'write') {
+            rec = this.table.intercept(this, this.op, rec, params)
         }
         return rec
     }

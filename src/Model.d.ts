@@ -1,0 +1,188 @@
+/*
+    Model.d.ts -- Hand crafted type defintions for Model
+
+    Supports dynamic defintion of types based on the Schema.js
+*/
+
+/*
+    Possible types for a schema field "type" property
+ */
+type OneTypes =
+    ArrayConstructor |
+    BooleanConstructor |
+    DateConstructor |
+    NumberConstructor |
+    ObjectConstructor |
+    StringConstructor |
+    Buffer |
+    string;
+
+/*
+    Schema.indexes signature
+ */
+type OneIndexSchema = {
+    hash: string,
+    sort?: string,
+    description?: string,
+    follow?: boolean,
+}
+
+/*
+    Schema.models.Model.Field signature
+ */
+type OneFieldSchema = {
+    crypt?: boolean,
+    default?: (() => any) | string,
+    enum?: string[],
+    filter?: boolean,
+    hidden?: boolean,
+    ksuid?: boolean,
+    map?: string,
+    nulls?: boolean,
+    required?: boolean,
+    transform?: (model: AnyModel, op: string, name: string, value: any) => any,
+    type: OneType,
+    unique?: boolean,
+    ulid?: boolean,
+    uuid?: boolean,
+    validate?: RegExp | string,
+    value?: ((name: string, context: {}, properties: {}) => any) | string,
+}
+
+/*
+    Schema.models signature
+ */
+export type OneModelSchema = {
+    [key: string]: OneFieldSchema;
+}
+
+/*
+    Schema signature
+ */
+type OneSchema = {
+    models?: {
+        [key: string]: OneModelSchema;
+    },
+    indexes?: {
+        [key: string]: OneIndexSchema;
+    },
+}
+
+/*
+    Schema field with required "type" property
+ */
+type TypedField = {
+    type: OneTypes
+}
+
+/*
+    Schema Model of fields with a type property
+ */
+type TypedModel = Record<string, TypedField>;
+
+/*
+    Entity field signature generated from the schema
+ */
+type EntityField<T extends TypedField> =
+      T['type'] extends StringConstructor ? string
+    : T['type'] extends NumberConstructor ? number
+    : T['type'] extends BooleanConstructor ? boolean
+    : T['type'] extends ObjectConstructor ? object
+    : T['type'] extends DateConstructor ? Date
+    : T['type'] extends ArrayConstructor ? []
+    : never;
+
+/*
+    Entities are objects whoes signature is based on the schema model of the same name.
+ */
+export type Entity<T extends TypedModel> = {
+    [P in keyof T]?: EntityField<T[P]>;
+}
+
+/*
+    Any entity. Essentially untyped.
+ */
+export type AnyEntity = {
+    [key: string]: any;
+}
+
+type ModelConstructorOptions = {
+    models?: {
+        [key: string]: OneModelSchema;
+    },
+    indexes?: {
+        [key: string]: OneIndexSchema;
+    },
+    timestamps?: boolean;
+}
+
+/*
+    Possible params options for all APIs
+ */
+export type OneParams = {
+    add?: object,
+    batch?: object,
+    capacity?: string,
+    consistent?: boolean,
+    context?: object,
+    delete?: object,
+    execute?: boolean,
+    exists?: boolean,
+    hidden?: boolean,
+    index?: string,
+    limit?: number,
+    log?: boolean,
+    many?: boolean,
+    metrics?: boolean,
+    parse?: boolean,
+    postFormat?: () => {},
+    preFormat?: () => {},
+    remove?: string[],
+    return?: string,
+    reverse?: boolean,
+    start?: boolean,
+    throw?: boolean,
+    transaction?: object,
+    type?: string,
+    updateIndexes?: boolean,
+    where?: string,
+}
+
+/*
+    Properties for most APIs. Essentially untyped.
+ */
+export type OneProperties = {
+    [key: string]: any;
+}
+
+export type AnyModel = {
+    constructor(table: any, name: string, options?: ModelConstructorOptions);
+    create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    find(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    remove(properties: OneProperties, params?: OneParams): Promise<void>;
+    scan(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
+    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    queryItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scanItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+}
+
+export class Model<T> {
+    constructor(table: any, name: string, options?: ModelConstructorOptions);
+    create(properties: T, params?: OneParams): Promise<T>;
+    find(properties?: T, params?: OneParams): Promise<T[]>;
+    get(properties: T, params?: OneParams): Promise<T>;
+    remove(properties: T, params?: OneParams): Promise<void>;
+    scan(properties?: T, params?: OneParams): Promise<T[]>;
+    update(properties: T, params?: OneParams): Promise<T>;
+    deleteItem(properties: T, params?: OneParams): Promise<void>;
+    getItem(properties: T, params?: OneParams): Promise<T>;
+    putItem(properties: T, params?: OneParams): Promise<T>;
+    queryItems(properties?: T, params?: OneParams): Promise<T[]>;
+    scanItems(properties?: T, params?: OneParams): Promise<T[]>;
+    updateItem(properties: T, params?: OneParams): Promise<T>;
+}

@@ -48,7 +48,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 * Support for the AWS SDK v3.
-* Support Typescript apps.
+* Dynamic TypeScript declarations to validate APIs, parameters, returns, and schema entities.
 
 ## Database Migrations
 
@@ -61,7 +61,7 @@ To manage your database migrations, consider the
 
 ## Quick Tour
 
-Import the OneTable library. If you are not using ES modules or Typescript, use `require` to import the libraries.
+Import the OneTable library. If you are not using ES modules or TypeScript, use `require` to import the libraries.
 
 ```javascript
 import {Table} from 'dynamodb-onetable'
@@ -218,6 +218,47 @@ await User.update({id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 ```
 
+## TypeScript
+
+OneTable provides TypeScript type declaration files so that OneTable APIs can be fully type checked.
+
+However, OneTable goes further creates type declarations for your table entities and attributes. TypeScript will catch any invalid entity or entity attribute references.
+
+Using TypeScript dynamic typing, OneTable automatically converts your OneTable schema into fully typed generic Model APIs.
+
+For example:
+
+```
+const schema = {
+    models: {
+        Account: {
+            pk:             { type: String, value: 'account:${name}' },
+            name:           { type: String },
+        }
+    }
+}
+
+//  Fully typed Account object based on the schema
+type Account = Entity<typeof schema.models.Account>
+
+let account: Account = {
+    name: 'Coyote',        //  OK
+    unknown: 42,           //  Error
+}
+
+//  Create a model to get/find/update...
+
+let AccountModel = new Model<Account>(table, 'Account')
+
+let account = await AccountModel.update({
+    name: 'Acme',               //  OK
+    unknown: 42,                //  Error
+})
+
+account.name = 'Coyote'         //  OK
+account.unknown = 42            //  Error
+```
+
 ## Why OneTable?
 
 DynamoDB is a great [NoSQL](https://en.wikipedia.org/wiki/NoSQL) database that comes with a learning curve. Folks migrating from SQL often have a hard time adjusting to the NoSQL paradigm and especially to DynamoDB which offers exceptional scalability but with a fairly low-level API.
@@ -226,11 +267,11 @@ The standard DynamoDB API requires a lot of boiler-plate syntax and expressions.
 
 Net/Net: it is not easy to write terse, clear, robust Dynamo code for one-table patterns.
 
-Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB and to remove the tedium and provide a more natural, "Javascripty" way to interact with DynamoDB without obscuring any of the power of DynamoDB itself.
+Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB and to remove the tedium and provide a more natural, "JavaScripty / TypeScripty" way to interact with DynamoDB without obscuring any of the power of DynamoDB itself.
 
 ## Dynamo Class
 
-The Dynamo class is used ease the configuration of the AWS SDK v3. The class is only used to wrap the DynamoDBClient instance and provide helper methods for OneTable. It does not expose any other methods.
+The Dynamo class is used ease the configuration of the AWS SDK v3. The class is only used with AWS SDK V3 to wrap the DynamoDBClient instance and provide helper methods for OneTable. It does not expose any other methods.
 
 ### Dynamo Constructor
 
@@ -291,6 +332,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
 | delimiter | `string` | Composite sort key delimiter (default ':'). |
 | hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
+| intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
 | logger | `object` | Logging function(tag, message, properties). Tag is data.info|error|trace|exception. |
@@ -306,6 +348,14 @@ The Table constructor takes a parameter of type `object` with the following prop
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
 By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a per-attribute basis via the schema.
+
+The optional `intercept` function will be invoked on read and write requests to assist with data migrations. The intercept function can modify the item as it sees fit. The invocation signature is:
+
+```javascript
+intercept(model, operation, item, apiParams, rawReadData)
+```
+
+Where `operation` is set to 'read' or 'write'. For read operations, the `raw` parameter has the raw data as read from the table before conversion into Javascript properties in `item`.
 
 #### Crypto
 
@@ -347,7 +397,6 @@ The valid properties of the `schema` object are:
 | -------- | :--: | ----------- |
 | indexes | `object` | Hash of indexes used by the table |
 | models | `object` | Hash of model entities describing the model keys, indexes and attributes |
-| intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 
 #### Indexes
 
@@ -458,7 +507,7 @@ Use the `Table.setContext` method to initialize the context and `Table.clear` to
 ### Table Methods
 
 
-#### addModel(name, fields, migrate)
+#### addModel(name, fields)
 
 Add a new model to a table. This invokes the `Model` constructor and then adds the model to the table. The previously defined `Table` indexes are used for the model.
 
@@ -758,13 +807,23 @@ let users = await User.find({accountName: 'Acme Airplanes'})
 let user = await User.update({email: 'user@example.com', balance: 0})
 ```
 
+
 ### Model Constructor
 
 Models are typically created via the Table `schema` definition and factory. However, you can create them one-by-one as required. After manually creating the model, you should call `Table.addModel` to add to your table.
 
 ```javascript
-new Model(table, name, options)
+let AccountModel = new Model(table, name, options)
 ```
+
+With TypeScript, you create fully typed models using the generic Model constructor. For example:
+
+```typescript
+type Account = Entity<typeof schema.models.Account>
+let AccountModel = new Model<Account>(table, 'Account', options)
+```
+
+Thereafter, the references to Account instances return by the model will be fully type checked.
 
 Where `table` is a configured instance of `Table`. Name is the name of the model and `options` are an optional hash.
 
@@ -774,7 +833,6 @@ The Model `options` are:
 | -------- | :--: | ----------- |
 | fields | `object` | Field attribute definitions. Same format as in the Table `schema` |
 | indexes | `object` | Index definition. Same format as in the Table `schema` |
-| migrate | `function` | Function to invoke when reading/writing data to assist in migrating items |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items |
 
 ### Model High-Level API
