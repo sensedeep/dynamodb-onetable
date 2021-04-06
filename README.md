@@ -18,7 +18,7 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 
 ## History and Credits
 
-After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless troubleshooter to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
+After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless developer studio to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
 
 OneTable was used in production by the [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
