@@ -228,12 +228,12 @@ Using TypeScript dynamic typing, OneTable automatically converts your OneTable s
 
 For example:
 
-```
+```javascript
 const schema = {
     models: {
         Account: {
-            pk:             { type: String, value: 'account:${name}' },
-            name:           { type: String },
+            pk:    { type: String, value: 'account:${name}' },
+            name:  { type: String },
         }
     }
 }
@@ -452,7 +452,7 @@ The following attribute properties are supported:
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
 | ksuid | `boolean` | Set to true to automatically create a new KSUID (time-based sortable unique string) for the attribute when creating. Default false. This requires an implementation be passed to the Table constructor. |
-| map | `string` | Map the field value to a different attribute when storing in the database. |
+| map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
 | nulls | `boolean` | Set to true to store null values. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
@@ -474,7 +474,7 @@ If the `hidden` property is set to true, the attribute will be defined in the Dy
 
 The `map` property can be used to set an alternate or shorter attribute name when storing in the database. The map value may be a simple string that will be used as the actual attribute name.
 
-Alternatively, the map value can be a pair of the form: 'obj.name', where the attribute value will be stored in an object attribute named "obj" with the given name `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. This is helpful for the design pattern where GSIs project keys plus a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute. OneTable will automatically pack and unpack attribute values into the mapped attribute.
+Alternatively, the map value can be a pair of the form: 'obj.name', where the attribute value will be stored in an object attribute named "obj" with the given name `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. This is helpful for the design pattern where GSIs project keys plus a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute. OneTable will automatically pack and unpack attribute values into the mapped attribute. Note: APIs that write to a mapped attribute must provide all the properties that map to that attribute on the API call. Otherwise an incomplete attribute would be written to the table.
 
 The `transform` property is used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
 

@@ -96,8 +96,15 @@ export class Expression {
             this.add(field, value)
             if (this.fallback) return
         }
-        //  Emit mapped attributes
+        //  Emit mapped attributes. Check all required attributes are present.
         if (this.mapped) {
+            for (let [att, props] of Object.entries(this.mapped)) {
+                if (Object.keys(props).length != this.model.mappings[att].length) {
+                    throw new Error(`Missing property for mapped data field for ${this.model.name}`, {
+                        mapped: this.mapped
+                    })
+                }
+            }
             for (let [k,v] of Object.entries(this.mapped)) {
                 this.add({attribute: [k], name: k, filter: false}, v)
             }

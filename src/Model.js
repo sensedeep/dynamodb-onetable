@@ -93,6 +93,7 @@ export class Model {
             field.attribute[1] == sub property (optional)
         */
         this.map = {}
+        this.mappings = 0
 
         if (options.fields) {
             this.prepModel(options.fields)
@@ -132,6 +133,7 @@ export class Model {
         let {indexes, map, table} = this
         let primary = indexes.primary
         let keys = {}
+        let mapTargets = {}
 
         for (let [name, field] of Object.entries(fields)) {
             if (!field.type) {
@@ -140,13 +142,22 @@ export class Model {
             let to = field.map
             if (to) {
                 let [att, sub] = to.split('.')
+                mapTargets[att] = mapTargets[att] || []
                 if (sub) {
                     if (map[name] && !Array.isArray(map[name])) {
                         throw new Error(`dynamo: Map already defined as literal for ${this.name}.${name}`)
                     }
                     field.attribute = map[name] = [att, sub]
+                    if (mapTargets[att].indexOf(sub) >= 0) {
+                        throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
+                    }
+                    mapTargets[att].push(sub)
                 } else {
+                    if (mapTargets[att].length > 1) {
+                        throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
+                    }
                     field.attribute = map[name] = [att]
+                    mapTargets[att].push(true)
                 }
             } else {
                 field.attribute = map[name] = [name]
@@ -187,6 +198,7 @@ export class Model {
         if (Object.values(this.fields).find(f => f.unique && f.attribute != hash && f.attribute != sort)) {
             this.hasUniqueFields = true
         }
+        this.mappings = mapTargets
     }
 
     /*
