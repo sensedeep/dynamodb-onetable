@@ -2,8 +2,8 @@
     dynamodb-onetable - DynamoDB wrapper for single table patterns
 */
 
-import { Expression } from './Expression'
-import { Model } from './Model'
-import { Table } from './Table'
+import { Expression } from './Expression.js'
+import { Model } from './Model.js'
+import { Table } from './Table.js'
 
 export { Expression, Model, Table }
