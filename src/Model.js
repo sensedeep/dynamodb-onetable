@@ -598,7 +598,7 @@ export class Model {
 
             } else if (value === undefined) {
                 if (field.required) {
-                    this.log('info', `Required field "${name}" in model "${this.name}" not defined in table item"`, {
+                    this.log('info', `Required field "${name}" in model "${this.name}" not defined in table item`, {
                         model: this.name, raw, params, field
                     })
                 }
