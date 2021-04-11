@@ -246,9 +246,16 @@ let account: Account = {
     unknown: 42,           //  Error
 }
 
-//  Create a model to get/find/update...
+//  Create a model to get/find/update. Uses table indexes.
+let AccountModel = new Model<Account>(table, 'Account', {
+    fields: {
+        pk:    { type: String, value: 'account:${name}' },
+        name:  { type: String },
+    }
+})
 
-let AccountModel = new Model<Account>(table, 'Account')
+//  or get the model from the table if defined via the table schema.
+let AccountModel: Model<Account> = table.getModel('Account')
 
 let account = await AccountModel.update({
     name: 'Acme',               //  OK
@@ -822,7 +829,12 @@ With TypeScript, you create fully typed models using the generic Model construct
 
 ```typescript
 type Account = Entity<typeof schema.models.Account>
-let AccountModel = new Model<Account>(table, 'Account', options)
+let AccountModel = new Model<Account>(table, 'Account', {
+    fields: {
+        pk:    { type: String, value: 'account:${name}' },
+        name:  { type: String },
+    }
+})
 ```
 
 Thereafter, the references to Account instances return by the model will be fully type checked.
