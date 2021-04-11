@@ -28,7 +28,12 @@ let account: Account = {
 
 //  Create a model to get/find/update...
 
-let AccountModel = new Model<Account>(table, 'Account')
+let AccountModel = new Model<Account>(table, 'Account', {
+    fields: {
+        pk:    { type: String, value: 'account:${name}' },
+        name:  { type: String },
+    }
+})
 
 let account = await AccountModel.update({
     name: 'Acme',               //  OK

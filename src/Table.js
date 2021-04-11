@@ -9,6 +9,16 @@ import {Model} from './Model.js'
 const IV_LENGTH = 16
 
 /*
+    Default index keys if not supplied
+ */
+const DefaultIndexes = {
+    primary: {
+        hash: 'pk',
+        sort: 'sk',
+    },
+}
+
+/*
     Represent a single DynamoDB table
  */
 export class Table {
@@ -62,6 +72,7 @@ export class Table {
 
         //  Schema models
         this.models = {}
+        this.indexes = DefaultIndexes
 
         //  Context properties always applied to create/updates
         this.context = {}

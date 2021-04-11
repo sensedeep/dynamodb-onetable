@@ -4,16 +4,6 @@
 import {Expression} from './Expression.js'
 
 /*
-    Default index keys if not supplied
- */
-const DefaultIndexes = {
-    primary: {
-        hash: 'pk',
-        sort: 'sk',
-    },
-}
-
-/*
     DynamoDB API methods mapped to dynamo
  */
 const DocumentClientMethods = {
@@ -76,7 +66,7 @@ export class Model {
             this.timestamps = table.timestamps || true
         }
         this.updatedField = table.updatedField
-        this.indexes = options.indexes || DefaultIndexes
+        this.indexes = options.indexes || table.indexes
         this.indexProperties = this.getIndexProperties(this.indexes)
 
         this.fields = {}            //  Attribute list for this model
