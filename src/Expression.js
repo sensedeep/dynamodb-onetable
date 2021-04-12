@@ -401,7 +401,7 @@ export class Expression {
                 args = { Keys: key }
             } else if (op == 'delete') {
                 args = { Key: key }
-            } else if (op == 'update') {
+            } else if (op == 'put') {
                 args = { Item: values }
             }
         } else {
