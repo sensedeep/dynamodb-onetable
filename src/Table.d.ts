@@ -18,7 +18,8 @@ type TableConstructorParams = {
     //TODO - should take log info|error as param
     logger?: any,           //  Logging function
 
-    intercept?: (model: Model, op: string, rec: {}, params: OneParams, raw?: {}) => void,
+    //  Intercept table reads and writes
+    intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
     name?: string,          //  Table name.
     nulls?: boolean,        //  Store nulls in database attributes. Default false.
     schema?: OneSchema,     //  Table models schema.
