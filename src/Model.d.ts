@@ -53,7 +53,7 @@ type OneFieldSchema = {
     Schema.models signature
  */
 export type OneModelSchema = {
-    [key: string]: OneFieldSchema;
+    [key: string]: OneFieldSchema
 };
 
 /*
@@ -61,10 +61,10 @@ export type OneModelSchema = {
  */
 type OneSchema = {
     models?: {
-        [key: string]: OneModelSchema;
+        [key: string]: OneModelSchema
     },
     indexes?: {
-        [key: string]: OneIndexSchema;
+        [key: string]: OneIndexSchema
     },
 };
 
@@ -96,24 +96,24 @@ type EntityField<T extends OneTypedField> =
     Entities are objects whoes signature is based on the schema model of the same name.
  */
 export type Entity<T extends OneTypedModel> = {
-    [P in keyof T]?: EntityField<T[P]>;
+    [P in keyof T]?: EntityField<T[P]>
 };
 
 /*
     Any entity. Essentially untyped.
  */
 export type AnyEntity = {
-    [key: string]: any;
+    [key: string]: any
 };
 
 type ModelConstructorOptions = {
     fields?: {
-        [key: string]: OneModelSchema;
+        [key: string]: OneModelSchema
     },
     indexes?: {
-        [key: string]: OneIndexSchema;
+        [key: string]: OneIndexSchema
     },
-    timestamps?: boolean;
+    timestamps?: boolean,
 };
 
 /*
@@ -152,7 +152,7 @@ export type OneParams = {
     Properties for most APIs. Essentially untyped.
  */
 export type OneProperties = {
-    [key: string]: any;
+    [key: string]: any
 };
 
 export type AnyModel = {

@@ -30,7 +30,7 @@ type TableConstructorParams = {
 };
 
 export class Table {
-    constructor(params: TableConstructorParams)
+    constructor(params: TableConstructorParams);
 
     addModel(name: string, fields: OneModelSchema): void;
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
