@@ -79,8 +79,8 @@ This version includes prototype support for the AWS SDK v3.
 If you are using the AWS SDK v3, import the AWS v3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance.
 
 ```javascript
+import {Dynamo, Table} from 'dynamodb-onetable'
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
-import Dynamo from 'dynamodb-onetable/Dynamo'
 const client = new Dynamo({client: new DynamoDBClient(params)})
 ```
 
