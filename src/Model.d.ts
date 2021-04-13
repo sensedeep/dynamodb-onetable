@@ -156,7 +156,7 @@ export type OneProperties = {
 };
 
 export type AnyModel = {
-    constructor(table: any, name: string, options?: ModelConstructorOptions);
+    constructor(table: any, name: string, options?: ModelConstructorOptions): AnyModel;
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
