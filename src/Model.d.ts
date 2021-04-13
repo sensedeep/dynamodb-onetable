@@ -185,4 +185,4 @@ export class Model<T> {
     queryItems(properties: T, params?: OneParams): Promise<T[]>;
     scanItems(properties: T, params?: OneParams): Promise<T[]>;
     updateItem(properties: T, params?: OneParams): Promise<T>;
-};
+}
