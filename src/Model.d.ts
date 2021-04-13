@@ -7,7 +7,7 @@
 /*
     Possible types for a schema field "type" property
  */
-type OneTypes =
+type OneType =
     ArrayConstructor |
     BooleanConstructor |
     DateConstructor |
@@ -72,7 +72,7 @@ type OneSchema = {
     Schema field with required "type" property
  */
 type OneTypedField = {
-    type: OneTypes
+    type: OneType
 };
 
 /*

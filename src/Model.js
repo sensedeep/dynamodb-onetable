@@ -97,9 +97,9 @@ export class Model {
         crypt           Boolean
         default         Default value string or function
         enum            Array of values
-        filter          Prevent a property from being used in a filter
+        filter          Boolean. Prevent a property from being used in a filter
         foreign         model:key-attribute (not yet supported)
-        hidden          Boolean (index properties implicitly hidden)
+        hidden          Boolean. Don't return the attributes to API callers.
         ksuid           KSUID
         map             String
         nulls           Boolean
