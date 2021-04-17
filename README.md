@@ -1065,7 +1065,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
 | log | `boolean` | Set to true to force the API call to be logged at the 'info' level. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
-| metrics | `boolean` | Set to true to enable returning performance metrics for find/scan. Defaults to false.|
+| metrics | `object` | Set to an object to receive performance metrics for find/scan. Defaults to null.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
@@ -1078,6 +1078,13 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
+
+If `metrics` is defined, then the following metrics are returned in the metrics object:
+
+* count -- Number of items returned
+* scanned -- Number of items scanned
+* capacity -- DynamoDB consumed capacity
+
 
 #### Where Clauses
 

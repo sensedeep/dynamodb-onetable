@@ -235,13 +235,18 @@ export class Model {
                 return list.push({[bop]: cmd})
             }
         }
+        let metrics
+        if (params.metrics && typeof params == 'object') {
+            metrics = params.metrics
+            metrics.count = metrics.scanned = metrics.capacity = 0
+        }
 
         /*
             Run command. Paginate if required.
          */
         let mark = new Date()
         let trace = {cmd, op, properties, params}
-        let pages = 0, items = [], metrics, result
+        let pages = 0, items = [], result
         let limit = cmd.Limit ? cmd.Limit : null
         do {
             try {
@@ -272,8 +277,7 @@ export class Model {
             }
             if (result.Items) {
                 items = items.concat(result.Items)
-                if (params.metrics) {
-                    metrics = metrics || {count: 0, scanned: 0, capacity: 0}
+                if (metrics) {
                     metrics.count += result.Count
                     metrics.scanned += result.ScannedCount
                     metrics.capacity += result.ConsumedCapacity
@@ -326,9 +330,6 @@ export class Model {
         }
         if (op == 'find' || op == 'scan') {
             if (metrics) {
-                items.count = metrics.Count
-                items.scanned = metrics.ScannedCount
-                items.capacity = metrics.ConsumedCapacity
                 items.start = result.LastEvaluatedKey
             }
             if (result.LastEvaluatedKey) {
