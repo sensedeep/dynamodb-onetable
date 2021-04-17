@@ -1,7 +1,7 @@
 /*
-    Model.d.ts -- Hand crafted type defintions for Model
+    Model.d.ts -- Hand crafted type definitions for Model
 
-    Supports dynamic defintion of types based on the Schema.js
+    Supports dynamic definition of types based on the Schema.js
 */
 
 /*
@@ -155,34 +155,39 @@ export type OneProperties = {
     [key: string]: any
 };
 
+export class Paged<T> extends Array {
+    start: string;
+    next: () => Paged<T>;
+}
+
 export type AnyModel = {
     constructor(table: any, name: string, options?: ModelConstructorOptions): AnyModel;
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    find(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    find(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
-    scan(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scan(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    queryItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
-    scanItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    scanItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 };
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: T, params?: OneParams): Promise<T>;
-    find(properties: T, params?: OneParams): Promise<T[]>;
+    find(properties: T, params?: OneParams): Promise<Paged<T[]>>;
     get(properties: T, params?: OneParams): Promise<T>;
     remove(properties: T, params?: OneParams): Promise<void>;
-    scan(properties: T, params?: OneParams): Promise<T[]>;
+    scan(properties: T, params?: OneParams): Promise<Paged<T[]>>;
     update(properties: T, params?: OneParams): Promise<T>;
     deleteItem(properties: T, params?: OneParams): Promise<void>;
     getItem(properties: T, params?: OneParams): Promise<T>;
     putItem(properties: T, params?: OneParams): Promise<T>;
-    queryItems(properties: T, params?: OneParams): Promise<T[]>;
-    scanItems(properties: T, params?: OneParams): Promise<T[]>;
+    queryItems(properties: T, params?: OneParams): Promise<Paged<T[]>>;
+    scanItems(properties: T, params?: OneParams): Promise<Paged<T[]>>;
     updateItem(properties: T, params?: OneParams): Promise<T>;
 }
