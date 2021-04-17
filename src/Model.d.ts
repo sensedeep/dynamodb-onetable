@@ -140,7 +140,7 @@ export type OneParams = {
     remove?: string[],
     return?: string,
     reverse?: boolean,
-    start?: boolean,
+    start?: object,
     throw?: boolean,
     transaction?: object,
     type?: string,
