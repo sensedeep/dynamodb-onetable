@@ -1,0 +1,7 @@
+{
+    "name": "Dynamo",
+    "description": "AWS SDK V3 access for OneTable",
+    "main": "dist/cjs/Dynamo.js",
+    "module": "../dist/mjs/Dynamo.js",
+    "types": "../dist/cjs/Dynamo.d.ts"
+}
