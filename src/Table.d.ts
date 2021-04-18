@@ -5,18 +5,15 @@
 import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema } from "./Model";
 
 type TableConstructorParams = {
-    //TODO
     client?: {},            //  Instance of DocumentClient or Dynamo.
     createdField?: string,  //  Name of "created" timestamp attribute.
-    //TODO
-    crypto?: any,           //  Crypto configuration.
+    crypto?: {},            //  Crypto configuration.
     delimiter?: string,     //  Composite sort key delimiter (default ':').
     hidden?: boolean,       //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,     //  Set to true to store dates as Javascript ISO Date strings.
     ksuid?: () => string,   //  Function to create a KSUID if field schema requires it.
 
-    //TODO - should take log info|error as param
-    logger?: any,           //  Logging function
+    logger?: (tag: string, message: string, context: {}) => void,  // Logging callback
 
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
