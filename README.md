@@ -74,12 +74,13 @@ import DynamoDB from 'aws-sdk/clients/dynamodb'
 const client = new DynamoDB.DocumentClient(params)
 ```
 
-This version includes prototype support for the AWS SDK v3.
+This version includes prototype support for the AWS SDK V3.
 
-If you are using the AWS SDK v3, import the AWS v3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance.
+If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance.
 
 ```javascript
-import {Dynamo, Table} from 'dynamodb-onetable'
+import Dynamo from 'dynamodb-onetable/Dynamo'
+import {Table} from 'dynamodb-onetable'
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 const client = new Dynamo({client: new DynamoDBClient(params)})
 ```
