@@ -23,7 +23,7 @@ import {
 
 import {marshall, unmarshall} from '@aws-sdk/util-dynamodb'
 
-export default class Dynamo {
+export class Dynamo {
     constructor(params = {}) {
         this.client = params.client
         this.params = params
@@ -86,3 +86,5 @@ export default class Dynamo {
         return await this.client.send(cmd)
     }
 }
+
+export default Dynamo
