@@ -133,7 +133,7 @@ export type OneParams = {
     limit?: number,
     log?: boolean,
     many?: boolean,
-    metrics?: boolean,
+    metrics?: object,
     parse?: boolean,
     postFormat?: () => {},
     preFormat?: () => {},

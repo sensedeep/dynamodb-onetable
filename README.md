@@ -1064,7 +1064,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
-| log | `boolean` | Set to true to force the API call to be logged at the 'info' level. Defaults to false.|
+| log | `boolean` | Set to true to force the API call to be logged at the 'data' level. Requires that a 'logger' be defined via the Table constructor. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
 | metrics | `object` | Set to an object to receive performance metrics for find/scan. Defaults to null.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
