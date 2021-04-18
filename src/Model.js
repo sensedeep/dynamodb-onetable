@@ -334,7 +334,7 @@ export class Model {
         }
         if (op == 'find' || op == 'scan') {
             if (metrics) {
-                items.start = result.LastEvaluatedKey
+                items.start = this.table.unmarshall(result.LastEvaluatedKey)
             }
             if (result.LastEvaluatedKey) {
                 /*
