@@ -1079,11 +1079,11 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
-If `metrics` is defined, then the following metrics are returned in the metrics object:
+If `metrics` is defined, find/query/scan operations will return the following metrics in the metrics object:
 
 * count -- Number of items returned
 * scanned -- Number of items scanned
-* capacity -- DynamoDB consumed capacity
+* capacity -- DynamoDB consumed capacity units
 
 
 #### Where Clauses

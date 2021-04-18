@@ -238,7 +238,9 @@ export class Model {
         let metrics
         if (params.metrics && typeof params == 'object') {
             metrics = params.metrics
-            metrics.count = metrics.scanned = metrics.capacity = 0
+            metrics.count = metrics.count || 0
+            metrics.scanned = metrics.capacity || 0
+            metrics.capacity = metrics.capacity || 0
         }
 
         /*
@@ -280,7 +282,9 @@ export class Model {
                 if (metrics) {
                     metrics.count += result.Count
                     metrics.scanned += result.ScannedCount
-                    metrics.capacity += result.ConsumedCapacity
+                    if (result.ConsumedCapacity) {
+                        metrics.capacity += result.ConsumedCapacity.CapacityUnits
+                    }
                 }
             } else if (result.Item) {
                 items = [result.Item]
