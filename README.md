@@ -1061,6 +1061,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
 | exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update`.|
+| fields | `array` | List of attributes to return. This sets the ProjectionExpression. Default null. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
