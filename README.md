@@ -1075,7 +1075,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
-| throw | `boolean` | Set to true to throw exceptions when update constraints fail. Defaults to false.|
+| throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|

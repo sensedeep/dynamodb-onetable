@@ -265,8 +265,9 @@ export class Model {
             } catch (err) {
                 if (params.throw === false) {
                     result = {}
+                /*  This hides update failures
                 } else if (op = 'update' && err.code == 'ConditionalCheckFailedException' && params.throw !== true) {
-                    result = {}
+                    result = {} */
                 } else {
                     trace.err = err
                     this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, trace, params)
