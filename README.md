@@ -868,7 +868,7 @@ The method returns the Javascript properties created for the item. Hidden attrib
 
 Before creating the item, all the properties will be validated according to any defined schema validations and all required properties will be checked. Similarly, properties that use a schema enum definition will be checked that their value is a valid enum value. Encrypted fields will be encrypted transparently before writing.
 
-Set params.exists to false to ensure an item of the same key does not already exist. Otherwise, the create will overwrite.
+For create, the params.exists will default to a false value to ensure an item of the same key does not already exist. If set to null, a create will be allowed to overwrite an existing item.
 
 ##### Unique Fields
 
@@ -1046,6 +1046,8 @@ The `params.remove` parameter may be set to a list of attributes to remove.
 The `params.add` parameter may be set a value to add to an attribute.
 The `params.delete` parameter may be set hash where the hash keys are the attribute sets to modify and the values are the item in the sets to remove.
 
+Set update, the params.exists will default to a true value to ensure the item exists. If set to null, an update will be permitted to create an item if it does not already exist.
+
 <a name="params"></a>
 
 #### Model API params
@@ -1061,7 +1063,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | context | `object` | Optional context hash of properties to blend with API properties when creating or updating items. This overrides the Table.context. Setting to `{}` is a useful one-off way to ignore the context for this API. |
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
-| exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update`.|
+| exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update` Set to null to disable checking either way.|
 | fields | `array` | List of attributes to return. This sets the ProjectionExpression. Default null. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
