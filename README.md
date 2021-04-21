@@ -48,7 +48,8 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 * Support for the AWS SDK v3.
-* Dynamic TypeScript declarations to validate APIs, parameters, returns, and schema entities.
+* TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
+
 
 ## Database Migrations
 
