@@ -335,7 +335,11 @@ export class Model {
         }
         if (op == 'find' || op == 'scan') {
             if (metrics) {
-                items.start = this.table.unmarshall(result.LastEvaluatedKey)
+                if (result.LastEvaluatedKey) {
+                    items.start = this.table.unmarshall(result.LastEvaluatedKey)
+                } else {
+                    items.start = result.LastEvaluatedKey
+                }
             }
             if (result.LastEvaluatedKey) {
                 /*
