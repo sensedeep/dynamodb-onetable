@@ -86,7 +86,7 @@ import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 const client = new Dynamo({client: new DynamoDBClient(params)})
 ```
 
-Initialize your your OneTable `Table` instance and define your models via a schema.
+Initialize your OneTable `Table` instance and define your models via a schema.
 
 ```javascript
 const table = new Table({
@@ -96,7 +96,7 @@ const table = new Table({
 })
 ```
 
-This will initialize your your OneTable Table instance and define your models via a schema.
+This will initialize your OneTable Table instance and define your models via a schema.
 
 ## Schemas
 
@@ -140,7 +140,9 @@ Alternatively, you can define models one by one:
 
 ```javascript
 const Card = new Model(table, 'Card', {
-    fields: { /* Model schema field definitions */ }
+    fields: {
+    /* Model schema field definitions */
+    }
 })
 ```
 

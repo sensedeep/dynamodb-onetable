@@ -543,6 +543,8 @@ export class Model {
     }
 
     /* private */ async queryItems(properties = {}, params = {}) {
+        properties = Object.assign({}, properties)
+        properties[this.typeField] = this.name        
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
     }
