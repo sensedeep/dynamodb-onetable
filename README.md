@@ -110,16 +110,16 @@ const MySchema = {
     },
     models: {
         Account: {
-            pk:          { value: 'account:${name}' },
-            sk:          { value: 'account:' },
+            pk:          { type: String, value: 'account:${name}' },
+            sk:          { type: String, value: 'account:' },
             id:          { type: String, uuid: true, validate: /^[0-9A-F]{32}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
         },
         User: {
-            pk:          { value: 'account:${accountName}' },
-            sk:          { value: 'user:${email}', validate: EmailRegExp },
+            pk:          { type: String, value: 'account:${accountName}' },
+            sk:          { type: String, value: 'user:${email}', validate: EmailRegExp },
             id:          { type: String, required: true },
             accountName: { type: String, required: true },
             email:       { type: String, required: true },
@@ -129,8 +129,8 @@ const MySchema = {
             role:        { type: String, enum: ['user', 'admin'], required: true, default: 'user' },
             balance:     { type: Number, default: 0 },
 
-            gs1pk:       { value: 'user-email:${email}' },
-            gs1sk:       { value: 'user:' },
+            gs1pk:       { type: String, value: 'user-email:${email}' },
+            gs1sk:       { type: String, value: 'user:' },
         }
     }
 }
@@ -438,14 +438,14 @@ The `schema.models` property contains one or more models with attribute field de
 ```javascript
 {
     Album: {
-        pk:     { value: 'album:${name}' },
-        sk:     { value: 'album:' },
+        pk:     { type: String, value: 'album:${name}' },
+        sk:     { type: String, value: 'album:' },
         name:   { type: String, required: true },
         songs:  { type: Number },
     },
     Artist: {
-        pk:     { value: 'artist:${name}' },
-        sk:     { value: 'artist:' },
+        pk:     { type: String, value: 'artist:${name}' },
+        sk:     { type: String, value: 'artist:' },
         name:   { type: String, required: true },
     }
 }
