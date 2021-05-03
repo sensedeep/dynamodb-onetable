@@ -105,15 +105,15 @@ Schemas define how items will be stored in your database and look like this:
 ```javascript
 const MySchema = {
     indexes: {
-        primary: { hash: 'pk', sort: 'sk' }
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true }
+        primary: { hash: 'pk', sort: 'sk' },
+        gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
     },
     models: {
         Account: {
             pk:          { value: 'account:${name}' },
             sk:          { value: 'account:' },
-            id:          { type: String, uuid: true, validate: /^[0-9A-F]{32}$/i, },
-            name:        { type: String, required: true, }
+            id:          { type: String, uuid: true, validate: /^[0-9A-F]{32}$/i },
+            name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
         },
@@ -126,7 +126,7 @@ const MySchema = {
             firstName:   { type: String, required: true },
             lastName:    { type: String, required: true },
             username:    { type: String, required: true },
-            role:        { type: String, enum: ['user', 'admin'], required: true, default: 'user' }
+            role:        { type: String, enum: ['user', 'admin'], required: true, default: 'user' },
             balance:     { type: Number, default: 0 },
 
             gs1pk:       { value: 'user-email:${email}' },
@@ -149,7 +149,7 @@ To create an item:
 ```javascript
 let account = await Account.create({
     id: '8e7bbe6a-4afc-4117-9218-67081afc935b',
-    name: 'Acme Airplanes'
+    name: 'Acme Airplanes',
 })
 ```
 
@@ -438,13 +438,13 @@ The `schema.models` property contains one or more models with attribute field de
     Album: {
         pk:     { value: 'album:${name}' },
         sk:     { value: 'album:' },
-        name:   { type: String, required: true, }
+        name:   { type: String, required: true },
         songs:  { type: Number },
     },
     Artist: {
         pk:     { value: 'artist:${name}' },
         sk:     { value: 'artist:' },
-        name:   { type: String, required: true, }
+        name:   { type: String, required: true },
     }
 }
 ```
