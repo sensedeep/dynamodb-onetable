@@ -32,7 +32,7 @@ type OneIndexSchema = {
  */
 type OneFieldSchema = {
     crypt?: boolean,
-    default?: (() => any) | string,
+    default?: (() => any) | string | number | boolean | object,
     enum?: string[],
     filter?: boolean,
     hidden?: boolean,
