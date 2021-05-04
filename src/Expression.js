@@ -75,14 +75,24 @@ export class Expression {
             let value = this.getValue(field, context, properties)
 
             if (value === undefined || value === null || value === '') {
-                if (field.uuid && op == 'put') {
-                    value = this.table.uuid()
+                if (op == 'put' && (field.uuid || field.ulid || field.ksuid)) {
+                    if (field.uuid == true) {
+                        value = this.table.uuid()
 
-                } else if (field.ulid && op == 'put') {
-                    value = this.table.ulid()
+                    } else if (field.uuid == 'uuid') {
+                        value = this.table.uuid()
 
-                } else if (field.ksuid && op == 'put') {
-                    value = this.table.ksuid()
+                    } else if (field.uuid == 'ulid') {
+                        value = this.table.ulid()
+
+                    } else if (field.ulid) {
+                        //  DEPRECATED
+                        value = this.table.ulid()
+
+                    } else if (field.ksuid) {
+                        //  DEPRECATED
+                        value = this.table.ksuid()
+                    }
 
                 } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan') {
                     //  High level API without sort key. Fallback to find to select the items of interest.

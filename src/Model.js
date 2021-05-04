@@ -100,15 +100,13 @@ export class Model {
         filter          Boolean. Prevent a property from being used in a filter
         foreign         model:key-attribute (not yet supported)
         hidden          Boolean. Don't return the attributes to API callers.
-        ksuid           KSUID
         map             String
         nulls           Boolean
         required        Boolean
         size            Number (not implemented)
         transform       Transform hook function
         type            String, Boolean, Number, Date, 'Set', Buffer, Binary, Set, Object, Array
-        ulid            ULID
-        uuid            UUID
+        uuid            true, 'uuid', 'ulid'
         unique          Boolean
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
@@ -654,12 +652,24 @@ export class Model {
                 if (field.required && value == null && field.value == null) {
                     if (context[fieldName] !== undefined) {
                         value = context[fieldName]
-                    } else if (field.ulid) {
-                        value = this.table.ulid()
-                    } else if (field.ksuid) {
-                        value = this.table.ksuid()
-                    } else if (field.uuid) {
+
+                    } else if (field.uuid === true) {
+                        value = this.table.makeID()
+
+                    } else if (field.uuid == 'uuid') {
                         value = this.table.uuid()
+
+                    } else if (field.uuid == 'ulid') {
+                        value = this.table.ulid()
+
+                    } else if (field.ulid) {
+                        //  DEPRECATED
+                        value = this.table.ulid()
+
+                    } else if (field.ksuid) {
+                        //  DEPRECATED
+                        value = this.table.ksuid()
+
                     } else {
                         details[fieldName] = `Missing required "${fieldName}"`
                         continue

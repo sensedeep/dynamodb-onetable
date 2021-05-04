@@ -5,26 +5,28 @@
 import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema } from "./Model";
 
 type TableConstructorParams = {
-    client?: {},            //  Instance of DocumentClient or Dynamo.
-    createdField?: string,  //  Name of "created" timestamp attribute.
-    crypto?: {},            //  Crypto configuration.
-    delimiter?: string,     //  Composite sort key delimiter (default ':').
-    hidden?: boolean,       //  Hide key attributes in Javascript properties. Default false.
-    isoDates?: boolean,     //  Set to true to store dates as Javascript ISO Date strings.
-    ksuid?: () => string,   //  Function to create a KSUID if field schema requires it.
+    client?: {},                    //  Instance of DocumentClient or Dynamo.
+    createdField?: string,          //  Name of "created" timestamp attribute.
+    crypto?: {},                    //  Crypto configuration.
+    delimiter?: string,             //  Composite sort key delimiter (default ':').
+    hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
+    isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
 
-    logger?: (tag: string, message: string, context: {}) => void,  // Logging callback
+    logger?: (tag: string, message: string, context: {}) => void,      // Logging callback
 
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
-    name?: string,          //  Table name.
-    nulls?: boolean,        //  Store nulls in database attributes. Default false.
-    schema?: OneSchema,     //  Table models schema.
-    timestamps?: boolean,   //  Make "created" and "updated" timestamps. Default true.
-    typeField?: string,     //  Name of model type attribute. Default "_type".
-    updatedField?: string,  //  Name of "updated" timestamp attribute.
+    name?: string,                  //  Table name.
+    nulls?: boolean,                //  Store nulls in database attributes. Default false.
+    schema?: OneSchema,             //  Table models schema.
+    timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
+    typeField?: string,             //  Name of model type attribute. Default "_type".
+    updatedField?: string,          //  Name of "updated" timestamp attribute.
+    uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
+
+    //  Deprecated - use uuid == 'ulid'
     ulid?: () => string,    //  Function to create a ULID if field schema requires it.
-    uuid?: () => string,    //  Function to create a UUID if field schema requires it.
+    ksuid?: () => string,   //  Function to create a KSUID if field schema requires it.
 };
 
 export class Table {

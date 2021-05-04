@@ -36,17 +36,19 @@ type OneFieldSchema = {
     enum?: string[],
     filter?: boolean,
     hidden?: boolean,
-    ksuid?: boolean,
     map?: string,
     nulls?: boolean,
     required?: boolean,
     transform?: (model: AnyModel, op: string, name: string, value: any) => any,
     type: OneType,
     unique?: boolean,
-    ulid?: boolean,
-    uuid?: boolean,
+    uuid?: boolean | string,
     validate?: RegExp | string,
     value?: ((name: string, context: {}, properties: {}) => any) | string,
+
+    //  Deprecated
+    ulid?: boolean,
+    ksuid?: boolean,
 };
 
 /*

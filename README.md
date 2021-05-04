@@ -345,7 +345,6 @@ The Table constructor takes a parameter of type `object` with the following prop
 | hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
 | intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
-| ksuid | `string` | Function to create a KSUID if field schema requires it. No default internal implementation is provided. |
 | logger | `object` | Logging function(type, message, properties). Type is info|error|trace|exception. |
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
@@ -353,8 +352,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| ulid | `string` | Function to create a ULID if field schema requires it. If not defined, internal implementation is used. |
-| uuid | `string` | Function to create a UUID if field schema requires it. If not defined, internal implementation is used. |
+| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used when required. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -478,7 +476,7 @@ The following attribute properties are supported:
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
 | ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
-| uuid | `boolean` | Set to true to automatically create a new UUID value for the attribute when creating. Default false. |
+| uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string or function` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
 
@@ -793,8 +791,7 @@ Generate a simple, fast non-cryptographic UUID string.
 
 #### ulid()
 
-Generate a ULID, fast non-cryptographic UUID string.
-Generate a [ULIDs](https://github.com/ulid/spec)for when you need a time-based sortable, unique sequential number.
+Generate a [ULID](https://github.com/ulid/spec). Useful when you need a time-based sortable, cryptographic, unique sequential number.
 
 
 ## Model Class

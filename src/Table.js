@@ -32,7 +32,6 @@ export class Table {
             hidden,         //  Hide key attributes in Javascript properties. Default false.
             intercept,      //  Intercept hook function(model, operation, item, params, raw). Operation: 'create', 'delete', 'put', ...
             isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
-            ksuid,          //  Function to create a KSUID if field schema requires it.
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
@@ -40,8 +39,11 @@ export class Table {
             timestamps,     //  Make "created" and "updated" timestamps. Default true.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
+            uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
+
+            //  DEPRECATED
+            ksuid,          //  Function to create a KSUID if field schema requires it.
             ulid,           //  Function to create a ULID if field schema requires it.
-            uuid,           //  Function to create a UUID if field schema requires it.
         } = params
 
         if (!name) {
@@ -65,10 +67,19 @@ export class Table {
         this.typeField = typeField || '_type'
         this.name = name
         this.timestamps = timestamps || true
-        this.uuid = uuid || this.uuid
-        this.ulid = ulid || this.ulid
-        this.ksuid = ksuid // No default implementation
         this.hidden = hidden || true
+
+        if (uuid == 'uuid') {
+            this.makeID = this.uuid
+        } else if (uuid == 'ulid') {
+            this.makeID = this.ulid
+        } else {
+            this.makeID = uuid || this.uuid
+        }
+
+        //  DEPRECATED
+        this.ulid = ulid || this.ulid
+        this.ksuid = ksuid
 
         //  Schema models
         this.models = {}
