@@ -91,7 +91,7 @@ type EntityField<T extends OneTypedField> =
     : T['type'] extends BooleanConstructor ? boolean
     : T['type'] extends ObjectConstructor ? object
     : T['type'] extends DateConstructor ? Date
-    : T['type'] extends ArrayConstructor ? []
+    : T['type'] extends ArrayConstructor ? any[]
     : never;
 
 /*
@@ -130,6 +130,7 @@ export type OneParams = {
     delete?: object,
     execute?: boolean,
     exists?: boolean,
+    fields?: string[],
     hidden?: boolean,
     index?: string,
     limit?: number,
