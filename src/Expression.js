@@ -16,7 +16,7 @@ export class Expression {
         this.init(model, op, properties, params)
 
         if (!this.fallback) {
-            this.prepare(this.model.fields, properties)
+            this.prepare(this.model.fields, properties, params)
         }
     }
 
@@ -31,12 +31,14 @@ export class Expression {
         this.conditions = []        //  Condition expressions
         this.fields = []            //  Projection expressions
         this.filters = []           //  Filter expressions
+        this.item = {}              //  Hash of attribute values for the item
         this.key = {}               //  Primary key
         this.keys = []              //  Key conditions
         this.updates = []           //  Update expressions
-        this.names = {}             //  Expression names
-        this.values = {}            //  Expression values
-        this.item = {}              //  Hash of attribute values for the item
+        this.names = {}             //  Expression names. Keys are the indexes.
+        this.namesMap = {}          //  Expression names reverse map. Keys are the names.
+        this.values = {}            //  Expression values. Keys are the indexes.
+        this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
 
         this.nindex = 0             //  Next index into names
         this.vindex = 0             //  Next index into values
@@ -60,7 +62,7 @@ export class Expression {
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
-    prepare(fields, properties = {}) {
+    prepare(fields, properties = {}, params = {}) {
         let op = this.op
         let context = this.params.context || this.table.context
 
@@ -128,6 +130,11 @@ export class Expression {
         }
         if (op != 'scan' && this.item[this.hash] == null) {
             throw new Error(`dynamo: Empty hash key`)
+        }
+        if (params.fields) {
+            for (let field of params.fields) {
+                this.fields.push(`#_${this.addName(field)}`)
+            }
         }
     }
 
@@ -219,31 +226,27 @@ export class Expression {
         Make a conditions expression. Replace: ${var} and {value} tokens.
      */
     makeConditions(where) {
-        let {names, nindex, values, vindex} = this
-
         where = where.replace(/\${(.*?)}/g, (match, varName) => {
             let field = this.model.fields[varName]
             let attribute = field ? field.attribute[0] : varName
-            names[`#_${nindex++}`] = attribute
-            return `#_${nindex - 1}`
+            return `#_${this.addName(attribute)}`
         })
         where = where.replace(/{(.*?)}/g, (match, value) => {
+            let index
             if (value.match(/^\d+$/)) {
-                values[`:_${vindex++}`] = +value
+                index = this.addValue(+value)
             } else {
                 let matched = value.match(/^"(.*)"$/)
                 if (matched) {
-                    values[`:_${vindex++}`] = matched[1]
+                    index = this.addValue(matched[1])
                 } else if (value == 'true' || value == 'false') {
-                    values[`:_${vindex++}`] = (value == 'true' ? true : false)
+                    index = this.addValue(value == 'true' ? true : false)
                 } else {
-                    values[`:_${vindex++}`] = value
+                    index = this.addValue(value)
                 }
             }
-            return `:_${vindex - 1}`
+            return `:_${index}`
         })
-        this.nindex = nindex
-        this.vindex = vindex
         return where
     }
 
@@ -259,54 +262,41 @@ export class Expression {
     /*
         Add filters for non-key properties for find and scan
      */
-    addFilter(attribute, value) {
-        let {names, nindex, values, vindex} = this
-        this.filters.push(`#_${nindex} = :_${vindex}`)
-        values[`:_${vindex++}`] = value
-        names[`#_${nindex++}`] = attribute
-        this.nindex = nindex
-        this.vindex = vindex
+    addFilter(name, value) {
+        this.filters.push(`#_${this.addName(name)} = :_${this.addValue(value)}`)
     }
 
     /*
         Add key for delete, get or update
      */
     addKey(op, field, value) {
+        let name = field.attribute[0]
         if (op == 'find') {
-            let {keys, names, nindex, values, vindex} = this
-
-            if (field.attribute[0] == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
+            let keys = this.keys
+            if (name == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
                 let [action,vars] = Object.entries(value)[0]
                 if (KeyOperators.indexOf(action) < 0) {
                     throw new Error(`Invalid KeyCondition operator "${action}"`)
                 }
                 if (action == 'begins_with' || action == 'begins') {
-                    keys.push(`begins_with(#_${nindex}, :_${vindex})`)
-                    values[`:_${vindex++}`] = vars
+                    keys.push(`begins_with(#_${this.addName(name)}, :_${this.addValue(vars)})`)
 
                 } else if (action == 'between') {
-                    keys.push(`between(#_${nindex}, :_${vindex}, :_${vindex+1})`)
-                    values[`:_${vindex++}`] = vars[0]
-                    values[`:_${vindex++}`] = vars[1]
+                    keys.push(`between(#_${this.addName(name)}, :_${this.addValue(vars[0])}, :_${this.addValue(vars[1])})`)
 
                 } else {
-                    keys.push(`#_${nindex} ${action} :_${vindex}`)
-                    values[`:_${vindex++}`] = value[action]
+                    keys.push(`#_${this.addName(name)} ${action} :_${this.addValue(value[action])}`)
                 }
             } else {
-                keys.push(`#_${nindex} = :_${vindex}`)
-                values[`:_${vindex++}`] = value
+                keys.push(`#_${this.addName(name)} = :_${this.addValue(value)}`)
             }
-            names[`#_${nindex++}`] = field.attribute[0]
-            this.nindex = nindex
-            this.vindex = vindex
         } else {
-            this.key[field.attribute[0]] = value
+            this.key[name] = value
         }
     }
 
     addUpdate(field, value) {
-        let {names, nindex, params, updates, values, vindex} = this
+        let {params, updates} = this
         if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
@@ -318,20 +308,14 @@ export class Expression {
                 return
             }
         }
-        updates.push(`#_${nindex} = :_${vindex}`)
-        names[`#_${nindex++}`] = field.attribute[0]
-        values[`:_${vindex++}`] = value
-        this.nindex = nindex
-        this.vindex = vindex
+        updates.push(`#_${this.addName(field.attribute[0])} = :_${this.addValue(value)}`)
     }
 
     addUpdates() {
-        let {names, nindex, params, updates, values, vindex} = this
+        let {params, updates} = this
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
-                updates.push(`#_${nindex} :_${vindex}`)
-                names[`#_${nindex++}`] = key
-                values[`:_${vindex++}`] = value
+                updates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
 
         } else if (params.remove) {
@@ -339,19 +323,14 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let field of params.remove) {
-                updates.push(`#_${nindex}`)
-                names[`#_${nindex++}`] = field
+                updates.push(`#_${this.addName(field)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                updates.push(`#_${nindex} :_${vindex}`)
-                names[`#_${nindex++}`] = key
-                values[`:_${vindex++}`] = value
+                updates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
         }
-        this.nindex = nindex
-        this.vindex = vindex
     }
 
     selectIndex(indexes, params) {
@@ -479,7 +458,7 @@ export class Expression {
             let values = {}
             for (let name of v) {
                 if (this.model.fields[name]) {
-                    values[name] = this.template(this.model.fields[name], properties, context)
+                    values[name] = this.getValue(this.model.fields[name], properties, context)
                     if (values[name] === undefined) {
                         return undefined
                     }
@@ -566,5 +545,25 @@ export class Expression {
             return 'delete'
         }
         return 'set'
+    }
+
+    addName(name) {
+        let index = this.namesMap[name]
+        if (index == null) {
+            index = this.nindex++
+            this.names[`#_${index}`] = name
+            this.namesMap[name] = index
+        }
+        return index
+    }
+
+    addValue(value) {
+        let index = this.valuesMap[value]
+        if (index == null) {
+            index = this.vindex++
+            this.values[`:_${index}`] = value
+            this.valuesMap[value] = index
+        }
+        return index
     }
 }
