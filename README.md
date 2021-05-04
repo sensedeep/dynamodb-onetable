@@ -437,19 +437,27 @@ The `schema.models` property contains one or more models with attribute field de
 
 ```javascript
 {
-    Album: {
-        pk:     { type: String, value: 'album:${name}' },
-        sk:     { type: String, value: 'album:' },
+    album: {
+        pk:     { type: String, value: '${_type}:${name}' },
+        sk:     { type: String, value: '${_type}:' },
         name:   { type: String, required: true },
         songs:  { type: Number },
+        _type:  { type: String, value: 'album' },
     },
-    Artist: {
-        pk:     { type: String, value: 'artist:${name}' },
-        sk:     { type: String, value: 'artist:' },
+    artist: {
+        pk:     { type: String, value: '${_type}:${name}' },
+        sk:     { type: String, value: '${_type}:' },
         name:   { type: String, required: true },
+        _type:  { type: String, value: 'artist' },
     }
 }
 ```
+
+The name of the entity model is model map name (album and artist above).
+
+OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish as shown in the example above.
+
+The type field can be used in PK/SK value templates by using `${_type}`. You can change the name of the type field from `_type` by setting the `params.typeField` in the Table constructor.
 
 ##### Schema Attribute Properties
 
