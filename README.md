@@ -352,7 +352,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used when required. |
+| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used when required. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -387,8 +387,7 @@ The `logger` parameter configures a logging callback that will be invoked as req
 const table = new Table({
     ...
     logger: (type, message, context) => {
-        console.log(tag, message, JSON.stringify)
-        console.log(`${new Date}: ${type}, ${message}`)
+        console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
         console.log(JSON.stringify(context, null, 4) + '\n')
     }
 })
@@ -475,7 +474,6 @@ The following attribute properties are supported:
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
-| ulid | `boolean` | Set to true to automatically create a new ULID (time-based sortable unique string) for the attribute when creating. Default false. |
 | uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string or function` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
