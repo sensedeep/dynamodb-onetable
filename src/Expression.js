@@ -482,11 +482,21 @@ export class Expression {
                 break
             }
             v = v.replace(/\${(.*?)}/g, (match, varName) => {
-                if (obj[varName] !== undefined) {
-                    return obj[varName]
+                //  name:length:pad
+                let [name, len, pad] = varName.split(':')
+                let value = obj[name]
+                if (value !== undefined) {
+                    if (len) {
+                        //  Add leading padding for sorting numerics
+                        pad = pad || '0'
+                        let s = value + ''
+                        while (s.length < len) s = pad + s
+                        value = s
+                    }
                 } else {
-                    return match
+                    value = match
                 }
+                return value
             })
         }
         /*
@@ -568,11 +578,16 @@ export class Expression {
     }
 
     addValue(value) {
-        let index = this.valuesMap[value]
+        let index
+        if (value && typeof value != 'object') {
+            index = this.valuesMap[value]
+        }
         if (index == null) {
             index = this.vindex++
             this.values[`:_${index}`] = value
-            this.valuesMap[value] = index
+            if (value && typeof value != 'object') {
+                this.valuesMap[value] = index
+            }
         }
         return index
     }
