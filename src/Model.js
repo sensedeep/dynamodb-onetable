@@ -235,12 +235,11 @@ export class Model {
                 return list.push({[bop]: cmd})
             }
         }
-        let metrics
-        if (params.metrics && typeof params == 'object') {
-            metrics = params.metrics
-            metrics.count = metrics.count || 0
-            metrics.scanned = metrics.capacity || 0
-            metrics.capacity = metrics.capacity || 0
+        let stats = params.stats || params.metrics
+        if (stats && typeof params == 'object') {
+            stats.count = stats.count || 0
+            stats.scanned = stats.capacity || 0
+            stats.capacity = stats.capacity || 0
         }
 
         /*
@@ -280,11 +279,11 @@ export class Model {
             }
             if (result.Items) {
                 items = items.concat(result.Items)
-                if (metrics) {
-                    metrics.count += result.Count
-                    metrics.scanned += result.ScannedCount
+                if (stats) {
+                    stats.count += result.Count
+                    stats.scanned += result.ScannedCount
                     if (result.ConsumedCapacity) {
-                        metrics.capacity += result.ConsumedCapacity.CapacityUnits
+                        stats.capacity += result.ConsumedCapacity.CapacityUnits
                     }
                 }
             } else if (result.Item) {
@@ -334,19 +333,13 @@ export class Model {
             this.log('data', `Dynamo "${op}" "${this.name}"`, trace, params)
         }
         if (op == 'find' || op == 'scan') {
-            if (metrics) {
-                if (result.LastEvaluatedKey) {
-                    items.start = this.table.unmarshall(result.LastEvaluatedKey)
-                } else {
-                    items.start = result.LastEvaluatedKey
-                }
-            }
             if (result.LastEvaluatedKey) {
                 /*
                     More results to come. Create a next() iterator.
                  */
                 let params = expression.params
                 let properties = expression.properties
+                items.start = this.table.unmarshall(result.LastEvaluatedKey)
                 items.next = async () => {
                     params = Object.assign({}, params, {start: result.LastEvaluatedKey})
                     if (!params.high) {
@@ -355,6 +348,8 @@ export class Model {
                     }
                     return await this[op](properties, params)
                 }
+            } else {
+                items.start = result.LastEvaluatedKey
             }
             return items
         }

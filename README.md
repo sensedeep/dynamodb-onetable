@@ -44,7 +44,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.
 * Simple, easy to read source to modify (< 1000 lines).
-* Integrated metrics.
+* Integrated statistics.
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
 * Support for the AWS SDK v3.
@@ -233,7 +233,7 @@ Using TypeScript dynamic typing, OneTable automatically converts your OneTable s
 For example:
 
 ```javascript
-const schema = {
+const MySchema = {
     models: {
         Account: {
             pk:    { type: String, value: 'account:${name}' },
@@ -243,22 +243,14 @@ const schema = {
 }
 
 //  Fully typed Account object based on the schema
-type Account = Entity<typeof schema.models.Account>
+type Account = Entity<typeof MySchema.models.Account>
 
 let account: Account = {
     name: 'Coyote',        //  OK
     unknown: 42,           //  Error
 }
 
-//  Create a model to get/find/update. Uses table indexes.
-let AccountModel = new Model<Account>(table, 'Account', {
-    fields: {
-        pk:    { type: String, value: 'account:${name}' },
-        name:  { type: String },
-    }
-})
-
-//  or get the model from the table if defined via the table schema.
+//  Get an Account access model
 let AccountModel: Model<Account> = table.getModel('Account')
 
 let account = await AccountModel.update({
@@ -505,7 +497,7 @@ The `validate` property defines a regular expression that is used to validate da
 
 The `value` property defines a literal string template or function that is used to compute the attribute value. This is useful for computing key values from other attributes, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
-String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation.
+String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
 The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). Note: table context properties should take precedence over the API properties.
 
@@ -1075,7 +1067,6 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
 | log | `boolean` | Set to true to force the API call to be logged at the 'data' level. Requires that a 'logger' be defined via the Table constructor. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
-| metrics | `object` | Set to an object to receive performance metrics for find/scan. Defaults to null.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
@@ -1083,13 +1074,14 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
+| stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
-If `metrics` is defined, find/query/scan operations will return the following metrics in the metrics object:
+If `stats` is defined, find/query/scan operations will return the following statistics in the stats object:
 
 * count -- Number of items returned
 * scanned -- Number of items scanned
