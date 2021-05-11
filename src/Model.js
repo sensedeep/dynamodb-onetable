@@ -185,7 +185,7 @@ export class Model {
         if (!this.hash || (primary.sort && !this.sort)) {
             throw new Error(`dynamo: Cannot find primary keys for model ${this.name} in primary index`)
         }
-        if (Object.values(this.fields).find(f => f.unique && f.attribute != hash && f.attribute != sort)) {
+        if (Object.values(this.fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
             this.hasUniqueFields = true
         }
         this.mappings = mapTargets
