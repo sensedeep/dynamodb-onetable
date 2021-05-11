@@ -7,6 +7,7 @@ import ULID from './ULID.js'
 import {Model} from './Model.js'
 
 const IV_LENGTH = 16
+const ConfirmRemoveTable = 'DeleteTableForever'
 
 /*
     Default index keys if not supplied
@@ -166,6 +167,92 @@ export class Table {
         this.indexes = indexes
         for (let [name, fields] of Object.entries(models)) {
             this.models[name] = new Model(this, name, {fields, indexes})
+        }
+    }
+
+    /*
+        Create a table. Params may contain standard DynamoDB createTable parameters
+    */
+    async createTable(params = {}) {
+        let def = {
+            AttributeDefinitions: [],
+            KeySchema: [],
+            LocalSecondaryIndexes: [],
+            GlobalSecondaryIndexes: [],
+            TableName: this.name,
+        }
+        let provisioned = params.ProvisionedThroughput
+        if (provisioned) {
+            def.ProvisionedThroughput = provisioned
+            def.BillingMode = 'PROVISIONED'
+        } else {
+            def.BillingMode = 'PAY_PER_REQUEST'
+        }
+        let indexes = this.indexes
+        for (let [name, index] of Object.entries(indexes)) {
+            let collection, keys
+            if (name == 'primary') {
+                keys = def.KeySchema
+            } else {
+                if (index.hash == null || index.hash == indexes.primary.hash) {
+                    collection = LocalSecondaryIndexes
+                } else {
+                    collection = 'GlobalSecondaryIndexes'
+                }
+                keys = []
+                let project, attributes
+                if (Array.isArray(index.project)) {
+                    project = 'INCLUDE'
+                    attributes = index.project
+                } else if (index.project == 'keys') {
+                    project = 'KEYS_ONLY'
+                } else {
+                    project = 'ALL'
+                }
+                def[collection].push({
+                    IndexName: name,
+                    KeySchema: keys,
+                    Projection: {
+                        NonKeyAttributes: attributes,
+                        ProjectionType: project,
+                    }
+                })
+            }
+            def.AttributeDefinitions.push({
+                AttributeName: index.hash,
+                AttributeType: 'S',
+            })
+            def.AttributeDefinitions.push({
+                AttributeName: index.sort,
+                AttributeType: 'S',
+            })
+            keys.push({
+                AttributeName: index.hash || indexes.primary.hash,
+                KeyType: 'HASH',
+            })
+            keys.push({
+                AttributeName: index.sort,
+                KeyType: 'RANGE',
+            })
+            //  Projectsions
+            //  Non-String keys
+        }
+        if (def.GlobalSecondaryIndexes.length == 0) {
+            delete def.GlobalSecondaryIndexes
+        }
+        if (def.LocalSecondaryIndexes.length == 0) {
+            delete def.LocalSecondaryIndexes
+        }
+        this.log('info', `Dynamo createTable for "${this.name}"`, {def})
+        return await this.client.service.createTable(def).promise()
+    }
+
+    async deleteTable(confirmation) {
+        if (confirmation == ConfirmRemoveTable) {
+            this.log('info', `Dynamo deleteTable for "${this.name}"`)
+            await this.client.service.deleteTable({TableName: this.name}).promise()
+        } else {
+            throw new Error(`Missing required confirmation "${ConfirmRemoveTable}"`)
         }
     }
 
