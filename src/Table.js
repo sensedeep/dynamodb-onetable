@@ -59,16 +59,17 @@ export class Table {
         this.params = params
         this.client = client
         this.V3 = client.V3
-        this.intercept = intercept
-        this.nulls = nulls || false
-        this.delimiter = delimiter || '#'
+
         this.createdField = createdField || 'created'
-        this.updatedField = updatedField || 'updated'
+        this.delimiter = delimiter || '#'
+        this.hidden = hidden != null ? hidden : true
+        this.intercept = intercept
         this.isoDates = isoDates || false
-        this.typeField = typeField || '_type'
         this.name = name
-        this.timestamps = timestamps || true
-        this.hidden = hidden || true
+        this.nulls = nulls || false
+        this.timestamps = timestamps != null ? timestamps : true
+        this.typeField = typeField || '_type'
+        this.updatedField = updatedField || 'updated'
 
         if (uuid == 'uuid') {
             this.makeID = this.uuid
