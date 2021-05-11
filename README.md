@@ -400,7 +400,7 @@ The valid properties of the `schema` object are:
 
 #### Indexes
 
-The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be defined as Global Secondary Indexes (GSIs) if they contain a `sort` key and as Local Secondary Indexes (LSIs) if they only contain as `hash` key.
+The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Local Secondary Indexes (LSIs) if they only contain as `sort` key or if they set the hash key to the same value the primary index hash key. They will be treated as Global Secondary Indexes (GSIs) if they provide a unique hash key value.
 
 ```javascript
 {
@@ -410,13 +410,16 @@ The `schema.indexes` property can contain one or more indexes and must contain t
     },
     //  Zero or more global secondary or local secondary indexes
     gs1: {
-        hash: 'gs1pk',      //  Omit the hash for an LSI
+        hash: 'gs1pk',      //  Omit the hash for an LSI or set to the primary index hash name
         sort: 'gs1sk',
+        project: 'all',
         follow: true,
     },
     ...
 }
 ```
+
+The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of properties to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable API.
 
 The `follow` property is used to support GSI indexes that project KEYS_ONLY or only a subset of an items properties. When `follow` is true, any fetch of an item via the GSI will be transparently followed by a fetch of the full item using the primary index and the GSI projected keys. This incurs an additional request for each item, but for large data sets, it is useful to minimize the size of a GSI and yet retain access to full items.
 
@@ -552,6 +555,9 @@ Clear the table context properties. The `Table` has a `context` of properties th
 Create a new item in the database of the given model `modelName` as defined in the table schema.
 Wraps the `Model.create` API. See [Model.create](#model-create) for details.
 
+#### async createTable(params)
+
+Create a DynamoDB table based upon the needs of the specified OneTable schema. The table configuration can be augmented by supplying additional createTable configuration via the `params`. See [DynamoDB CreateTable](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#createTable-property) for details.
 
 #### async deleteItem(properties, params = {})
 
@@ -571,6 +577,10 @@ If `params.many` is set to true, the API may be used to delete more than one ite
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
+
+#### async deleteTable()
+
+Delete a DynamoDB table.
 
 
 #### async getItem(properties, params = {})
@@ -883,10 +893,10 @@ The `properties` parameter is a Javascript hash containing the required keys or 
 The sort key may be defined as a simple value or as a key condition by setting the property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value. For example:
 
 ```javascript
-let user = await table.find({pk, sk: {begins: 'user:john'}})
-let tickets = await table.find({pk, sk: {between: [1000, 2000]}})
-let invoices = await table.find({pk, sk: {'<=': 1000}})
-let invoices = await table.find({pk}, {where: '${sk} <= {1000}'})
+let user = await User.find({pk, sk: {begins: 'user:john'}})
+let tickets = await Ticket.find({pk, sk: {between: [1000, 2000]}})
+let invoices = await Invoice.find({pk, sk: {'<=': 1000}})
+let invoices = await Invoice.find({pk}, {where: '${sk} <= {1000}'})
 ```
 
 The operators include:
@@ -906,6 +916,7 @@ let adminUsers = await User.find({}, {
     where: '(${role} = {admin}) and (${status} = {current})'
 })
 ```
+
 See [Where Clause](#where-clauses) for more details.
 
 If `find` is called without a sort key, `find` will utilize the model type as a sort key prefix and return all matching model items. This can be used to fetch all items that match the primary hash key and are of the specified model type.
@@ -1117,6 +1128,7 @@ attribute_not_exists
 attribute_type
 begins_with
 contains
+not_contains
 size
 ```
 

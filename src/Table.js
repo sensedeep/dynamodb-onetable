@@ -235,8 +235,6 @@ export class Table {
                 AttributeName: index.sort,
                 KeyType: 'RANGE',
             })
-            //  Projectsions
-            //  Non-String keys
         }
         if (def.GlobalSecondaryIndexes.length == 0) {
             delete def.GlobalSecondaryIndexes
