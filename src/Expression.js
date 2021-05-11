@@ -288,7 +288,7 @@ export class Expression {
                 if (KeyOperators.indexOf(action) < 0) {
                     throw new Error(`Invalid KeyCondition operator "${action}"`)
                 }
-                startif (action == 'begins_with' || action == 'begins') {
+                if (action == 'begins_with' || action == 'begins') {
                     keys.push(`begins_with(#_${this.addName(name)}, :_${this.addValue(vars)})`)
 
                 } else if (action == 'between') {

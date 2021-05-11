@@ -1123,12 +1123,12 @@ You can use the following operators with a `where` clause:
 < <= = >= >
 AND OR NOT BETWEEN IN
 ()
-attribute_exists
-attribute_not_exists
-attribute_type
-begins_with
-contains
-not_contains
+attribute_exists()
+attribute_not_exists()
+attribute_type()
+begins_with()
+contains()
+not_contains()
 size
 ```
 
