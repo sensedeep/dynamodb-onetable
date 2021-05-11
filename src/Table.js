@@ -213,7 +213,7 @@ export class Table {
         return this
     }
 
-    //  High level API
+    //  High level model factory API
 
     async create(modelName, properties, params) {
         let model = this.getModel(modelName)
@@ -273,7 +273,7 @@ export class Table {
             }
 
         } catch (err) {
-            this.log('info', `BatchGet error`, {message: err.message, batch})
+            this.log('error', `BatchGet error`, {message: err.message, batch})
             throw err
         }
         return result
@@ -289,7 +289,7 @@ export class Table {
                 result = await this.client.batchWrite(batch).promise()
             }
         } catch (err) {
-            this.log('info', `BatchWrite error`, {message: err.message, batch})
+            this.log('error', `BatchWrite error`, {message: err.message, batch})
             throw err
         }
         return result
@@ -352,7 +352,7 @@ export class Table {
                 }
             }
         } catch (err) {
-            this.log('info', `Transaction error`, {message: err.message, transaction})
+            this.log('error', `Transaction error`, {message: err.message, transaction})
             throw err
         }
         return result
