@@ -63,7 +63,7 @@ export class Model {
         this.typeField = table.typeField
         this.timestamps = options.timestamps
         if (this.timestamps == null) {
-            this.timestamps = table.timestamps || true
+            this.timestamps = table.timestamps
         }
         this.updatedField = table.updatedField
         this.indexes = options.indexes || table.indexes
