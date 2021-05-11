@@ -43,7 +43,7 @@ export class Model {
         if (!table) {
             throw new Error('Missing table argument')
         }
-        if (!table.typeField || !table.ulid) {
+        if (!table.typeField || !table.uuid) {
             throw new Error('Invalid table instance')
         }
         if (!name) {
@@ -264,9 +264,6 @@ export class Model {
             } catch (err) {
                 if (params.throw === false) {
                     result = {}
-                /*  This hides update failures
-                } else if (op = 'update' && err.code == 'ConditionalCheckFailedException' && params.throw !== true) {
-                    result = {} */
                 } else {
                     trace.err = err
                     this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, trace, params)
