@@ -2,7 +2,7 @@
     Expression.js - DynamoDB API command builder
 */
 
-const KeyOperators =    [ '<', '<=', '=',       '>=', '>', 'begins', 'begins_with', 'between' ]
+const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
 const KeyOnlyOp = { get: true, delete: true }
 
 export class Expression {
@@ -277,7 +277,7 @@ export class Expression {
     }
 
     /*
-        Add key for delete, get or update
+        Add key for find, delete, get or update
      */
     addKey(op, field, value) {
         let name = field.attribute[0]
@@ -288,11 +288,12 @@ export class Expression {
                 if (KeyOperators.indexOf(action) < 0) {
                     throw new Error(`Invalid KeyCondition operator "${action}"`)
                 }
-                if (action == 'begins_with' || action == 'begins') {
+                startif (action == 'begins_with' || action == 'begins') {
                     keys.push(`begins_with(#_${this.addName(name)}, :_${this.addValue(vars)})`)
 
                 } else if (action == 'between') {
-                    keys.push(`between(#_${this.addName(name)}, :_${this.addValue(vars[0])}, :_${this.addValue(vars[1])})`)
+                    keys.push(`#_${this.addName(name)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`)
+                    // keys.push(`between(#_${this.addName(name)}, :_${this.addValue(vars[0])}, :_${this.addValue(vars[1])})`)
 
                 } else {
                     keys.push(`#_${this.addName(name)} ${action} :_${this.addValue(value[action])}`)
