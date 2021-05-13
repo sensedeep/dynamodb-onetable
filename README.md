@@ -942,6 +942,10 @@ while (items.length) {
 }
 ```
 
+Note: the limit is the number of items read by DynamoDB before filtering and is thus not equal to the number of items returned.
+
+To control the number of pages that queryItems will request, set the `params.maxPages` to the desired number.
+
 
 The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
@@ -951,9 +955,13 @@ The `params.fields` may be set to a list of properties to return. This defines t
 
 If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for large data sets, it enables the transparent use of a KEYS_ONLY secondary index which may greatly reduce the size (and cost) of the secondary index.
 
-The `params.limit` specifies the maximum number of items to return. The `params.start` defines the start point for the returned items. It is typically set to the last key returned in a previous invocation.
+The `params.limit` specifies the maximum number of items for DynamoDB to read. The `params.start` defines the start point for the returned items. It is typically set to the last key returned from previous invocation via the `result.start` property. Note: the limit is the number of items DynamoDB reads before filtering.
+
+The `params.maxPages` specifies the maximum number of DynamoDB query requests that OneTable will perform for a single API request.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
+
+If `params.start` is set to a map that contains the primary hash and sort key values for an existing item, the query will commence at that item.
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
@@ -1113,7 +1121,9 @@ let adminUsers = await User.find({}, {
 })
 ```
 
-OneTable will extract attributes defined inside `${}` braces and values inside `{}` braces and will automatically define your expression and ExpressionAttributeNames and ExpressionAttributeValues.
+OneTable will extract attributes defined inside `${}` braces and values inside `{}` braces and will automatically define your filer or conditional expressions and the required ExpressionAttributeNames and ExpressionAttributeValues.
+
+If a value inside `{}` is a number, it will be typed as a number for DynamoDB. To force a value to be treated as a string, wrap it in quotes, for example: `{"42"}`.
 
 ##### Where Clause Operators
 

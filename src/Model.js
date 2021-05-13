@@ -248,13 +248,10 @@ export class Model {
         let mark = new Date()
         let trace = {cmd, op, properties, params}
         let pages = 0, items = [], result
-        let limit = cmd.Limit ? cmd.Limit : null
+        let maxPages = params.maxPages ? params.maxPages : SanityPages
         do {
             try {
                 this.log('trace', `Dynamo "${op}" "${this.name}"`, trace, params)
-                if (limit) {
-                    cmd.Limit = limit
-                }
                 if (this.V3) {
                     result = await this.table.client[op](cmd)
                 } else {
@@ -271,7 +268,7 @@ export class Model {
                 }
             }
             if (result.LastEvaluatedKey) {
-                //  Resume next page
+                //  Continue next page
                 cmd.ExclusiveStartKey = result.LastEvaluatedKey
             }
             if (result.Items) {
@@ -290,13 +287,19 @@ export class Model {
                 items = [result.Attributes]
                 break
             }
-            if (limit) {
-                limit -= items.length
-                if (limit <= 0) {
-                    break
+            if (items.length) {
+                if (cmd.Limit) {
+                    cmd.Limit -= result.ScannedCount
+                    if (cmd.Limit <= 0) {
+                        break
+                    }
                 }
             }
-        } while (result.LastEvaluatedKey && (limit == null || pages++ < SanityPages))
+            /*
+            if (params.progress) {
+                params.progress({result, items, request, params, stats})
+            } */
+        } while (result.LastEvaluatedKey && (maxPages == null || ++pages < maxPages))
 
         if (params.parse) {
             items = this.parseResponse(op, expression, items)
@@ -327,7 +330,7 @@ export class Model {
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
-            this.log('data', `Dynamo "${op}" "${this.name}"`, trace, params)
+            this.log('data', `Dynamo result for "${op}" "${this.name}"`, trace, params)
         }
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
