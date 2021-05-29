@@ -1,4 +1,6 @@
 node_modules
 dist
-samples
+future
 types
+node_modules
+dist/

@@ -77,7 +77,7 @@ const client = new DynamoDB.DocumentClient(params)
 
 This version includes prototype support for the AWS SDK V3.
 
-If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance.
+If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance. Note: you will need Node v14 or later for this to work.
 
 ```javascript
 import Dynamo from 'dynamodb-onetable/Dynamo'
@@ -348,7 +348,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
-By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a per-attribute basis via the schema.
+By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a model attribute basis via the schema.
 
 The optional `intercept` function will be invoked on read and write requests to assist with data migrations. The intercept function can modify the item as it sees fit. The invocation signature is:
 
@@ -379,6 +379,7 @@ The `logger` parameter configures a logging callback that will be invoked as req
 const table = new Table({
     ...
     logger: (type, message, context) => {
+        if (type == 'trace' || type == 'data') return
         console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
         console.log(JSON.stringify(context, null, 4) + '\n')
     }
@@ -386,6 +387,10 @@ const table = new Table({
 ```
 
 Where `type` is set to `info`, `error`, `warn`, `exception`, `trace` or `data`. The `message` is a simple String containing a descriptive message. The `context` is a hash of contextual properties regarding the request, response or error.
+
+The `trace` and `data` types are verbose and not normally desired to include in logging output.
+
+If you use {log: true} in the various OneTable Model API options, the logging type will be set to `info` for that call so you can see the more verbose `trace` and `data` output on a per API basis.
 
 #### Schema
 
