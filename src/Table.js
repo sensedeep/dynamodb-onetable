@@ -54,7 +54,7 @@ export class Table {
             throw new Error('Missing "client" property')
         }
         this.logger = logger
-        this.log('trace', `Loading OneTable`, {params})
+        this.log('trace', `Loading OneTable`)
 
         this.params = params
         this.client = client
@@ -93,8 +93,9 @@ export class Table {
         if (schema) {
             this.prepSchema(schema)
         }
+
         /*
-            Model for unique attributes and for genric low-level API access
+            Model for unique attributes
          */
         let primary = this.indexes.primary
         this.unique = new Model(this, '_Unique', {
@@ -105,6 +106,10 @@ export class Table {
             indexes: this.indexes,
             timestamps: false
         })
+
+        /*
+            Model for genric low-level API access
+         */
         this.generic = new Model(this, '_Generic', {
             fields: {
                 [primary.hash]: {},
@@ -123,6 +128,11 @@ export class Table {
                 this.crypto[name].name = name
             }
         }
+    }
+
+    setClient(client) {
+        this.client = client
+        this.V3 = client.V3
     }
 
     //  Return the current schema. This may include model schema defined at run-time
