@@ -18,6 +18,23 @@ Steps to reproduce the behavior:
 4. Run API with params of {log: true} and include generated DynamoDB API calls
 5. Ensure you are using a current version of Node and NPM
 
+Try using a Table logger and {log: true} in your API and include the DynamoDB command 
+that is being generated.
+
+```
+Table({
+    ...
+    logger: (type, message, context) => {
+        if (type == 'trace' || type == 'data') return
+        console.log(type, message, JSON.stringify(context, null, 4))
+    }
+})
+
+and
+
+await Model.get({...}, {log: true})
+```
+
 **Expected behavior**
 A clear and concise description of what you expected to happen.
 
