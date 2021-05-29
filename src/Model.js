@@ -189,6 +189,38 @@ export class Model {
             this.hasUniqueFields = true
         }
         this.mappings = mapTargets
+
+        this.dependencies = []
+        for (let field of Object.values(this.fields)) {
+            this.orderFields(field)
+        }
+    }
+
+    orderFields(field) {
+        let dependencies = this.dependencies
+        if (dependencies.find(i => i.name == field.name)) {
+            return
+        }
+        if (field.value) {
+            let vars = this.getValueVars(field.value)
+            for (let v of vars) {
+                if (!this.fields[v]) {
+                    throw new Error(`dynamo: Cannot find value variable "${v}" in field "${field.name}"`)
+                }
+                if (v != field.name) {
+                    this.orderFields(this.fields[v])
+                }
+            }
+        }
+        dependencies.push(field)
+    }
+
+    getValueVars(v) {
+        let list = []
+        v.replace(/\${(.*?)}/g, (match, varName) => {
+            list.push(varName)
+        })
+        return list
     }
 
     /*
@@ -251,7 +283,7 @@ export class Model {
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         do {
             try {
-                this.log('trace', `Dynamo "${op}" "${this.name}"`, trace, params)
+                this.log('trace', `Dynamo "${op}" "${this.name}"`, {trace, params})
                 if (this.V3) {
                     result = await this.table.client[op](cmd)
                 } else {
@@ -263,7 +295,7 @@ export class Model {
                     result = {}
                 } else {
                     trace.err = err
-                    this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, trace, params)
+                    this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, {err, trace, params})
                     throw err
                 }
             }
@@ -330,7 +362,7 @@ export class Model {
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
-            this.log('data', `Dynamo result for "${op}" "${this.name}"`, trace, params)
+            this.log('data', `Dynamo result for "${op}" "${this.name}"`, {trace, params})
         }
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
@@ -430,7 +462,7 @@ export class Model {
         return await this.queryItems(properties, params)
     }
 
-    async get(properties, params = {}) {
+    async get(properties = {}, params = {}) {
         this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
         let expression = new Expression(this, 'get', properties, params)
@@ -839,7 +871,7 @@ export class Model {
 
     checkArgs(properties, params) {
         if (!properties) {
-            throw new Error('Invalid properties')
+            throw new Error('Missing properties')
         }
         if (typeof params != 'object') {
             throw new Error('Invalid type for params')

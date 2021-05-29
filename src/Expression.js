@@ -65,8 +65,9 @@ export class Expression {
     prepare(fields, properties = {}, params = {}) {
         let op = this.op
         let context = this.params.context || this.table.context
+        properties = Object.assign({}, properties)
 
-        for (let [fieldName, field] of Object.entries(fields)) {
+        for (let field of this.model.dependencies) {
 
             if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
                 continue
@@ -94,7 +95,7 @@ export class Expression {
                         value = this.table.ksuid()
                     }
 
-                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan') {
+                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put') {
                     //  High level API without sort key. Fallback to find to select the items of interest.
                     this.fallback = true
                     return
@@ -105,7 +106,9 @@ export class Expression {
             } else if (typeof value == 'object') {
                 value = this.removeEmptyStrings(field, value)
             }
+            properties[field.name] = value
             this.add(field, value)
+
             if (this.fallback) return
         }
         //  Emit mapped attributes. Check all required attributes are present.
