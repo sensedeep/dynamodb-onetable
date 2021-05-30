@@ -11,8 +11,12 @@
 import {
     BatchGetItemCommand,
     BatchWriteItemCommand,
+    CreateTableCommand,
     DeleteItemCommand,
+    DeleteTableCommand,
+    DescribeTableCommand,
     GetItemCommand,
+    ListTablesCommand,
     PutItemCommand,
     QueryCommand,
     ScanCommand,
@@ -32,8 +36,23 @@ export class Dynamo {
         this.V3 = true
     }
 
+    async createTable(params) {
+        let command = new CreateTableCommand(params)
+        return await this.send(command)
+    }
+
+    async deleteTable(params) {
+        let command = new DeleteTableCommand(params)
+        return await this.send(command)
+    }
+
     async delete(params) {
         let command = new DeleteItemCommand(params)
+        return await this.send(command)
+    }
+
+    async describeTable(params) {
+        let command = new DescribeTableCommand(params)
         return await this.send(command)
     }
 
@@ -44,6 +63,11 @@ export class Dynamo {
 
     async find(params) {
         let command = new QueryCommand(params)
+        return await this.send(command)
+    }
+
+    async listTables(params) {
+        let command = new ListTablesCommand(params)
         return await this.send(command)
     }
 

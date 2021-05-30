@@ -258,16 +258,42 @@ export class Table {
             delete def.LocalSecondaryIndexes
         }
         this.log('info', `Dynamo createTable for "${this.name}"`, {def})
-        return await this.client.service.createTable(def).promise()
+        if (this.V3) {
+            return await this.service.createTable(def)
+        } else {
+            return await this.service.createTable(def).promise()
+        }
     }
 
     async deleteTable(confirmation) {
         if (confirmation == ConfirmRemoveTable) {
             this.log('info', `Dynamo deleteTable for "${this.name}"`)
-            await this.client.service.deleteTable({TableName: this.name}).promise()
+            if (this.V3) {
+                await this.service.deleteTable({TableName: this.name})
+            } else {
+                await this.service.deleteTable({TableName: this.name}).promise()
+            }
         } else {
             throw new Error(`Missing required confirmation "${ConfirmRemoveTable}"`)
         }
+    }
+
+    async describeTable() {
+        if (this.V3) {
+            return await this.service.describeTable({TableName: this.name})
+        } else {
+            return await this.service.describeTable({TableName: this.name}).promise()
+        }
+    }
+
+    async exists() {
+        let results
+        if (this.V3) {
+            results = await this.service.listTables({})
+        } else {
+            results = await this.service.listTables({}).promise()
+        }
+        return results && results.TableNames.find(t => t == this.name)
     }
 
     listModels() {

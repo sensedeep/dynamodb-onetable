@@ -36,6 +36,11 @@ export class Table {
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
     clear(): Table;
+
+    createTable(params): Promise<{}>;
+    deleteTable(confirmation: string): Promise<{}>;
+    exists(): Promise<Boolean>;
+
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
