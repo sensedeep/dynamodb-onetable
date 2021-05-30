@@ -53,12 +53,17 @@ export class Table {
         if (!client) {
             throw new Error('Missing "client" property')
         }
-        this.logger = logger
+        if (logger === true) {
+            this.logger = this.defaultLogger
+        } else {
+            this.logger = logger
+        }
         this.log('trace', `Loading OneTable`)
 
         this.params = params
         this.client = client
         this.V3 = client.V3
+        this.service = this.V3 ? this.client : this.client.service
 
         this.createdField = createdField || 'created'
         this.delimiter = delimiter || '#'
@@ -475,6 +480,13 @@ export class Table {
                 this.logger(type, message, context)
             }
         }
+    }
+
+    defaultLogger(type, message, context) {
+        if (type == 'trace' || type == 'data') {
+            return
+        }
+        console.log(type, message, JSON.stringify(context, null, 4))
     }
 
     // Simple non-crypto UUID. See node-uuid if you require crypto UUIDs.
