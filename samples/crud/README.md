@@ -3,18 +3,17 @@ OneTable CRUD sample
 
 This sample demonstrates basic CRUD (create, read, update and delete) operations for OneTable.
 
-## Notes
+It has the following features:
 
-* Uses the AWS V3 SDK
+* Simple OneTable schema
+* Use of per-API logging
+* Create, delete and test for existence of a DynamoDB table
+* Entity model create, find, update and delete
+* AWS V3 SDK
 
 ## Requirements
 
 * DynamoDB instance. Read [Local DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) for a local DynamoDB.
-
-## Contents
-
-* Javascript crud sample
-
 
 ## Building
 

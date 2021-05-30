@@ -222,6 +222,14 @@ await User.update({id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 ```
 
+## Working Sample
+
+To get you going quickly, try out the working sample in the OneTable repository at:
+
+    [OneTable Sample CRUD](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud)
+
+This demonstrates a simple single-table design with create/read/update/delete functionality.
+
 ## TypeScript
 
 OneTable provides TypeScript type declaration files so that OneTable APIs can be fully type checked.
@@ -373,7 +381,7 @@ The `crypto` property defines the configuration used to encrypt and decrypt attr
 
 OneTable can log full request parameters and responses to assist you in debugging and understanding how your API requests are being translated to DynamoDB.
 
-The `logger` parameter configures a logging callback that will be invoked as required to log data. The logger function has the signature:
+The `logger` parameter may be set to `true` to configure logging to the console. Alternatively, the `logger` may be set to logging callback that will be invoked as required to log data. The logger function has the signature:
 
 ```javascript
 const table = new Table({
@@ -386,11 +394,11 @@ const table = new Table({
 })
 ```
 
-Where `type` is set to `info`, `error`, `warn`, `exception`, `trace` or `data`. The `message` is a simple String containing a descriptive message. The `context` is a hash of contextual properties regarding the request, response or error.
+Where `type` is set to `info`, `error`, `warn`, `exception`, `trace` or `data`. The `trace` type is for verbose debugging messages. The `data` type logs user data retrieved find and get API calls.
 
-The `trace` and `data` types are verbose and not normally desired to include in logging output.
+The `message` is a simple String containing a descriptive message. The `context` is a hash of contextual properties regarding the request, response or error.
 
-If you use {log: true} in the various OneTable Model API options, the logging type will be set to `info` for that call so you can see the more verbose `trace` and `data` output on a per API basis.
+If you use {log: true} in the various OneTable Model API options, the more verbose `trace` and `data` types will be changed to `info` for that call before passing to the logging callback. In this way you can emit `trace` and `data` output on a per API basis.
 
 #### Schema
 
