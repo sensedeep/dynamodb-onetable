@@ -13,13 +13,19 @@ It has the following features:
 
 ## Requirements
 
-* DynamoDB instance. Read [Local DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) for a local DynamoDB.
+* DynamoDB instance on localhost:8000.
+
+Read [Local DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) for a local DynamoDB.
 
 ## Building
 
+```
 make configure
 make build
+```
 
 ## Run
 
+```
 make run
+```

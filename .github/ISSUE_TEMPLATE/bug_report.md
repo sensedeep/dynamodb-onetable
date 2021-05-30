@@ -24,10 +24,7 @@ that is being generated.
 ```
 Table({
     ...
-    logger: (type, message, context) => {
-        if (type == 'trace' || type == 'data') return
-        console.log(type, message, JSON.stringify(context, null, 4))
-    }
+    logger: true
 })
 
 and
