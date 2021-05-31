@@ -40,6 +40,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Attribute mapping and packing.
 * Support for sparse GSIs that project keys and overloaded attributes.
 * Encrypted fields.
+* CreateTable, DeleteTable admin operations.
 * Support for Batch, Transactions, GSI, LSI indexes.
 * Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.
