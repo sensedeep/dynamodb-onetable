@@ -136,6 +136,7 @@ export type OneParams = {
     limit?: number,
     log?: boolean,
     many?: boolean,
+    maxPages?: number,
     metrics?: object,
     parse?: boolean,
     postFormat?: () => {},
