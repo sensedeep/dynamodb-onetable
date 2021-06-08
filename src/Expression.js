@@ -95,7 +95,7 @@ export class Expression {
                         value = this.table.ksuid()
                     }
 
-                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put') {
+                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
                     //  High level API without sort key. Fallback to find to select the items of interest.
                     this.fallback = true
                     return
