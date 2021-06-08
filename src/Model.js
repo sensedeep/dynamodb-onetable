@@ -373,7 +373,7 @@ export class Model {
                 let properties = expression.properties
                 items.start = this.table.unmarshall(result.LastEvaluatedKey)
                 items.next = async () => {
-                    params = Object.assign({}, params, {start: result.LastEvaluatedKey})
+                    params = Object.assign({}, params, {start: items.start})
                     if (!params.high) {
                         if (op == 'find') op = 'queryItems'
                         else if (op == 'scan') op = 'scanItems'
