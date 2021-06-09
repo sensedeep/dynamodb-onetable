@@ -516,8 +516,7 @@ The `value` property defines a literal string template or function that is used 
 
 String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
-The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). Note: table context properties should take precedence over the API properties.
-
+The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the context or properties parameters. Note: table context properties should take precedence over the API properties.
 
 ### Table Contexts
 

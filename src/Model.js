@@ -217,9 +217,13 @@ export class Model {
 
     getValueVars(v) {
         let list = []
-        v.replace(/\${(.*?)}/g, (match, varName) => {
-            list.push(varName)
-        })
+        if (Array.isArray(v)) {
+            list = v
+        } else if (typeof v != 'function') {
+            v.replace(/\${(.*?)}/g, (match, varName) => {
+                list.push(varName)
+            })
+        }
         return list
     }
 
