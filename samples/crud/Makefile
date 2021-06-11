@@ -11,4 +11,3 @@ run:
 
 configure:
 	npm install
-	./makeTable.sh

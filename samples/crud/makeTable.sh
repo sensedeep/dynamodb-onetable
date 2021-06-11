@@ -1,6 +1,9 @@
 #
 #   Create "TestCrud" DynamoDB table
 #
+
+#   NOTE: this is not used. The sample creates its own database table
+#
 aws dynamodb create-table \
    --table-name TestCrud \
    --endpoint-url http://localhost:8000 \
