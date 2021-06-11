@@ -19,14 +19,7 @@ const table = new Table({
     delimiter: ':',
     hidden: false,
     name: `SenseDeep`,
-    nulls: false,
-    schema: Schema,
-    timestamps: false,
-    logger: (type, message, context) => {
-        if (type == 'trace' || type == 'data') return
-        console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
-        console.log(JSON.stringify(context, null, 4) + '\n')
-    }
+    schema: Schema
 })
 
 const Log = table.getModel('Log')
@@ -38,7 +31,8 @@ async function main() {
     console.log('Logs', JSON.stringify(logs, null, 4))
 
     /*
-        Event sort keys are of the form:  `${IsoDate}:${eventId}.
+        Retrieve log events for /aws/lambda/HelloWorld between Jun 10 and July 10 2021
+        Note: sort keys values are of the form: `${IsoDate}:${eventId}.
     */
     let events = await Event.find({
         pk: '/aws/lambda/HelloWorld',
@@ -48,6 +42,18 @@ async function main() {
         ]},
     }, {limit: 100})
     console.log('Events', JSON.stringify(events, null, 4))
+
+    /*
+        Get the most recent 10 events, most recent first
+     */
+    events = await Event.find({
+        pk: '/aws/lambda/HelloWorld',
+        sk: {between: [
+            '2021',
+            new Date().toISOString(),
+        ]},
+    }, {limit: 10, reverse: true})
+    console.log('Most recent Events', JSON.stringify(events, null, 4))
 }
 
 main()
