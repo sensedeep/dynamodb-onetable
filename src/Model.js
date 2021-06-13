@@ -57,6 +57,7 @@ export class Model {
         this.V3 = table.V3
         this.createdField = table.createdField
         this.delimiter = table.delimiter
+        this.generic = options.generic
         this.log = table.log.bind(table)
         this.nulls = table.nulls || false
         this.tableName = table.name
@@ -564,7 +565,9 @@ export class Model {
 
     /* private */ async putItem(properties, params = {}) {
         properties = Object.assign({}, properties)
-        properties[this.typeField] = this.name
+        if (!this.generic) {
+            properties[this.typeField] = this.name
+        }
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
@@ -575,7 +578,9 @@ export class Model {
 
     /* private */ async queryItems(properties = {}, params = {}) {
         properties = Object.assign({}, properties)
-        properties[this.typeField] = this.name
+        if (!this.generic) {
+            properties[this.typeField] = this.name
+        }
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
     }
@@ -588,7 +593,9 @@ export class Model {
 
     /* private */ async updateItem(properties, params = {}) {
         properties = Object.assign({}, properties)
-        properties[this.typeField] = this.name
+        if (!this.generic) {
+            properties[this.typeField] = this.name
+        }
         if (this.timestamps) {
             properties[this.updatedField] = new Date()
         }

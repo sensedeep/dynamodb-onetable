@@ -121,7 +121,8 @@ export class Table {
                 [primary.sort]: {},
             },
             indexes: this.indexes,
-            timestamps: false
+            timestamps: false,
+            generic: true,
         })
 
         if (crypto) {
