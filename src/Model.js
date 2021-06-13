@@ -463,6 +463,8 @@ export class Model {
     async find(properties = {}, params = {}) {
         this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
+        properties = Object.assign({}, properties)
+        properties[this.typeField] = this.name
         return await this.queryItems(properties, params)
     }
 
@@ -574,8 +576,6 @@ export class Model {
     }
 
     /* private */ async queryItems(properties = {}, params = {}) {
-        properties = Object.assign({}, properties)
-        properties[this.typeField] = this.name
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
     }
