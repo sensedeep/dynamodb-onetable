@@ -491,7 +491,7 @@ export class Table {
      */
     groupByType(items) {
         let result = {}
-        for (let [index, item] of Object.entries(items)) {
+        for (let item of items) {
             let type = item[this.typeField] || '_unknown'
             let list = result[type] = result[type] || []
             list.push(item)
