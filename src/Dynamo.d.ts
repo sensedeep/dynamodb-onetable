@@ -1,6 +1,6 @@
 
 export class Dynamo {
-    constructor(params: {});
+    constructor(params?: {});
     client: any;
     V3: boolean;
 }
