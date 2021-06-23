@@ -9,8 +9,8 @@ import { Table } from 'dynamodb-onetable'
 import Dynamo from 'dynamodb-onetable/Dynamo'
 
 //  To debug locally
-//  import { Table } from '../../../dist/mjs/index.js'
-//  import Dynamo from '../../../dist/mjs/Dynamo.js'
+// import { Table } from '../../../dist/mjs/index.js'
+// import Dynamo from '../../../dist/mjs/Dynamo.js'
 
 const client = new Dynamo({
     client: new DynamoDBClient({
@@ -40,6 +40,9 @@ const table = new Table({
                 name:        { type: String, required: true },
                 status:      { type: String, default: 'active' },
                 zip:         { type: String },
+
+                gs1pk:       { type: String, value: 'sec#${name}' },
+                gs1sk:       { type: String, value: 'sec#${id}' },
             }
         }
     },
@@ -63,6 +66,10 @@ async function main() {
     console.log('CREATED user', user)
 
     user = await User.update({id: user.id, status: 'inactive'})
+    console.log('UPDATED user', user)
+
+    //  How to remove attributes
+    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk']})
     console.log('UPDATED user', user)
 
     //  Scan is not normally advised -- scans entire table
