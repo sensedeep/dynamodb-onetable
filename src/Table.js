@@ -55,7 +55,7 @@ export class Table {
         }
         if (logger === true) {
             this.logger = this.defaultLogger
-        } else {
+        } else if (logger) {
             this.logger = logger
         }
         this.log('trace', `Loading OneTable`)

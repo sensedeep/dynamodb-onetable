@@ -128,6 +128,8 @@ export class Model {
 
         for (let [name, field] of Object.entries(fields)) {
             if (!field.type) {
+                //  LEGACY use of value as array. Can remove.
+                //  Should make this an error to omit the type
                 field.type = (Array.isArray(field.value)) ? Object : String
             }
             let to = field.map
@@ -181,6 +183,10 @@ export class Model {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
+            /*
+            if (field.type == 'Object' && field.schema) {
+                this.prepModels(field.schema)
+            } */
             this.fields[name] = field
         }
         if (!this.hash || (primary.sort && !this.sort)) {
@@ -191,6 +197,9 @@ export class Model {
         }
         this.mappings = mapTargets
 
+        /*
+            Calculate the field order based on 'value' template dependencies.
+         */
         this.dependencies = []
         for (let field of Object.values(this.fields)) {
             this.orderFields(field)
@@ -216,6 +225,9 @@ export class Model {
         dependencies.push(field)
     }
 
+    /*
+        Return the value template variable references in a list
+     */
     getValueVars(v) {
         let list = []
         if (Array.isArray(v)) {
@@ -288,7 +300,7 @@ export class Model {
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         do {
             try {
-                this.log('trace', `Dynamo "${op}" "${this.name}"`, {trace, params})
+                this.log('trace', `Dynamo "${op}" "${this.name}"`, {trace}, params)
                 if (this.V3) {
                     result = await this.table.client[op](cmd)
                 } else {
@@ -300,7 +312,7 @@ export class Model {
                     result = {}
                 } else {
                     trace.err = err
-                    this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, {err, trace, params})
+                    this.log('error', `Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
                     throw err
                 }
             }
@@ -332,10 +344,6 @@ export class Model {
                     }
                 }
             }
-            /*
-            if (params.progress) {
-                params.progress({result, items, request, params, stats})
-            } */
         } while (result.LastEvaluatedKey && (maxPages == null || ++pages < maxPages))
 
         if (params.parse) {
@@ -367,7 +375,7 @@ export class Model {
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
-            this.log('data', `Dynamo result for "${op}" "${this.name}"`, {trace, params})
+            this.log('data', `Dynamo result for "${op}" "${this.name}"`, {trace}, params)
         }
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {

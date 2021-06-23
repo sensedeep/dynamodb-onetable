@@ -346,7 +346,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
 | intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
-| logger | `object` | Logging function(type, message, properties). Type is info|error|trace|exception. |
+| logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
@@ -1073,7 +1073,7 @@ The optional params are described in [Model API Params](#params).
 
 The `params.remove` parameter may be set to a list of attributes to remove.
 The `params.add` parameter may be set a value to add to an attribute.
-The `params.delete` parameter may be set hash where the hash keys are the attribute sets to modify and the values are the item in the sets to remove.
+The `params.delete` parameter may be set to a hash, where the hash keys are the attribute sets to modify and the values are the items in the sets to remove.
 
 Set update, the params.exists will default to a true value to ensure the item exists. If set to null, an update will be permitted to create an item if it does not already exist.
 
