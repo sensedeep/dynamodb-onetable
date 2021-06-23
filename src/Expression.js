@@ -29,14 +29,15 @@ export class Expression {
 
         //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
         this.conditions = []        //  Condition expressions
-        this.fields = []            //  Projection expressions
+        this.extraUpdates = []      //  Update expressions (ADD, REMOVE, DELETE)
         this.filters = []           //  Filter expressions
         this.item = {}              //  Hash of attribute values for the item
         this.key = {}               //  Primary key
         this.keys = []              //  Key conditions
-        this.updates = []           //  Update expressions
+        this.updates = []           //  Update expressions (SET only)
         this.names = {}             //  Expression names. Keys are the indexes.
         this.namesMap = {}          //  Expression names reverse map. Keys are the names.
+        this.project = []           //  Projection expressions
         this.values = {}            //  Expression values. Keys are the indexes.
         this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
 
@@ -72,6 +73,12 @@ export class Expression {
             if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
                 continue
             }
+            /* KEEP
+            if (field.schema) {
+                let prefix = `${prefix}.${field.name}`
+                this.prepare(field.fields, properties, params, prefix)
+                continue
+            } */
             //  Expand any field.value template, otherwise use value from properties or context
             let value = this.getValue(field, context, properties)
 
@@ -146,7 +153,7 @@ export class Expression {
         }
         if (params.fields) {
             for (let field of params.fields) {
-                this.fields.push(`#_${this.addName(field)}`)
+                this.project.push(`#_${this.addName(field)}`)
             }
         }
     }
@@ -314,7 +321,13 @@ export class Expression {
         if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
-        if (params.add || params.remove || params.delete) {
+        if (params.add && params.add.indexOf(field.name) >= 0) {
+            return
+        }
+        if (params.delete && params.add.indexOf(field.name) >= 0) {
+            return
+        }
+        if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
         if (this.properties[field.name] === undefined) {
@@ -326,10 +339,10 @@ export class Expression {
     }
 
     addUpdates() {
-        let {params, updates} = this
+        let {params, extraUpdates} = this
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
-                updates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                extraUpdates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
 
         } else if (params.remove) {
@@ -337,12 +350,12 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let field of params.remove) {
-                updates.push(`#_${this.addName(field)}`)
+                extraUpdates.push(`#_${this.addName(field)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                updates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                extraUpdates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
         }
     }
@@ -366,7 +379,7 @@ export class Expression {
         Create the Dynamo command parameters
      */
     command() {
-        let {conditions, fields, filters, key, keys, hash, model, names, op, params, sort, values} = this
+        let {conditions, filters, key, keys, hash, model, names, op, params, project, sort, values} = this
 
         if (this.fallback) {
             return null
@@ -404,7 +417,7 @@ export class Expression {
                 ExpressionAttributeValues: (namesLen > 0 && valuesLen > 0) ? values : undefined,
                 FilterExpression: filters.length ? this.and(filters) : undefined,
                 KeyConditionExpression: keys.length ? keys.join(' and ') : undefined,
-                ProjectionExpression: fields.length ? fields.join(', ') : undefined,
+                ProjectionExpression: project.length ? project.join(', ') : undefined,
                 TableName: this.tableName
             }
             if (params.metrics) {
@@ -417,9 +430,14 @@ export class Expression {
 
             } else if (op == 'update') {
                 args.ReturnValues = params.return || 'ALL_NEW'
+                let extra = '', up = ''
                 if (this.updates.length) {
-                    args.UpdateExpression = `${this.getAction(params)} ${this.updates.join(', ')}`
+                    up = `set ${this.updates.join(', ')} `
                 }
+                if (this.extraUpdates.length) {
+                    extra = `${this.getAction(params)} ${this.extraUpdates.join(', ')}`
+                }
+                args.UpdateExpression = up + extra
             }
             if (op == 'delete' || op == 'get' || op == 'update') {
                 args.Key = key
