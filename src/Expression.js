@@ -117,7 +117,7 @@ export class Expression {
 
                 } else if (value === undefined) {
                     continue
-                } else if (value === null && field.nulls !== true) {
+                } else if (value === null && op == 'update' && field.nulls !== true) {
                     this.updates.remove.push(`#_${this.addName(field.name)}`)
                     continue
                 }
@@ -203,7 +203,7 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[attribute] = value
+                this.values[attribute[0]] = value
             }
 
         } else {
@@ -215,7 +215,7 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[attribute] = value
+                this.values[attribute[0]] = value
 
             } else if (op == 'update') {
                 this.addUpdate(field, value)
