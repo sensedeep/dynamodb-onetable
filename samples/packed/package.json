@@ -1,0 +1,20 @@
+{
+    "name": "onetable-sample-packing",
+    "version": "1.0.0",
+    "description": "Demonstrate OneTable attribute packing",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "build": "rm -fr dist/* && tsc -p tsconfig.json"
+    },
+    "license": "ISC",
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.17.0",
+        "@aws-sdk/util-dynamodb": "^3.17.0",
+        "core-js": "^3.13.0",
+        "dynamodb-onetable": "^1.4.1"
+    },
+    "devDependencies": {
+        "typescript": "^4.1.3"
+    }
+}

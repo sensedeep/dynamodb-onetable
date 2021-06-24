@@ -1,7 +1,7 @@
 {
     "name": "onetable-sample-crud",
     "version": "1.0.0",
-    "description": "Test basic OneTable CRUD",
+    "description": "Demonstrate basic OneTable CRUD",
     "main": "index.js",
     "type": "module",
     "scripts": {

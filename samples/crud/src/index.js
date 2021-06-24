@@ -1,5 +1,5 @@
 /*
-    Simple CRUD with OneTable
+    Demonstrate simple CRUD with OneTable
  */
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
