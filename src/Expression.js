@@ -29,12 +29,10 @@ export class Expression {
 
         //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
         this.conditions = []        //  Condition expressions
-        this.extraUpdates = []      //  Update expressions (ADD, REMOVE, DELETE)
         this.filters = []           //  Filter expressions
         this.item = {}              //  Hash of attribute values for the item
         this.key = {}               //  Primary key
         this.keys = []              //  Key conditions
-        this.updates = []           //  Update expressions (SET only)
         this.names = {}             //  Expression names. Keys are the indexes.
         this.namesMap = {}          //  Expression names reverse map. Keys are the names.
         this.project = []           //  Projection expressions
@@ -44,6 +42,12 @@ export class Expression {
         this.nindex = 0             //  Next index into names
         this.vindex = 0             //  Next index into values
         this.fallback = false       //  Falling back to use find first
+        this.updates = {
+            set: [],
+            remove: [],
+            delete: [],
+            add: [],
+        }
 
         this.execute = params.execute === false ? false : true
 
@@ -107,7 +111,10 @@ export class Expression {
                     this.fallback = true
                     return
 
-                } else if (value === undefined || (value === null && field.nulls !== true)) {
+                } else if (value === undefined) {
+                    continue
+                } else if (value === null && field.nulls !== true) {
+                    this.updates.remove.push(`#_${this.addName(field.name)}`)
                     continue
                 }
             } else if (typeof value == 'object') {
@@ -152,8 +159,8 @@ export class Expression {
             throw new Error(`dynamo: Empty hash key`)
         }
         if (params.fields) {
-            for (let field of params.fields) {
-                this.project.push(`#_${this.addName(field)}`)
+            for (let name of params.fields) {
+                this.project.push(`#_${this.addName(name)}`)
             }
         }
     }
@@ -335,14 +342,14 @@ export class Expression {
                 return
             }
         }
-        updates.push(`#_${this.addName(field.attribute[0])} = :_${this.addValue(value)}`)
+        updates.set.push(`#_${this.addName(field.attribute[0])} = :_${this.addValue(value)}`)
     }
 
     addUpdates() {
-        let {params, extraUpdates} = this
+        let {params, updates} = this
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
-                extraUpdates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                updates.add.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
 
         } else if (params.remove) {
@@ -350,12 +357,12 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let field of params.remove) {
-                extraUpdates.push(`#_${this.addName(field)}`)
+                updates.remove.push(`#_${this.addName(field)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                extraUpdates.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                updates.delete.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
         }
     }
@@ -430,14 +437,13 @@ export class Expression {
 
             } else if (op == 'update') {
                 args.ReturnValues = params.return || 'ALL_NEW'
-                let extra = '', up = ''
-                if (this.updates.length) {
-                    up = `set ${this.updates.join(', ')} `
+                let updates = []
+                for (let op of ['add', 'delete', 'remove', 'set']) {
+                    if (this.updates[op].length) {
+                        updates.push(`${op} ${this.updates[op].join(', ')}`)
+                    }
                 }
-                if (this.extraUpdates.length) {
-                    extra = `${this.getAction(params)} ${this.extraUpdates.join(', ')}`
-                }
-                args.UpdateExpression = up + extra
+                args.UpdateExpression = updates.join(' ')
             }
             if (op == 'delete' || op == 'get' || op == 'update') {
                 args.Key = key
@@ -476,12 +482,12 @@ export class Expression {
      */
     getValue(field, context, properties) {
         let v = context[field.name] !== undefined ? context[field.name] : properties[field.name]
-        if (v != null) {
+        if (v !== undefined) {
             return v
         }
         v = field.value
-        if (v == null) {
-            return undefined
+        if (v === undefined) {
+            return v
 
         } else if (typeof v == 'function') {
             return v(field.name, context, properties)

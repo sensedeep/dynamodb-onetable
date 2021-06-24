@@ -348,7 +348,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
 | name | `string` | yes | The name of your DynamoDB table. |
-| nulls | `boolean` | Store nulls in database attributes. Default false. |
+| nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
@@ -357,7 +357,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
-By default, OneTable will not write `null` values to the database. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a model attribute basis via the schema.
+By default, OneTable will not write `null` values to the database rather, it will remove the corresponding attribute from the item. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a model attribute basis via the schema.
 
 The optional `intercept` function will be invoked on read and write requests to assist with data migrations. The intercept function can modify the item as it sees fit. The invocation signature is:
 
@@ -478,7 +478,7 @@ The following attribute properties are supported:
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
 | ksuid | `boolean` | Set to true to automatically create a new KSUID (time-based sortable unique string) for the attribute when creating. Default false. This requires an implementation be passed to the Table constructor. |
 | map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
-| nulls | `boolean` | Set to true to store null values. Default false. |
+| nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
 | transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |

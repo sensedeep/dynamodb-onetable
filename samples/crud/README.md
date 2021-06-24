@@ -8,7 +8,7 @@ It has the following features:
 * Simple OneTable schema
 * Use of per-API logging
 * Create, delete and test for existence of a DynamoDB table
-* Entity model create, find, update and delete
+* Entity model create, find, update and delete with removing attributes
 * AWS V3 SDK
 
 ## Requirements

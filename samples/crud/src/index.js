@@ -62,14 +62,18 @@ async function main() {
     //  Alternatively, set your own ID and use the 'exists: null' to allow updating.
     let user = await User.create({
         name: 'Peter Smith',
-    }, { log: true  })                  //  Emit console trace for the command and result
+    }, { log: true })                  //  Emit console trace for the command and result
     console.log('CREATED user', user)
 
     user = await User.update({id: user.id, status: 'inactive'})
     console.log('UPDATED user', user)
 
-    //  How to remove attributes
-    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk']})
+    //  Remove attribute by setting to null
+    user = await User.update({id: user.id, status: null})
+    console.log('UPDATED user', user)
+
+    //  Update and remove attributes using {remove}
+    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk'])
     console.log('UPDATED user', user)
 
     //  Scan is not normally advised -- scans entire table
