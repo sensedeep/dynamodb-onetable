@@ -67,7 +67,7 @@ export class Expression {
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
-    prepare(fields, properties = {}, params = {}) {
+    prepare(fields, properties = {}, params = {}, prefix = '') {
         let op = this.op
         let context = this.params.context || this.table.context
         properties = Object.assign({}, properties)
@@ -77,7 +77,10 @@ export class Expression {
             if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
                 continue
             }
-            /* KEEP
+            if (this.index.project && this.index.project.indexOf(field.name) < 0) {
+                continue
+            }
+            /*
             if (field.schema) {
                 let prefix = `${prefix}.${field.name}`
                 this.prepare(field.fields, properties, params, prefix)
@@ -129,9 +132,7 @@ export class Expression {
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
-                    throw new Error(`Missing property for mapped data field for ${this.model.name}`, {
-                        mapped: this.mapped
-                    })
+                    throw new Error(`Missing properties for mapped data field "${att}" in model "${this.model.name}"`)
                 }
             }
             for (let [k,v] of Object.entries(this.mapped)) {
@@ -172,7 +173,7 @@ export class Expression {
         let op = this.op
 
         let attribute = field.attribute
-        if (/* op == 'update' && */ attribute.length > 1) {
+        if (attribute.length > 1) {
             //  Mapped (packed) field
             let mapped = this.mapped
             if (!mapped) {

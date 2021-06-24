@@ -72,19 +72,12 @@ export class Model {
 
         this.fields = {}            //  Attribute list for this model
         /*
-            Map Javascript API properties to DynamoDB attribute names.
-            The fields.map property may contain a '.' like 'obj.prop' to pack multiple
-            properties into a single attribute. The format of map is:
+            Map Javascript API properties to DynamoDB attribute names. The schema fields
+            map property may contain a '.' like 'obj.prop' to pack multiple properties into a single attribute.
 
-            this.map {
-                property: [ attribute, sub-prop]
-            }
-            field.attribute = this.map[property]
-            field.attribute[0] == Table attribute name
-            field.attribute[1] == sub property (optional)
+            field.attribute = [attributeName, optional-sub-propertiy]
         */
-        this.map = {}
-        this.mappings = 0
+        this.mappings = {}
 
         if (options.fields) {
             this.prepModel(options.fields)
@@ -112,21 +105,24 @@ export class Model {
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
      */
-    prepModel(fields) {
-        fields = Object.assign({}, fields)
-        if (!fields[this.typeField]) {
-            fields[this.typeField] = { type: String }
+    prepModel(schemaFields) {
+        schemaFields = Object.assign({}, schemaFields)
+        if (!schemaFields[this.typeField]) {
+            schemaFields[this.typeField] = { type: String }
         }
         if (this.timestamps) {
-            fields[this.createdField] = fields[this.createdField] || { type: Date }
-            fields[this.updatedField] = fields[this.updatedField] || { type: Date }
+            schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
+            schemaFields[this.updatedField] = schemaFields[this.updatedField] || { type: Date }
         }
-        let {indexes, map, table} = this
+        let {indexes, table} = this
         let primary = indexes.primary
         let keys = {}
-        let mapTargets = {}
 
-        for (let [name, field] of Object.entries(fields)) {
+        //  Hold attributes that are mapped to a different attribute
+        let mapTargets = {}
+        let map = {}
+
+        for (let [name, field] of Object.entries(schemaFields)) {
             if (!field.type) {
                 //  LEGACY use of value as array. Can remove.
                 //  Should make this an error to omit the type
@@ -185,7 +181,7 @@ export class Model {
             }
             /*
             if (field.type == 'Object' && field.schema) {
-                this.prepModels(field.schema)
+                this.prepModel(field.schema)
             } */
             this.fields[name] = field
         }
