@@ -77,7 +77,8 @@ export class Expression {
             if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
                 continue
             }
-            if (this.index.project && this.index.project.indexOf(field.name) < 0) {
+            let project = this.index.project
+            if (project && project != 'all' && Array.isArray(project) && project.indexOf(field.name) < 0) {
                 continue
             }
             /*
