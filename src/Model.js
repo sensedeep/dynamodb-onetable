@@ -80,12 +80,12 @@ export class Model {
         this.mappings = {}
 
         if (options.fields) {
-            this.prepModel(options.fields)
+            this.prepModel(options.fields, this.fields)
         }
     }
 
     /*
-        Prepare a model based on field schema and compute the attribute mapping.
+        Prepare a model based on the schema and compute the attribute mapping.
         Field properties:
 
         crypt           Boolean
@@ -105,14 +105,17 @@ export class Model {
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
      */
-    prepModel(schemaFields) {
+    prepModel(schemaFields, fields) {
         schemaFields = Object.assign({}, schemaFields)
-        if (!schemaFields[this.typeField]) {
-            schemaFields[this.typeField] = { type: String }
-        }
-        if (this.timestamps) {
-            schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
-            schemaFields[this.updatedField] = schemaFields[this.updatedField] || { type: Date }
+        if (fields == this.fields) {
+            //  Top level only
+            if (!schemaFields[this.typeField]) {
+                schemaFields[this.typeField] = { type: String }
+            }
+            if (this.timestamps) {
+                schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
+                schemaFields[this.updatedField] = schemaFields[this.updatedField] || { type: Date }
+            }
         }
         let {indexes, table} = this
         let primary = indexes.primary
@@ -179,16 +182,16 @@ export class Model {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
-            /*
-            if (field.type == 'Object' && field.schema) {
-                this.prepModel(field.schema)
-            } */
-            this.fields[name] = field
+            if (field.type == Object && field.schema) {
+                field.fields = []
+                this.prepModel(field.schema, field.fields)
+            }
+            fields[name] = field
         }
         if (!this.hash || (primary.sort && !this.sort)) {
             throw new Error(`dynamo: Cannot find primary keys for model ${this.name} in primary index`)
         }
-        if (Object.values(this.fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
+        if (Object.values(fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
             this.hasUniqueFields = true
         }
         this.mappings = mapTargets
@@ -197,7 +200,7 @@ export class Model {
             Calculate the field order based on 'value' template dependencies.
          */
         this.dependencies = []
-        for (let field of Object.values(this.fields)) {
+        for (let field of Object.values(fields)) {
             this.orderFields(field)
         }
     }

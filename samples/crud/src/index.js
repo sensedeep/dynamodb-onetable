@@ -30,7 +30,7 @@ const table = new Table({
     schema: {
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
-            gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
+            gs1:     { hash: 'gs1pk', sort: 'gs1sk' },
         },
         models: {
             User: {
@@ -48,7 +48,6 @@ const table = new Table({
     },
 })
 
-
 //  Create a model to manage User entities
 const User = table.getModel('User')
 
@@ -58,8 +57,6 @@ async function main() {
         await table.createTable()
     }
 
-    //  Note: because the ID is auto-generated, this will create a new user each time.
-    //  Alternatively, set your own ID and use the 'exists: null' to allow updating.
     let user = await User.create({
         name: 'Peter Smith',
     }, { log: true })                  //  Emit console trace for the command and result
