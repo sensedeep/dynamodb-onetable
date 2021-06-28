@@ -11,11 +11,12 @@
         "listFiles": false,
         "moduleResolution": "node",
         "noFallthroughCasesInSwitch": true,
+        "noImplicitAny": false,
         "pretty": true,
         "resolveJsonModule": true,
         "rootDir": "src",
         "skipLibCheck": true,
-        "strict": true,
+        "strict": false,
         "traceResolution": false,
         "types": ["node", "jest"]
     },

@@ -70,7 +70,7 @@ async function main() {
     console.log('UPDATED user', user)
 
     //  Update and remove attributes using {remove}
-    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk'])
+    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk']})
     console.log('UPDATED user', user)
 
     //  Scan is not normally advised -- scans entire table

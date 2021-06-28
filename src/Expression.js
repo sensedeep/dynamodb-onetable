@@ -25,6 +25,7 @@ export class Expression {
         this.table = model.table
         this.op = op
         this.params = params
+        //  MOB - can't store properties here
         this.properties = properties
 
         //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
@@ -67,67 +68,45 @@ export class Expression {
         @param fields Model fields
         @param properties Javascript hash of data attributes for the API
      */
-    prepare(fields, properties = {}, params = {}, prefix = '') {
+    prepare(fields, properties = {}, params = {}) {
         let op = this.op
         let context = this.params.context || this.table.context
         properties = Object.assign({}, properties)
 
-        for (let field of this.model.dependencies) {
+        let processed = {}
+        //  MOB - what if properties is an array
+        for (let [name, value] of Object.keys(properties)) {
+            let field = fields.find(f => f.name == name)
+            if (field) {
+                //  MOB - should we call getValue here?
+                if (field.schema) {
+                    this.prepare(field, value, context, params)
 
-            if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
-                continue
-            }
-            let project = this.index.project
-            if (project && project != 'all' && Array.isArray(project) && project.indexOf(field.name) < 0) {
-                continue
-            }
-            /*
-            if (field.schema) {
-                let prefix = `${prefix}.${field.name}`
-                this.prepare(field.fields, properties, params, prefix)
-                continue
-            } */
-            //  Expand any field.value template, otherwise use value from properties or context
-            let value = this.getValue(field, context, properties)
-
-            if (value === undefined || value === null || value === '') {
-                if (op == 'put' && (field.uuid || field.ulid || field.ksuid)) {
-                    if (field.uuid == true) {
-                        value = this.table.uuid()
-
-                    } else if (field.uuid == 'uuid') {
-                        value = this.table.uuid()
-
-                    } else if (field.uuid == 'ulid') {
-                        value = this.table.ulid()
-
-                    } else if (field.ulid) {
-                        //  DEPRECATED
-                        value = this.table.ulid()
-
-                    } else if (field.ksuid) {
-                        //  DEPRECATED
-                        value = this.table.ksuid()
-                    }
-
-                } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
-                    //  High level API without sort key. Fallback to find to select the items of interest.
-                    this.fallback = true
-                    return
-
-                } else if (value === undefined) {
-                    continue
-                } else if (value === null && op == 'update' && field.nulls !== true) {
-                    this.updates.remove.push(`#_${this.addName(field.name)}`)
-                    continue
+                } else if (!field.value) {
+                    //  MOB - does context only apply to the top level
+                    let value = this.getValue(field, context, properties)
+                    this.prepareField(field, value)
+                    //  MOB - why?
+                    properties[field.name] = value
+                    processed[field.name] = true
                 }
-            } else if (typeof value == 'object') {
-                value = this.removeEmptyStrings(field, value)
+                if (this.fallback) return
             }
+        }
+        //  MOB - set dependencies to only be those fields with value templates and default values
+        //  MOB - but dependencies must be done for each level. i.e. fields.dependencies
+        //  MOB - when is "type" required and when not required. Should not be filtering and updating when not required
+        for (let field of this.model.dependencies) {
+            if (!field.value) continue
+            if (processed[field.name]) continue
+            //  MOB - does context only apply to the top level
+            let value = this.getValue(field, context, properties)
+            this.prepareField(field, value)
+            //  MOB - why?
             properties[field.name] = value
-            this.add(field, value)
-
-            if (this.fallback) return
+            if (this.fallback) {
+                return
+            }
         }
         //  Emit mapped attributes. Check all required attributes are present.
         if (this.mapped) {
@@ -167,6 +146,54 @@ export class Expression {
         }
     }
 
+    prepareField(field, value) {
+        let op = this.op
+        if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
+            return
+        }
+        if (this.index.project && this.index.project.indexOf(field.name) < 0) {
+            //  Property is not projected
+            return
+        }
+        if (value === undefined || value === null || value === '') {
+            if (op == 'put' && (field.uuid || field.ulid || field.ksuid)) {
+                if (field.uuid == true) {
+                    value = this.table.uuid()
+
+                } else if (field.uuid == 'uuid') {
+                    value = this.table.uuid()
+
+                } else if (field.uuid == 'ulid') {
+                    value = this.table.ulid()
+
+                } else if (field.ulid) {
+                    //  DEPRECATED
+                    value = this.table.ulid()
+
+                } else if (field.ksuid) {
+                    //  DEPRECATED
+                    value = this.table.ksuid()
+                }
+
+            } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
+                //  High level API without sort key. Fallback to find to select the items of interest.
+                this.fallback = true
+                return
+
+            } else if (value === undefined) {
+                return
+
+            } else if (value === null && field.nulls !== true) {
+                //  MOB - this should be field.pathname
+                this.updates.remove.push(`#_${this.addName(field.name)}`)
+                return
+            }
+        } else if (typeof value == 'object') {
+            value = this.removeEmptyStrings(field, value)
+        }
+        this.add(field, value)
+    }
+
     /*
         Add a field to the command expression
      */
@@ -179,11 +206,13 @@ export class Expression {
             let mapped = this.mapped
             if (!mapped) {
                 mapped = this.mapped = {}
+                //  MOB - can't use this.properties here
                 this.properties = Object.assign({}, this.properties)
             }
             let [k,v] = attribute
             mapped[k] = mapped[k] || {}
             mapped[k][v] = value
+            //  MOB - can't use this.properties here
             this.properties[k] = value
             return
         }
@@ -194,6 +223,7 @@ export class Expression {
                 this.addKey(op, field, value)
 
             } else if (op == 'scan') {
+                //  MOB - need to be properties not this.properties
                 if (this.properties[field.name] !== undefined && field.filter !== false) {
                     this.addFilter(attribute[0], value)
                 }
@@ -209,6 +239,7 @@ export class Expression {
         } else {
             if ((op == 'find' || op == 'scan')) {
                 //  schema.filter == false disables a field from being used in a filter
+                //  MOB - can't use this.properties here
                 if (this.properties[field.name] !== undefined && field.filter !== false) {
                     this.addFilter(attribute[0], value)
                 }
@@ -330,15 +361,18 @@ export class Expression {
         if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
+        //  MOB - why testing all 3
+        //  MOB - should this be pathname
         if (params.add && params.add.indexOf(field.name) >= 0) {
             return
         }
-        if (params.delete && params.add.indexOf(field.name) >= 0) {
+        if (params.delete && params.delete.indexOf(field.name) >= 0) {
             return
         }
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
+        //  MOB - can't use this.properties here
         if (this.properties[field.name] === undefined) {
             if (field.isIndexed && this.params.updateIndexes !== true) {
                 return
@@ -483,6 +517,7 @@ export class Expression {
         field.value by substituting ${variable} values from context and properties.
      */
     getValue(field, context, properties) {
+        //  MOB - does context only apply to the top level
         let v = context[field.name] !== undefined ? context[field.name] : properties[field.name]
         if (v !== undefined) {
             return v
@@ -492,6 +527,7 @@ export class Expression {
             return v
 
         } else if (typeof v == 'function') {
+            //  MOB field.pathname?
             return v(field.name, context, properties)
 
         } else if (Array.isArray(v)) {

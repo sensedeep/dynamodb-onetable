@@ -14,6 +14,10 @@ It has the following features:
 * Packing attributes into a single data attribute
 * AWS V3 SDK
 
+## Read the Code
+
+* [Packed Attributes Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/packed/src/index.js)
+
 ## Requirements
 
 * DynamoDB instance on localhost:8000.

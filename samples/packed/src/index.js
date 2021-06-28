@@ -63,7 +63,6 @@ async function main() {
     if (!(await table.exists())) {
         await table.createTable()
     }
-
     /*
         The address, city and zip properties are packed into the single 'data' attribute.
         All packed properties must be provided.
@@ -85,8 +84,8 @@ async function main() {
     console.log('Fetch user via GSI without follow', JSON.stringify(data, null, 4))
 
     //  With follow, will follow the GSI and fetch the entire user
-    user = await User.find({name: 'Peter Smith'}, {index: 'gs1', follow: true})
-    console.log('Fetch user via GSI with follow', JSON.stringify(user, null, 4))
+    let users = await User.find({name: 'Peter Smith'}, {index: 'gs1', follow: true})
+    console.log('Fetch user via GSI with follow', JSON.stringify(users, null, 4))
 
     //  Cleanup. The argument is a safety string
     await table.deleteTable('DeleteTableForever')

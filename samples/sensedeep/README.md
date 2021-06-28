@@ -17,6 +17,11 @@ It has the following features:
 
 * Includes SenseDeep OneTable schema in schema.js
 
+## Read the Code
+
+* [SenseDeep Database Access](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/sensedeep/src/index.js)
+* [SenseDeep Database Schema](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/sensedeep/src/schema.js)
+
 ## Requirements
 
 * Activate SenseDeep and configure a cloud in your AWS account

@@ -11,6 +11,11 @@ It has the following features:
 * Entity model create, find, update and delete with removing attributes
 * AWS V3 SDK
 
+## Read the Code
+
+* [CRUD Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud/src/index.js)
+
+
 ## Requirements
 
 * DynamoDB instance on localhost:8000.
