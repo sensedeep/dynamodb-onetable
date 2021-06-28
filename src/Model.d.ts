@@ -131,6 +131,7 @@ export type OneParams = {
     execute?: boolean,
     exists?: boolean,
     fields?: string[],
+    follow?: boolean,
     hidden?: boolean,
     index?: string,
     limit?: number,
@@ -144,6 +145,7 @@ export type OneParams = {
     remove?: string[],
     return?: string,
     reverse?: boolean,
+    set?: object,
     start?: object,
     throw?: boolean,
     transaction?: object,
@@ -167,7 +169,7 @@ export class Paged<T> extends Array {
 export type AnyModel = {
     constructor(table: any, name: string, options?: ModelConstructorOptions): AnyModel;
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    find(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    find(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
     scan(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
@@ -176,14 +178,14 @@ export type AnyModel = {
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
-    scanItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 };
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: T, params?: OneParams): Promise<T>;
-    find(properties: T, params?: OneParams): Promise<Paged<T[]>>;
+    find(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     get(properties: T, params?: OneParams): Promise<T>;
     remove(properties: T, params?: OneParams): Promise<void>;
     scan(properties: T, params?: OneParams): Promise<Paged<T[]>>;
@@ -192,6 +194,6 @@ export class Model<T> {
     getItem(properties: T, params?: OneParams): Promise<T>;
     putItem(properties: T, params?: OneParams): Promise<T>;
     queryItems(properties: T, params?: OneParams): Promise<Paged<T[]>>;
-    scanItems(properties: T, params?: OneParams): Promise<Paged<T[]>>;
+    scanItems(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     updateItem(properties: T, params?: OneParams): Promise<T>;
 }
