@@ -1,6 +1,6 @@
 {
     "name": "dynamodb-onetable",
-    "version": "1.4.11",
+    "version": "1.5.0",
     "description": "DynamoDB access library for single-table designs",
     "main": "dist/cjs/index.js",
     "module": "dist/mjs/index.js",
@@ -29,12 +29,11 @@
     "license": "MIT",
     "scripts": {
         "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
-        "lint": "eslint .",
+        "_lint": "eslint .",
         "prepare": "npm run build",
         "_prepublishOnly": "npm test && npm run lint",
-        "test": "jest unit",
-        "test-cov": "jest unit --coverage",
-        "test-ci": "eslint . && jest unit --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+        "test": "jest",
+        "test-cov": "jest --coverage"
     },
     "repository": {
         "type": "git",
