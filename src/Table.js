@@ -290,7 +290,7 @@ export class Table {
 
     async exists() {
         let results = await this.listTables()
-        return results && results.TableNames.find(t => t == this.name) != null ? true : false
+        return results && results.find(t => t == this.name) != null ? true : false
     }
 
     async listTables() {
@@ -300,7 +300,7 @@ export class Table {
         } else {
             results = await this.service.listTables({}).promise()
         }
-        return results
+        return results.TableNames
     }
 
     listModels() {
