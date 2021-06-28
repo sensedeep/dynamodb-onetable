@@ -82,7 +82,7 @@ If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and th
 
 ```javascript
 import Dynamo from 'dynamodb-onetable/Dynamo'
-import {Table} from 'dynamodb-onetable'
+import {Model, Table} from 'dynamodb-onetable'
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 const client = new Dynamo({client: new DynamoDBClient(params)})
 ```
@@ -225,11 +225,9 @@ await table.transact('write', transaction)
 
 ## Working Sample
 
-To get you going quickly, try out the working sample in the OneTable repository at:
+To get you going quickly, try out the working samples in the OneTable repository at:
 
-    [OneTable Sample CRUD](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud)
-
-This demonstrates a simple single-table design with create/read/update/delete functionality.
+[OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
 
 ## TypeScript
 
@@ -242,6 +240,8 @@ Using TypeScript dynamic typing, OneTable automatically converts your OneTable s
 For example:
 
 ```javascript
+import {Entity, Model, Table} from 'dynamodb-onetable'
+
 const MySchema = {
     models: {
         Account: {
@@ -512,9 +512,9 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string template or function that is used to compute the attribute value. This is useful for computing key values from other attributes, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
+The `value` property defines a literal string template or function that is used to compute the attribute value. This is useful for computing key values from other properties, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
-String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other model attributes. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
+String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other properties passed in the API call or via the context. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
 The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the context or properties parameters. Note: table context properties should take precedence over the API properties.
 
@@ -595,6 +595,9 @@ The `params.where` clause may be used to define a filter expression. This will d
 
 Delete a DynamoDB table.
 
+#### async exists()
+
+Test if the table name exists in the database.
 
 #### async getItem(properties, params = {})
 
@@ -631,6 +634,10 @@ Get an item in the database of the given model `modelName` as defined in the tab
 
 Return a model for the given model name.
 
+
+#### async listTables()
+
+Return a list of tables in the database.
 
 #### listModels()
 
@@ -1161,6 +1168,8 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 
 ### References
 
+- [OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
+- [OneTable Tests](https://github.com/sensedeep/dynamodb-onetable/tree/main/test)
 - [SenseDeep Blog](https://www.sensedeep.com/blog/)
 - [DynamoDB Checklist](https://www.sensedeep.com/blog/posts/2021/dynamodb-checklist.html)
 - [DynamoDB Articles](https://www.sensedeep.com/blog/posts/series/dynamodb/dynamodb-series.html)
@@ -1179,7 +1188,7 @@ All feedback, discussion, contributions and bug reports are very welcome.
 
 ### Contact
 
-You can contact me (Michael O'Brien) on Twitter at: [@SenseDeepCloud](https://twitter.com/SenseDeepCloud), or [email](mob-pub-18@sensedeep.com) and ready my [Blog](https://www.sensedeep.com/blog).
+You can contact me (Michael O'Brien) on Twitter at: [@mobstream](https://twitter.com/mobstream), or [email](mob-pub-18@sensedeep.com) and ready my [Blog](https://www.sensedeep.com/blog).
 
 ### SenseDeep
 

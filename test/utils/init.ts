@@ -5,7 +5,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
-//  MOB - should also test V2
+//  TODO - should also test V2
 const Client = new Dynamo({
     client: new DynamoDBClient({
         endpoint: `http://localhost:${PORT}`,
