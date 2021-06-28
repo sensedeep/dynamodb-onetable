@@ -76,6 +76,7 @@ export class Table {
         this.typeField = typeField || '_type'
         this.updatedField = updatedField || 'updated'
 
+        //  FUTURE - should the default be ulid?
         if (uuid == 'uuid') {
             this.makeID = this.uuid
         } else if (uuid == 'ulid') {
@@ -105,8 +106,8 @@ export class Table {
         let primary = this.indexes.primary
         this.unique = new Model(this, '_Unique', {
             fields: {
-                [primary.hash]: { value: '_unique:${' + primary.hash + '}'},
-                [primary.sort]: { value: '_unique:'},
+                [primary.hash]: { type: String, value: '_unique:${' + primary.hash + '}'},
+                [primary.sort]: { type: String, value: '_unique:'},
             },
             indexes: this.indexes,
             timestamps: false
@@ -117,8 +118,8 @@ export class Table {
          */
         this.generic = new Model(this, '_Generic', {
             fields: {
-                [primary.hash]: {},
-                [primary.sort]: {},
+                [primary.hash]: { type: String },
+                [primary.sort]: { type: String },
             },
             indexes: this.indexes,
             timestamps: false,
