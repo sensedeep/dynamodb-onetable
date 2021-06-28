@@ -15,7 +15,7 @@
             "args": [
                 "--runInBand",
                 "--watchAll=false",
-                "find"
+                "parallel"
             ]
         }
     ]

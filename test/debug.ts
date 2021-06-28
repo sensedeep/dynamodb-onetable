@@ -4,7 +4,7 @@
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DebugSchema} from './schemas'
 
-describe('Debug only', () => {
+describe.skip('Debug only', () => {
     const table = new Table({
         name: 'DebugTest',
         client: Client,
@@ -29,12 +29,10 @@ describe('Debug only', () => {
                 city: 'Seattle',
             }
         }, { log: true })                  //  Emit console trace for the command and result
-        // print('CREATED user', JSON.stringify(user, null, 4))
     })
 
-    test('Destroy', async() => {
+    test('Remove User', async() => {
         user = await User.update({id: user.id}, { set: { 'location.zip': '{98030}' } })
-        // console.log('UPDATE by set', JSON.stringify(user, null, 4))
     })
 
     test('Destroy', async() => {
