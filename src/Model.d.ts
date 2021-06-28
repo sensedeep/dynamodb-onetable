@@ -145,6 +145,8 @@ export type OneParams = {
     remove?: string[],
     return?: string,
     reverse?: boolean,
+    segment?: number,
+    segments?: number,
     set?: object,
     start?: object,
     throw?: boolean,
