@@ -3,35 +3,24 @@
 */
 
 const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
-const KeyOnlyOp = { get: true, delete: true }
 
 export class Expression {
-    /*
-        Create an Expression
-        @param model Model instance
-        @param op Operation ['delete', 'find', 'put', 'scan', 'update']
-        @param params Options hash
-     */
-    constructor(model, op, properties, params) {
-        this.init(model, op, properties, params)
 
-        if (!this.fallback) {
-            this.prepare(this.model.fields, properties, params)
-        }
+    constructor(model, op, properties, params = {}) {
+        this.init(model, op, properties, params)
+        this.prepare()
     }
 
     init(model, op, properties, params) {
         this.model = model
-        this.table = model.table
         this.op = op
-        this.params = params
-        //  MOB - can't store properties here
         this.properties = properties
+        this.params = params
 
+        this.table = model.table
         //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
         this.conditions = []        //  Condition expressions
         this.filters = []           //  Filter expressions
-        this.item = {}              //  Hash of attribute values for the item
         this.key = {}               //  Primary key
         this.keys = []              //  Key conditions
         this.names = {}             //  Expression names. Keys are the indexes.
@@ -39,19 +28,16 @@ export class Expression {
         this.project = []           //  Projection expressions
         this.values = {}            //  Expression values. Keys are the indexes.
         this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
-
         this.nindex = 0             //  Next index into names
         this.vindex = 0             //  Next index into values
         this.fallback = false       //  Falling back to use find first
         this.updates = {
-            set: [],
-            remove: [],
-            delete: [],
             add: [],
+            delete: [],
+            remove: [],
+            set: [],
         }
-
         this.execute = params.execute === false ? false : true
-
         this.delimiter = model.delimiter        //  Composite sort key delimiter
         this.tableName = model.tableName
 
@@ -63,52 +49,15 @@ export class Expression {
         this.sort = this.index.sort
     }
 
-    /*
-        Calculate property values by applying templates from field.value and removing empty values
-        @param fields Model fields
-        @param properties Javascript hash of data attributes for the API
-     */
-    prepare(fields, properties = {}, params = {}) {
+    prepare() {
         let op = this.op
-        let context = this.params.context || this.table.context
-        properties = Object.assign({}, properties)
-
-        let processed = {}
-        //  MOB - what if properties is an array
-        for (let [name, value] of Object.keys(properties)) {
-            let field = fields.find(f => f.name == name)
-            if (field) {
-                //  MOB - should we call getValue here?
-                if (field.schema) {
-                    this.prepare(field, value, context, params)
-
-                } else if (!field.value) {
-                    //  MOB - does context only apply to the top level
-                    let value = this.getValue(field, context, properties)
-                    this.prepareField(field, value)
-                    //  MOB - why?
-                    properties[field.name] = value
-                    processed[field.name] = true
-                }
-                if (this.fallback) return
+        let fields = this.model.block.fields
+        for (let [name, value] of Object.entries(this.properties)) {
+            if (fields[name]) {
+                this.add(fields[name], value)
             }
         }
-        //  MOB - set dependencies to only be those fields with value templates and default values
-        //  MOB - but dependencies must be done for each level. i.e. fields.dependencies
-        //  MOB - when is "type" required and when not required. Should not be filtering and updating when not required
-        for (let field of this.model.dependencies) {
-            if (!field.value) continue
-            if (processed[field.name]) continue
-            //  MOB - does context only apply to the top level
-            let value = this.getValue(field, context, properties)
-            this.prepareField(field, value)
-            //  MOB - why?
-            properties[field.name] = value
-            if (this.fallback) {
-                return
-            }
-        }
-        //  Emit mapped attributes. Check all required attributes are present.
+        //  Emit mapped attributes
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
@@ -116,7 +65,7 @@ export class Expression {
                 }
             }
             for (let [k,v] of Object.entries(this.mapped)) {
-                this.add({attribute: [k], name: k, filter: false}, v)
+                this.add({attribute: [k], name: k, filter: false}, v, this.properties)
             }
         }
         if (op == 'find') {
@@ -127,105 +76,50 @@ export class Expression {
 
         } else if (op == 'scan') {
             this.addFilters()
-            /*
-                Setup scan filters for properties outside the model
-             */
-            for (let [name, value] of Object.entries(properties)) {
-                if (fields[name] || value == null) continue
-                this.addFilter(name, value)
-                this.item[name] = value
+            //  Setup scan filters for properties outside the model
+            for (let [name, value] of Object.entries(this.properties)) {
+                if (fields[name] == null && value != null) {
+                    this.addFilter(name, value)
+                }
             }
         }
-        if (op != 'scan' && this.item[this.hash] == null) {
-            throw new Error(`dynamo: Empty hash key`)
-        }
-        if (params.fields) {
-            for (let name of params.fields) {
+        if (this.params.fields) {
+            for (let name of this.params.fields) {
                 this.project.push(`#_${this.addName(name)}`)
             }
         }
-    }
-
-    prepareField(field, value) {
-        let op = this.op
-        if (KeyOnlyOp[op] && field.attribute[0] != this.hash && field.attribute[0] != this.sort) {
-            return
-        }
-        if (this.index.project && this.index.project.indexOf(field.name) < 0) {
-            //  Property is not projected
-            return
-        }
-        if (value === undefined || value === null || value === '') {
-            if (op == 'put' && (field.uuid || field.ulid || field.ksuid)) {
-                if (field.uuid == true) {
-                    value = this.table.uuid()
-
-                } else if (field.uuid == 'uuid') {
-                    value = this.table.uuid()
-
-                } else if (field.uuid == 'ulid') {
-                    value = this.table.ulid()
-
-                } else if (field.ulid) {
-                    //  DEPRECATED
-                    value = this.table.ulid()
-
-                } else if (field.ksuid) {
-                    //  DEPRECATED
-                    value = this.table.ksuid()
-                }
-
-            } else if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
-                //  High level API without sort key. Fallback to find to select the items of interest.
-                this.fallback = true
-                return
-
-            } else if (value === undefined) {
-                return
-
-            } else if (value === null && field.nulls !== true) {
-                //  MOB - this should be field.pathname
-                this.updates.remove.push(`#_${this.addName(field.name)}`)
-                return
-            }
-        } else if (typeof value == 'object') {
-            value = this.removeEmptyStrings(field, value)
-        }
-        this.add(field, value)
     }
 
     /*
         Add a field to the command expression
      */
     add(field, value) {
+        let properties = this.properties
         let op = this.op
-
         let attribute = field.attribute
+        //  TODO - review all mappings
         if (attribute.length > 1) {
             //  Mapped (packed) field
             let mapped = this.mapped
             if (!mapped) {
                 mapped = this.mapped = {}
-                //  MOB - can't use this.properties here
-                this.properties = Object.assign({}, this.properties)
             }
             let [k,v] = attribute
             mapped[k] = mapped[k] || {}
             mapped[k][v] = value
-            //  MOB - can't use this.properties here
-            this.properties[k] = value
+            properties[k] = value
             return
         }
-        this.item[attribute[0]] = value
+        let pathname = attribute[0]
+        let name = pathname.split('.').shift()
 
-        if (attribute[0] == this.hash || attribute[0] == this.sort) {
+        if (name == this.hash || name == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
 
             } else if (op == 'scan') {
-                //  MOB - need to be properties not this.properties
-                if (this.properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(attribute[0], value)
+                if (properties[field.name] !== undefined && field.filter !== false) {
+                    this.addFilter(name, value)
                 }
 
             } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
@@ -233,20 +127,19 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[attribute[0]] = value
+                this.values[name] = value
             }
 
         } else {
             if ((op == 'find' || op == 'scan')) {
                 //  schema.filter == false disables a field from being used in a filter
-                //  MOB - can't use this.properties here
-                if (this.properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(attribute[0], value)
+                if (properties[field.name] !== undefined && field.filter !== false) {
+                    this.addFilter(name, value)
                 }
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[attribute[0]] = value
+                this.values[name] = value
 
             } else if (op == 'update') {
                 this.addUpdate(field, value)
@@ -261,7 +154,6 @@ export class Expression {
     addConditions(op) {
         let {conditions, params} = this
         let {hash, sort} = this.index
-
         let attribute
         if (params.exists === true) {
             conditions.push(`attribute_exists(${hash})`)
@@ -274,20 +166,21 @@ export class Expression {
         if (params.type) {
             conditions.push(`attribute_type(${sort}, ${params.type})`)
         }
-        if (op == 'update' && (params.add || params.remove || params.delete)) {
+        if (op == 'update') {
             this.addUpdates()
         }
         if (params.where && (op == 'delete' || op == 'update')) {
-            conditions.push(this.makeConditions(params.where))
+            conditions.push(this.expand(params.where))
         }
     }
 
     /*
-        Make a conditions expression. Replace: ${var} and {value} tokens.
+        Expand a where/set expression. Replace: ${var} and {value} tokens.
      */
-    makeConditions(where) {
+    expand(where) {
+        let fields = this.model.block.fields
         where = where.replace(/\${(.*?)}/g, (match, varName) => {
-            let field = this.model.fields[varName]
+            let field = fields[varName]
             let attribute = field ? field.attribute[0] : varName
             return `#_${this.addName(attribute)}`
         })
@@ -315,7 +208,7 @@ export class Expression {
      */
     addFilters() {
         if (this.params.where) {
-            this.filters.push(this.makeConditions(this.params.where))
+            this.filters.push(this.expand(this.params.where))
         }
     }
 
@@ -343,7 +236,6 @@ export class Expression {
 
                 } else if (action == 'between') {
                     keys.push(`#_${this.addName(name)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`)
-                    // keys.push(`between(#_${this.addName(name)}, :_${this.addValue(vars[0])}, :_${this.addValue(vars[1])})`)
 
                 } else {
                     keys.push(`#_${this.addName(name)} ${action} :_${this.addValue(value[action])}`)
@@ -357,12 +249,10 @@ export class Expression {
     }
 
     addUpdate(field, value) {
-        let {params, updates} = this
+        let {params, properties, updates} = this
         if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
-        //  MOB - why testing all 3
-        //  MOB - should this be pathname
         if (params.add && params.add.indexOf(field.name) >= 0) {
             return
         }
@@ -372,9 +262,8 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        //  MOB - can't use this.properties here
-        if (this.properties[field.name] === undefined) {
-            if (field.isIndexed && this.params.updateIndexes !== true) {
+        if (properties[field.name] === undefined) {
+            if (field.isIndexed && params.updateIndexes !== true) {
                 return
             }
         }
@@ -388,6 +277,11 @@ export class Expression {
                 updates.add.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
             }
 
+        } else if (params.delete) {
+            for (let [key, value] of Object.entries(params.delete)) {
+                updates.delete.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+            }
+
         } else if (params.remove) {
             if (!Array.isArray(params.remove)) {
                 params.remove = [params.remove]
@@ -396,21 +290,27 @@ export class Expression {
                 updates.remove.push(`#_${this.addName(field)}`)
             }
 
-        } else if (params.delete) {
-            for (let [key, value] of Object.entries(params.delete)) {
-                updates.delete.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+        } else if (params.set) {
+            for (let [key, value] of Object.entries(params.set)) {
+                let target = []
+                for (let prop of key.split('.')) {
+                    target.push(`#_${this.addName(prop)}`)
+                }
+                target = target.join('.')
+                updates.set.push(`${target} = ${this.expand(value)}`)
             }
         }
     }
 
-    selectIndex(indexes, params) {
+    selectIndex(indexes) {
         let op = this.op
         let index = indexes.primary
-        if (params.index) {
-            if (params.index != 'primary') {
-                index = indexes[params.index]
+        if (this.params.index) {
+            if (this.params.index != 'primary') {
+                index = indexes[this.params.index]
                 if (op != 'find' && op != 'scan') {
                     //  GSIs only support find and scan
+                    //  TODO - is this already detected in model? (yes)
                     this.fallback = true
                 }
             }
@@ -511,126 +411,11 @@ export class Expression {
         return args
     }
 
-    /*
-        Get a property value from the context or properties. If undefined,
-        then consider the field.value template. Expand string template in
-        field.value by substituting ${variable} values from context and properties.
-     */
-    getValue(field, context, properties) {
-        //  MOB - does context only apply to the top level
-        let v = context[field.name] !== undefined ? context[field.name] : properties[field.name]
-        if (v !== undefined) {
-            return v
-        }
-        v = field.value
-        if (v === undefined) {
-            return v
-
-        } else if (typeof v == 'function') {
-            //  MOB field.pathname?
-            return v(field.name, context, properties)
-
-        } else if (Array.isArray(v)) {
-            let values = {}
-            for (let name of v) {
-                if (this.model.fields[name]) {
-                    values[name] = this.getValue(this.model.fields[name], properties, context)
-                    if (values[name] === undefined) {
-                        return undefined
-                    }
-                }
-            }
-            return JSON.stringify(values)
-        }
-        //  Context take precedence
-        for (let obj of [context, properties]) {
-            if (v.indexOf('${') < 0) {
-                break
-            }
-            v = v.replace(/\${(.*?)}/g, (match, varName) => {
-                //  name:length:pad
-                let [name, len, pad] = varName.split(':')
-                let value = obj[name]
-                if (value !== undefined) {
-                    if (len) {
-                        //  Add leading padding for sorting numerics
-                        pad = pad || '0'
-                        let s = value + ''
-                        while (s.length < len) s = pad + s
-                        value = s
-                    }
-                } else {
-                    value = match
-                }
-                return value
-            })
-        }
-        /*
-            Consider unresolved template variables.
-            If field is the sort key and doing find, then use sort key prefix and
-            begins_with, (provide no where clause).
-         */
-        if (v.indexOf('${') >= 0) {
-            if (field.attribute[0] == this.sort) {
-                if (this.op == 'find' && !this.params.where) {
-                    v = v.replace(/\${(.*?)}/g, '')
-                    let sep = this.delimiter
-                    v = v.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
-                    if (v) {
-                        return {begins: v}
-                    }
-                }
-            }
-            /*
-                Return undefined if any variables remain undefined.
-                This is critical to stop updating templates which do not have all the
-                required properties to complete
-            */
-            return undefined
-        }
-        return v
-    }
-
-    removeEmptyStrings(field, obj) {
-        let result
-        if (obj !== null && typeof obj == 'object') {
-            result = Array.isArray(obj) ? [] : {}
-            for (let [key, value] of Object.entries(obj)) {
-                if (typeof value == 'object') {
-                    result[key] = this.removeEmptyStrings(field, value)
-                } else if (value == null && field.nulls !== true) {
-                    //  Match null and undefined
-                    continue
-                } else if (value !== '') {
-                    result[key] = value
-                }
-            }
-        } else {
-            result = obj
-        }
-        return result
-    }
-
-    getItem() {
-        return this.item
-    }
-
     and(terms) {
         if (terms.length == 1) {
             return terms.join('')
         }
         return terms.map(t => `(${t})`).join(' and ')
-    }
-
-    getAction(params) {
-        if (params.add) {
-            return 'add'
-        } else if (params.remove) {
-            return 'remove'
-        } else if (params.delete) {
-            return 'delete'
-        }
-        return 'set'
     }
 
     addName(name) {

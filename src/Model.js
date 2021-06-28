@@ -69,8 +69,8 @@ export class Model {
         this.updatedField = table.updatedField
         this.indexes = options.indexes || table.indexes
         this.indexProperties = this.getIndexProperties(this.indexes)
+        this.block = {fields: {}, deps: []}
 
-        this.fields = {}            //  Attribute list for this model
         /*
             Map Javascript API properties to DynamoDB attribute names. The schema fields
             map property may contain a '.' like 'obj.prop' to pack multiple properties into a single attribute.
@@ -80,7 +80,7 @@ export class Model {
         this.mappings = {}
 
         if (options.fields) {
-            this.prepModel(options.fields, this.fields)
+            this.prepModel(options.fields, this.block)
         }
     }
 
@@ -105,9 +105,10 @@ export class Model {
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
      */
-    prepModel(schemaFields, fields) {
+    prepModel(schemaFields, block, prefix = '') {
+        let {deps, fields} = block
         schemaFields = Object.assign({}, schemaFields)
-        if (fields == this.fields) {
+        if (!prefix) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
                 schemaFields[this.typeField] = { type: String }
@@ -119,51 +120,49 @@ export class Model {
         }
         let {indexes, table} = this
         let primary = indexes.primary
-        let keys = {}
 
         //  Hold attributes that are mapped to a different attribute
         let mapTargets = {}
         let map = {}
 
         for (let [name, field] of Object.entries(schemaFields)) {
+            let pathname = prefix ? `${prefix}.${name}` : name
+
             if (!field.type) {
-                //  LEGACY use of value as array. Can remove.
-                //  Should make this an error to omit the type
-                field.type = (Array.isArray(field.value)) ? Object : String
+                throw new Error(`Missing field type for ${pathname}`)
             }
+
             let to = field.map
             if (to) {
                 let [att, sub] = to.split('.')
                 mapTargets[att] = mapTargets[att] || []
                 if (sub) {
-                    if (map[name] && !Array.isArray(map[name])) {
+                    if (map[pathname] && !Array.isArray(map[pathname])) {
                         throw new Error(`dynamo: Map already defined as literal for ${this.name}.${name}`)
                     }
-                    field.attribute = map[name] = [att, sub]
+                    field.attribute = map[pathname] = [att, sub]
                     if (mapTargets[att].indexOf(sub) >= 0) {
-                        throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
+                        throw new Error(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
                     }
                     mapTargets[att].push(sub)
                 } else {
                     if (mapTargets[att].length > 1) {
                         throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
                     }
-                    field.attribute = map[name] = [att]
+                    field.attribute = map[pathname] = [att]
                     mapTargets[att].push(true)
                 }
             } else {
-                field.attribute = map[name] = [name]
+                field.attribute = map[pathname] = [pathname]
             }
-            field.name = name
-
             if (field.nulls !== true && field.nulls !== false) {
                 field.nulls = this.nulls
             }
             let index = this.indexProperties[field.attribute[0]]
-            if (index) {
+            if (index && !prefix) {
                 field.isIndexed = true
                 if (field.attribute.length > 1) {
-                    throw new Error(`dynamo: Cannot map property "${name}" to an indexed compound attribute "${this.name}.${name}"`)
+                    throw new Error(`dynamo: Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
                 }
                 if (index == 'primary') {
                     field.required = true
@@ -174,64 +173,80 @@ export class Model {
                     }
                 }
             }
+
             if (field.value) {
-                //  Templated properties are hidden by default
+                //  Value template properties are hidden by default
                 if (field.hidden != null) {
                     field.hidden = field.hidden
                 } else {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
-            if (field.type == Object && field.schema) {
-                field.fields = []
-                this.prepModel(field.schema, field.fields)
-            }
+
+            field.pathname = pathname
+            field.name = name
             fields[name] = field
+
+            if (field.type == Object && field.schema) {
+                field.block = {deps: [], fields: {}}
+                this.prepModel(field.schema, field.block, name)
+            }
         }
-        if (!this.hash || (primary.sort && !this.sort)) {
-            throw new Error(`dynamo: Cannot find primary keys for model ${this.name} in primary index`)
+        if (!prefix) {
+            if (!this.hash || (primary.sort && !this.sort)) {
+                throw new Error(`dynamo: Cannot find primary keys for model "${this.name}" in primary index`)
+            }
         }
         if (Object.values(fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
             this.hasUniqueFields = true
         }
         this.mappings = mapTargets
 
-        /*
-            Calculate the field order based on 'value' template dependencies.
-         */
-        this.dependencies = []
         for (let field of Object.values(fields)) {
-            this.orderFields(field)
+            this.orderFields(block, field)
         }
     }
 
-    orderFields(field) {
-        let dependencies = this.dependencies
-        if (dependencies.find(i => i.name == field.name)) {
+    orderFields(block, field) {
+        let {deps, fields} = block
+        if (deps.find(i => i.name == field.pathname)) {
             return
         }
         if (field.value) {
-            let vars = this.getValueVars(field.value)
-            for (let v of vars) {
-                if (!this.fields[v]) {
-                    throw new Error(`dynamo: Cannot find value variable "${v}" in field "${field.name}"`)
-                }
-                if (v != field.name) {
-                    this.orderFields(this.fields[v])
+            let vars = this.getVars(field.value)
+            for (let pathname of vars) {
+                let name = pathname.split('.').shift()
+                let ref = fields[name]
+                if (ref && ref != field && (ref.schema || ref.value)) {
+                    this.orderFields(field.block, ref)
+                } else {
+                    //  Allow ordinary non-field properties
+                    // throw new Error(`dynamo: Cannot find value variable "${v}" in field "${field.name}"`)
                 }
             }
         }
-        dependencies.push(field)
+        deps.push(field)
+    }
+
+    getValue(obj, pathname) {
+        for (let prop of pathname.split('.')) {
+            if (obj[prop] === undefined) {
+                return undefined
+            }
+            obj = obj[prop]
+        }
+        return obj
     }
 
     /*
         Return the value template variable references in a list
      */
-    getValueVars(v) {
+    getVars(v) {
         let list = []
         if (Array.isArray(v)) {
             list = v
         } else if (typeof v != 'function') {
+            //  FUTURE - need 'depends' to handle function dependencies
             v.replace(/\${(.*?)}/g, (match, varName) => {
                 list.push(varName)
             })
@@ -406,7 +421,8 @@ export class Model {
     parseResponse(op, expression, items) {
         let table = this.table
         if (op == 'put') {
-            items = [expression.getItem()]
+            // items = [expression.getItem()]
+            items = [expression.properties]
         } else {
             items = table.unmarshall(items)
         }
@@ -447,7 +463,8 @@ export class Model {
     async createUnique(properties, params) {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
-        let fields = Object.values(this.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let fields = this.block.fields
+        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
             await this.table.unique.create({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {
                 transaction,
@@ -477,28 +494,32 @@ export class Model {
     async get(properties = {}, params = {}) {
         this.checkArgs(properties, params)
         params = Object.assign({parse: true, high: true}, params)
-        let expression = new Expression(this, 'get', properties, params)
-        if (expression.fallback) {
+        properties = this.prepareProperties('get', properties, params)
+        if (properties) {
+            let expression = new Expression(this, 'get', properties, params)
+            return await this.run('get', expression)
+        } else {
             let items = await this.find(properties, params)
             if (items.length > 1) {
                 this.log('info', `Get fallback with more than one result`, {model: this.name, properties, params})
             }
             return items[0]
         }
-        return await this.run('get', expression)
     }
 
     async remove(properties, params = {}) {
         this.checkArgs(properties, params)
         params = Object.assign({exists: null, high: true}, params)
-        let expression = new Expression(this, 'delete', properties, params)
-        if (expression.fallback) {
-            return await this.removeByFind(properties, params)
-        }
-        if (this.hasUniqueFields) {
-            await this.removeUnique(properties, params)
+        properties = this.prepareProperties('get', properties, params)
+        if (properties) {
+            let expression = new Expression(this, 'delete', properties, params)
+            if (this.hasUniqueFields) {
+                await this.removeUnique(properties, params)
+            } else {
+                await this.run('delete', expression)
+            }
         } else {
-            await this.run('delete', expression)
+            return await this.removeByFind(properties, params)
         }
     }
 
@@ -524,7 +545,8 @@ export class Model {
     async removeUnique(properties, params) {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
-        let fields = Object.values(this.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let fields = this.block.fields
+        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
             await this.table.unique.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
         }
@@ -561,11 +583,13 @@ export class Model {
     //  Low level API
 
     /* private */ async deleteItem(properties, params = {}) {
+        properties = this.prepareProperties('delete', properties, params)
         let expression = new Expression(this, 'delete', properties, params)
         await this.run('delete', expression)
     }
 
     /* private */ async getItem(properties, params = {}) {
+        properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
     }
@@ -578,7 +602,7 @@ export class Model {
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
-        properties = this.transformWriteItem('put', properties, params)
+        properties = this.prepareProperties('put', properties, params)
         let expression = new Expression(this, 'put', properties, params)
         return await this.run('put', expression)
     }
@@ -588,12 +612,14 @@ export class Model {
         if (!this.generic) {
             properties[this.typeField] = this.name
         }
+        properties = this.prepareProperties('find', properties, params)
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
     }
 
     //  Note: scanItems will return all model types
     /* private */ async scanItems(properties = {}, params = {}) {
+        properties = this.prepareProperties('scan', properties, params)
         let expression = new Expression(this, 'scan', properties, params)
         return await this.run('scan', expression)
     }
@@ -606,11 +632,11 @@ export class Model {
         if (this.timestamps) {
             properties[this.updatedField] = new Date()
         }
-        properties = this.transformWriteItem('update', properties, params)
-        let expression = new Expression(this, 'update', properties, params)
-        if (expression.fallback) {
+        properties = this.prepareProperties('update', properties, params)
+        if (!properties) {
             return await this.updateByFind(properties, params)
         }
+        let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
     }
 
@@ -622,21 +648,24 @@ export class Model {
             return raw
         }
         let rec = {}
-        let fields = this.fields
+        let fields = this.block.fields
 
-        for (let [name, field] of Object.entries(this.fields)) {
+        for (let [name, field] of Object.entries(fields)) {
             if (field.hidden && params.hidden !== true) {
                 continue
             }
             let [att, sub] = field.attribute
             let value = raw[att]
+            if (value == undefined) {
+                continue
+            }
             if (sub) {
                 value = value[sub]
             }
             if (field.crypt) {
                 value = this.decrypt(value)
             }
-            if (field.default && value === undefined) {
+            if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
                     value = field.default(this, fieldName, properties)
                 } else {
@@ -680,108 +709,202 @@ export class Model {
 
     /*
         Validate properties and map types before writing to the database.
-        Note: this does not map names to attributes. That happens in Expression.
+        Note: this does not map names to attributes or evaluate value templates, that happens in Expression.
      */
-    transformWriteItem(op, properties, params) {
-        let context = params.context ? params.context : this.table.context
+    prepareProperties(op, properties, params) {
+        let index
+        if (params.index && params.index != 'primary') {
+            index = this.indexes[params.index]
+            if (op != 'find' && op != 'scan') {
+                //  GSIs only support find and scan
+                return null
+            }
+        } else {
+            index = this.indexes.primary
+        }
+        let project = index.project
+        let block = this.block
+
+        //  TODO - need better way of passing these args around
+        this.transformProperties(op, block, index, properties, params)
+
         let rec = {}
-        let details = {}
-        /*
-            Loop over all fields and validate. Loop over fields vs properties.
-            Necessary as keys, composite keys and other fields may use templates
-            to create composite field values.
-         */
-        for (let [fieldName, field] of Object.entries(this.fields)) {
-            let value = properties[fieldName]
-            if (op == 'put') {
-                if (field.required && value == null && field.value == null) {
-                    if (context[fieldName] !== undefined) {
-                        value = context[fieldName]
+        for (let [name, field] of Object.entries(block.fields)) {
+            let value = properties[name]
+            if (value == null && field.attribute[0] == index.sort && params.high &&
+                    (op == 'get' || op == 'delete' || op == 'update')) {
+                //  High level API without sort key. Fallback to find to select the items of interest.
+                return null
+            }
+            if ((op == 'get' || op == 'delete') && field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
+                continue
+            }
+            if (project && project != 'all' && Array.isArray(project) && project.indexOf(field.name) < 0) {
+                //  Property is not projected
+                continue
+            }
+            if (value !== undefined) {
+                rec[name] = this.transformWriteAttribute(field, value)
+            }
+        }
+        if (op != 'scan' && properties[index.hash] == null) {
+            throw new Error(`dynamo: Empty hash key`)
+        }
+        if (typeof params.transform == 'function') {
+            rec = params.transform(this, 'write', rec, params)
+        }
+        if (this.table.intercept && InterceptTags[op] == 'write') {
+            rec = this.table.intercept(this, op, rec, params)
+        }
+        return rec
+    }
 
-                    } else if (field.uuid === true) {
-                        value = this.table.makeID()
+    //  TODO - need better way of passing these args around
+    transformProperties(op, block, index, properties, params) {
+        let {deps, fields} = block
+        this.addContext(op, fields, index, properties, params)
+        if (op == 'put') {
+            this.addDefaults(fields, properties, params)
+        }
+        this.runTemplates(fields, properties, params)
+        this.convertNulls(fields, properties, params)
+        if (op == 'put' || op == 'update') {
+            this.validateProperties(fields, properties)
+        }
+        for (let [name, value] of Object.entries(properties)) {
+            let field = fields[name]
+            if (field && field.schema && typeof value == 'object') {
+                this.transformProperties(op, field.block, index, value, params)
+            }
+        }
+    }
 
-                    } else if (field.uuid == 'uuid') {
-                        value = this.table.uuid()
-
-                    } else if (field.uuid == 'ulid') {
-                        value = this.table.ulid()
-
-                    } else if (field.ulid) {
-                        //  DEPRECATED
-                        value = this.table.ulid()
-
-                    } else if (field.ksuid) {
-                        //  DEPRECATED
-                        value = this.table.ksuid()
-
-                    } else {
-                        details[fieldName] = `Missing required "${fieldName}"`
-                        continue
-                    }
+    /*
+        Add context to properties for key fields and if put, then for all fields.
+        Context overrides properties.
+     */
+    addContext(op, fields, index, properties, params) {
+        let context = params.context ? params.context : this.table.context
+        for (let field of Object.values(fields)) {
+            if (op == 'put' || (field.attribute[0] != index.hash && field.attribute[0] != index.sort)) {
+                if (context[field.name] !== undefined) {
+                    properties[field.name] = context[field.name]
                 }
             }
-            if (value === undefined) {
-                if (op == 'put' && field.default) {
+        }
+    }
+
+    addDefaults(fields, properties, params) {
+        for (let field of Object.values(fields)) {
+            let value = properties[field.name]
+            if (value === undefined && !field.value) {
+                if (field.default) {
                     if (typeof field.default == 'function') {
                         value = field.default(this, fieldName, properties)
                     } else {
                         value = field.default
                     }
+                } else if (field.uuid === true) {
+                    value = this.table.makeID()
+
+                } else if (field.uuid == 'uuid') {
+                    value = this.table.uuid()
+
+                } else if (field.uuid == 'ulid') {
+                    value = this.table.ulid()
                 }
-                if (value === undefined) {
-                    continue
-                }
-            }
-            let validate = field.validate
-            if (validate) {
-                if (!value) {
-                    if (field.required && field.value == null) {
-                        if (context[fieldName] !== undefined) {
-                            value = context[fieldName]
-                        } else {
-                            details[fieldName] = `Value not defined for "${fieldName}"`
-                        }
-                    }
-                } else if (typeof validate == 'function') {
-                    ({error, value} = validateItem(this, field, value))
-                    if (error) {
-                        details[fieldName] = msg
-                    }
-                } else if (validate instanceof RegExp) {
-                    if (!validate.exec(value)) {
-                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
-                    }
-                } else {
-                    let pattern = validate.toString()
-                    if (pattern[0] == '/' && pattern.lastIndexOf('/') > 0) {
-                        let parts = pattern.split('/')
-                        let qualifiers = parts.pop()
-                        let pat = parts.slice(1).join('/')
-                        validate = new RegExp(pat, qualifiers)
-                        if (!validate.exec(value)) {
-                            details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
-                        }
-                    } else {
-                        if (!value.match(pattern)) {
-                            details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
-                        }
-                    }
-                }
-                if (field.length && value) {
-                    if (value.length != field.length) {
-                        details[fieldName] = `Bad length of value "${value}" for "${fieldName}"`
-                    }
+                if (value !== undefined) {
+                    properties[field.name] = value
                 }
             }
-            if (field.enum) {
-                if (value) {
-                    if (field.enum.indexOf(value) < 0) {
-                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+        }
+    }
+
+    convertNulls(fields, properties, params) {
+        for (let [name, value] of Object.entries(properties)) {
+            let field = fields[name]
+            if (!field) continue
+            if (value === null && field.nulls !== true) {
+                params.remove = params.remove || []
+                params.remove.push(field.pathname)
+                delete properties[name]
+
+            } else if (field.type == Object && typeof value == 'object') {
+                properties[name] = this.removeEmptyStrings(field, value)
+            }
+        }
+    }
+    /*
+        Process value templates and property values that are functions
+     */
+    runTemplates(fields, properties, params) {
+        for (let [name, field] of Object.entries(fields)) {
+            if (typeof properties[name] == 'function') {
+                properties[name] = properties[name](field.pathname, properties)
+            }
+            if (properties[name] === undefined && field.value) {
+                let value = this.runTemplate(field, properties, params, field.value)
+                if (value != null) {
+                    properties[name] = value
+                }
+            }
+        }
+    }
+
+    /*
+        Expand a value template by substituting ${variable} values from context and properties.
+     */
+    runTemplate(field, properties, params, value) {
+        value = value.replace(/\${(.*?)}/g, (match, varName) => {
+            //  TODO need to handle "." split as well
+            let [name, len, pad] = varName.split(':')
+            let v = properties[name]
+            if (v !== undefined) {
+                if (len) {
+                    //  Add leading padding for sorting numerics
+                    pad = pad || '0'
+                    let s = v + ''
+                    while (s.length < len) s = pad + s
+                    v = s
+                }
+            } else {
+                v = match
+            }
+            return v
+        })
+        /*
+            Consider unresolved template variables. If field is the sort key and doing find,
+            then use sort key prefix and begins_with, (provide no where clause).
+         */
+        if (value.indexOf('${') >= 0) {
+            if (field.attribute[0] == this.sort) {
+                if (this.op == 'find' && !params.where) {
+                    value = value.replace(/\${(.*?)}/g, '')
+                    let sep = this.delimiter
+                    value = value.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
+                    if (value) {
+                        return {begins: value}
                     }
                 }
             }
-            rec[fieldName] = this.transformWriteAttribute(field, value)
+            /*
+                Return undefined if any variables remain undefined. This is critical to stop updating
+                templates which do not have all the required properties to complete.
+            */
+            return undefined
+        }
+        return value
+    }
+
+    validateProperties(fields, properties) {
+        let details = {}
+        for (let [name, value] of Object.entries(properties)) {
+            let field = fields[name]
+            if (!field) continue
+            if (field.validate || field.enum) {
+                value = this.validateProperty(field, value, details)
+                properties[name] = value
+            }
         }
         if (Object.keys(details).length > 0) {
             this.log('info', `Validation error for "${this.name}"`, {model: this.name, properties, details})
@@ -789,13 +912,47 @@ export class Model {
             err.details = details
             throw err
         }
-        if (typeof params.transform == 'function') {
-            rec = params.transform(this, 'write', rec, params)
+    }
+
+    validateProperty(field, value, details) {
+        let validate = field.validate
+        if (validate) {
+            if (value === null) {
+                if (field.required && field.value == null) {
+                    details[fieldName] = `Value not defined for "${fieldName}"`
+                }
+            } else if (typeof validate == 'function') {
+                ({error, value} = validate(this, field, value))
+                if (error) {
+                    details[fieldName] = msg
+                }
+            } else if (validate instanceof RegExp) {
+                if (!validate.exec(value)) {
+                    details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                }
+            } else {
+                let pattern = validate.toString()
+                if (pattern[0] == '/' && pattern.lastIndexOf('/') > 0) {
+                    let parts = pattern.split('/')
+                    let qualifiers = parts.pop()
+                    let pat = parts.slice(1).join('/')
+                    validate = new RegExp(pat, qualifiers)
+                    if (!validate.exec(value)) {
+                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                    }
+                } else {
+                    if (!value.match(pattern)) {
+                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                    }
+                }
+            }
         }
-        if (this.table.intercept && InterceptTags[op] == 'write') {
-            rec = this.table.intercept(this, this.op, rec, params)
+        if (field.enum) {
+            if (field.enum.indexOf(value) < 0) {
+                details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+            }
         }
-        return rec
+        return value
     }
 
     /*
@@ -893,6 +1050,39 @@ export class Model {
         }
         if (typeof params != 'object') {
             throw new Error('Invalid type for params')
+        }
+    }
+
+    removeEmptyStrings(field, obj) {
+        let result
+        if (obj !== null && typeof obj == 'object') {
+            result = Array.isArray(obj) ? [] : {}
+            for (let [key, value] of Object.entries(obj)) {
+                if (typeof value == 'object') {
+                    result[key] = this.removeEmptyStrings(field, value)
+                } else if (value == null && field.nulls !== true) {
+                    //  Match null and undefined
+                    continue
+                } else if (value !== '') {
+                    result[key] = value
+                }
+            }
+        } else {
+            result = obj
+        }
+        return result
+    }
+
+    shouldFallback(fields) {
+        for (let field of Object.values(fields)) {
+            let value = p
+            //  value == null &&
+            if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
+                //  op == 'get', 'update', 'delete'
+                //  High level API without sort key. Fallback to find to select the items of interest.
+                this.fallback = true
+                value = undefined
+            }
         }
     }
 }
