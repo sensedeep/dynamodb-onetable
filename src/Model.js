@@ -575,6 +575,7 @@ export class Model {
         if (grid.length != 1) {
             throw new Error('dynamo: cannot update multiple items')
         }
+        //  Add primary key to the properties
         properties[this.hash] = grid[0][this.hash]
         properties[this.sort] = grid[0][this.sort]
         return await this.update(properties, {retry: true})
@@ -715,6 +716,9 @@ export class Model {
         let index
         if (params.index && params.index != 'primary') {
             index = this.indexes[params.index]
+            if (!index) {
+                throw new Error(`Cannot find index ${params.index}`)
+            }
             if (op != 'find' && op != 'scan') {
                 //  GSIs only support find and scan
                 return null
@@ -766,7 +770,7 @@ export class Model {
         if (op == 'put') {
             this.addDefaults(fields, properties, params)
         }
-        this.runTemplates(fields, properties, params)
+        this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
         if (op == 'put' || op == 'update') {
             this.validateProperties(fields, properties)
@@ -837,13 +841,18 @@ export class Model {
     /*
         Process value templates and property values that are functions
      */
-    runTemplates(fields, properties, params) {
+    runTemplates(op, index, fields, properties, params) {
         for (let [name, field] of Object.entries(fields)) {
+            if (field.isIndexed && (op != 'put' && op != 'update') &&
+                    field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
+                //  Ignore indexes not being used for this call
+                continue
+            }
             if (typeof properties[name] == 'function') {
                 properties[name] = properties[name](field.pathname, properties)
             }
             if (properties[name] === undefined && field.value) {
-                let value = this.runTemplate(field, properties, params, field.value)
+                let value = this.runTemplate(op, index, field, properties, params, field.value)
                 if (value != null) {
                     properties[name] = value
                 }
@@ -854,7 +863,7 @@ export class Model {
     /*
         Expand a value template by substituting ${variable} values from context and properties.
      */
-    runTemplate(field, properties, params, value) {
+    runTemplate(op, index, field, properties, params, value) {
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
             //  TODO need to handle "." split as well
             let [name, len, pad] = varName.split(':')
@@ -877,8 +886,8 @@ export class Model {
             then use sort key prefix and begins_with, (provide no where clause).
          */
         if (value.indexOf('${') >= 0) {
-            if (field.attribute[0] == this.sort) {
-                if (this.op == 'find' && !params.where) {
+            if (field.attribute[0] == index.sort) {
+                if (op == 'find' && !params.where) {
                     value = value.replace(/\${(.*?)}/g, '')
                     let sep = this.delimiter
                     value = value.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
@@ -1073,6 +1082,7 @@ export class Model {
         return result
     }
 
+    /*  MOB - not used (this.sort not right)
     shouldFallback(fields) {
         for (let field of Object.values(fields)) {
             let value = p
@@ -1084,5 +1094,5 @@ export class Model {
                 value = undefined
             }
         }
-    }
+    } */
 }
