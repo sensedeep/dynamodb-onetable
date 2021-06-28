@@ -289,13 +289,18 @@ export class Table {
     }
 
     async exists() {
+        let results = await this.listTables()
+        return results && results.TableNames.find(t => t == this.name) != null ? true : false
+    }
+
+    async listTables() {
         let results
         if (this.V3) {
             results = await this.service.listTables({})
         } else {
             results = await this.service.listTables({}).promise()
         }
-        return results && results.TableNames.find(t => t == this.name)
+        return results
     }
 
     listModels() {

@@ -37,7 +37,7 @@ export class Table {
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
     clear(): Table;
 
-    createTable(params): Promise<{}>;
+    createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
     exists(): Promise<Boolean>;
 
@@ -49,12 +49,13 @@ export class Table {
     getModel(name: string): AnyModel;
     groupByType(items: AnyEntity[]): {};
     listModels(): AnyModel[];
+    listTables(): string[];
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     queryItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     removeModel(name: string): void;
-    scan(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
-    scanItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scanItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     setContext(context?: {}, merge?: boolean): Table;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
