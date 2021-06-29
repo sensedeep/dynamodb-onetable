@@ -8,6 +8,7 @@ const table = new Table({
     name: 'CrudTestTable',
     client: Client,
     schema: DefaultSchema,
+    logger: true,
 })
 
 let User = null
@@ -19,6 +20,21 @@ test('Create Table', async() => {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
+})
+
+test('Get Schema', () => {
+    let schema:any = table.getSchema()
+    expect(schema.name).toBe('CrudTestTable')
+    expect(schema.models).toBeDefined()
+    expect(schema.indexes).toBeDefined()
+    expect(schema.models.User).toBeDefined()
+    expect(schema.models.User.pk).toBeDefined()
+})
+
+test('Describe Table', async() => {
+    let info:any = await table.describeTable()
+    expect(info.Table).toBeDefined()
+    expect(info.Table.TableName).toBe('CrudTestTable')
 })
 
 test('Validate User model', () => {

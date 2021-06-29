@@ -1,22 +1,26 @@
 /*
-    mapping-and-packing.ts - Attribute mapping and packing
-
-    This tests simple mapping of properties to an abbreviated attribute and
-    packing properties into a single attribute
+    v2.ts - AWS V2 SDK test
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
-import {MappedSchema} from './schemas'
+import {AWS, Match, Table, print, dump, delay} from './utils/init'
+import {DefaultSchema} from './schemas'
+import DynamoDB from 'aws-sdk/clients/dynamodb'
 
-// jest.setTimeout(7200 * 1000)
+const PORT = parseInt(process.env.DYNAMODB_PORT)
 
-const table = new Table({
-    name: 'MappingAndPackingTestTable',
-    client: Client,
-    schema: MappedSchema,
-    // _logger: true,
+const client = new DynamoDB.DocumentClient({
+    endpoint: `http://localhost:${PORT}`,
+    region: 'local',
 })
 
-//  MOB - map updated, created, type
+const table = new Table({
+    name: 'V2TestTable',
+    client: client,
+    schema: DefaultSchema,
+})
+
+let User = null
+let user: any
+let users: any[]
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -25,20 +29,32 @@ test('Create Table', async() => {
     }
 })
 
-let User = null
-let user: any
-let users: any[]
+test('Get Schema', () => {
+    let schema:any = table.getSchema()
+    expect(schema.name).toBe('V2TestTable')
+    expect(schema.models).toBeDefined()
+    expect(schema.indexes).toBeDefined()
+    expect(schema.models.User).toBeDefined()
+    expect(schema.models.User.pk).toBeDefined()
+})
+
+test('List tables', async() => {
+    let tables = await table.listTables()
+    expect(tables.length).toBeGreaterThan(0)
+    expect(tables).toContain('V2TestTable')
+})
+
+test('Validate User model', () => {
+    User = table.getModel('User')
+    expect(User).toMatchObject({
+        name: 'User',
+        hash: 'pk',
+        sort: 'sk',
+    })
+})
 
 test('Create', async() => {
-    User = table.getModel('User')
-    user = await User.create({
-        name: 'Peter Smith',
-        status: 'active',
-        email: 'peter@example.com',
-        address: '444 Cherry Tree Lane',
-        city: 'Paris',
-        zip: '1234567'
-    })
+    user = await User.create({name: 'Peter Smith', status: 'active'})
     expect(user).toMatchObject({
         name: 'Peter Smith',
         status: 'active',
@@ -54,37 +70,23 @@ test('Get', async() => {
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.ulid)
+    expect(user.id).toMatch(Match.uuid)
 })
 
 test('Get including hidden', async() => {
-    //  Returns property names without hidden (primaryKey)
-    let u = await User.get({id: user.id}, {hidden: true})
-    expect(u).toMatchObject({
+    user = await User.get({id: user.id}, {hidden: true})
+    expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        primarySort: 'us#',
-        secHash: 'ty#us',
-        secSort: `us#${u.id}`,
+        sk: 'user#',
+        gs1pk: 'user#Peter Smith',
+        gs1sk: 'user#',
     })
-    expect(u.id).toMatch(Match.ulid)
-    expect(u.primaryHash).toEqual(`us#${u.id}`)
-    expect(u.primarySort).toEqual(`us#`)
-    expect(u.secHash).toEqual(`ty#us`)
-    expect(u.secSort).toEqual(`us#${u.id}`)
-    expect(u.updated).toEqual(expect.any(Date))
-})
-
-test('Get without parse', async() => {
-    //  Returns attributes without parsing including hidden (pk, sk)
-    let u = await User.get({id: user.id}, {hidden: true, parse: false})
-    expect(u.id.S).toMatch(Match.ulid)
-    expect(u.em.S).toEqual('peter@example.com')
-    expect(u.pk.S).toEqual(`us#${u.id.S}`)
-    expect(u.sk.S).toEqual(`us#`)
-    expect(u.gs1pk.S).toEqual(`ty#us`)
-    expect(u.gs1sk.S).toEqual(`us#${u.id.S}`)
+    expect(user.created).toEqual(expect.any(Date))
+    expect(user.updated).toEqual(expect.any(Date))
+    expect(user.id).toMatch(Match.uuid)
+    expect(user.pk).toMatch(/^user#/)
 })
 
 test('Find by ID', async() => {
@@ -118,7 +120,7 @@ test('Update', async() => {
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.ulid)
+    expect(user.id).toMatch(Match.uuid)
 })
 
 test('Remove attribute', async() => {
@@ -129,18 +131,18 @@ test('Remove attribute', async() => {
 
 test('Remove attribute 2', async() => {
     //  Update and remove attributes using {remove}
-    user = await User.update({id: user.id, status: 'active'}, {remove: ['secHash', 'secSort'], hidden: true})
+    user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk'], hidden: true})
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        primarySort: 'us#',
+        sk: 'user#',
     })
-    expect(user.secHash).toBeUndefined()
-    expect(user.secSort).toBeUndefined()
+    expect(user.gs1pk).toBeUndefined()
+    expect(user.gs1sk).toBeUndefined()
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.ulid)
+    expect(user.id).toMatch(Match.uuid)
 })
 
 test('Remove item', async() => {

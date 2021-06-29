@@ -5,7 +5,6 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
-//  TODO - should also test V2
 const Client = new Dynamo({
     client: new DynamoDBClient({
         endpoint: `http://localhost:${PORT}`,
@@ -17,7 +16,6 @@ const Client = new Dynamo({
         }),
     })
 })
-
 
 const dump = (...args) => {
     let s = []
