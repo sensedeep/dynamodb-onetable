@@ -419,8 +419,8 @@ The `schema.indexes` property can contain one or more indexes and must contain t
 ```javascript
 {
     primary: {
-        hash: 'pk',         //  Attribute name of the hash key
-        sort: 'sk',
+        hash: 'pk',         //  Schema property name of the hash key
+        sort: 'sk',         //  Schema property name of the sort key
     },
     //  Zero or more global secondary or local secondary indexes
     gs1: {
@@ -432,6 +432,8 @@ The `schema.indexes` property can contain one or more indexes and must contain t
     ...
 }
 ```
+
+Note the hash and sort names are schema property names which may differ from table attribute names if you are using mapping.
 
 The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of properties to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable API.
 
