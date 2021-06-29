@@ -1,5 +1,5 @@
 export default class ULID {
-    constructor(when: any);
+    constructor(when?: any);
     when: Date;
     toString(): string;
     decode(ulid: any): any;
