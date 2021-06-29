@@ -769,7 +769,7 @@ export class Model {
             }
         }
         if (op != 'scan' && rec[hash] == null) {
-            throw new Error(`dynamo: Empty hash key`)
+            throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
         }
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'write', rec, params)
