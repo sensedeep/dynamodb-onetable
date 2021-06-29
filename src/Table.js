@@ -240,18 +240,20 @@ export class Table {
                 AttributeName: index.hash,
                 AttributeType: 'S',
             })
-            def.AttributeDefinitions.push({
-                AttributeName: index.sort,
-                AttributeType: 'S',
-            })
             keys.push({
                 AttributeName: index.hash || indexes.primary.hash,
                 KeyType: 'HASH',
             })
-            keys.push({
-                AttributeName: index.sort,
-                KeyType: 'RANGE',
-            })
+            if (index.sort) {
+                def.AttributeDefinitions.push({
+                    AttributeName: index.sort,
+                    AttributeType: 'S',
+                })
+                keys.push({
+                    AttributeName: index.sort,
+                    KeyType: 'RANGE',
+                })
+            }
         }
         if (def.GlobalSecondaryIndexes.length == 0) {
             delete def.GlobalSecondaryIndexes
