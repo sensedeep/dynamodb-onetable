@@ -253,6 +253,9 @@ export class Expression {
         if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
             return
         }
+        if (field.name == this.model.typeField) {
+            return
+        }
         if (params.add && params.add.indexOf(field.name) >= 0) {
             return
         }
