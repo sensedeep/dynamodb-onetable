@@ -16,10 +16,12 @@ export default {
             email:      { type: String },
             status:     { type: String },
 
+            /*
             //  Properties packed into the "data" attribute projected to the gs3 secondary index
             address:    { type: String, map: 'data.address' },
             city:       { type: String, map: 'data.city' },
             zip:        { type: String, map: 'data.zip' },
+            */
 
             //  Find by name
             gs1pk:      { type: String, value: 'user#${name}' },

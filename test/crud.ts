@@ -10,6 +10,10 @@ const table = new Table({
     schema: DefaultSchema,
 })
 
+let User = null
+let user: any
+let users: any[]
+
 test('Create Table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
@@ -17,11 +21,7 @@ test('Create Table', async() => {
     }
 })
 
-let User = table.getModel('User')
-let user: any
-let users: any[]
-
-test('Validate user', () => {
+test('Validate User model', () => {
     User = table.getModel('User')
     expect(User).toMatchObject({
         name: 'User',

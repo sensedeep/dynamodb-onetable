@@ -35,9 +35,12 @@ test('Create Users', async() => {
     expect(items.length).toBe(data.length)
 })
 
-test.skip('Update via where', async() => {
-    let items = await User.update({active: 'suspended'}, {
-        where: '${status} == {inactive}'
+test('Update via where', async() => {
+    //  FUTURE - need a better data set with multiple items on the same PK
+    let users = await User.scan()
+    let items = await User.update({id: users[0].id, active: 'suspended'}, {
+        where: '${status} = {active}',
+        log: true,
     })
     expect(items.length)
 })

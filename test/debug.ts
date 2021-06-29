@@ -3,6 +3,8 @@
  */
 import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 
+jest.setTimeout(7200 * 1000)
+
 test('Debug', async () => {
 
     const table = new Table({
