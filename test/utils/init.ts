@@ -43,6 +43,7 @@ const delay = async (time) => {
 }
 
 const Match = {
+    ulid: /^[0-9A-Z]{26}$/i,
     uuid: /^[0-9A-F]{32}$/i,
 }
 
