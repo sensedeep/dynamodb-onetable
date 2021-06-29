@@ -172,7 +172,7 @@ export type AnyModel = {
     find(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
-    scan(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
@@ -188,7 +188,7 @@ export class Model<T> {
     find(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     get(properties: T, params?: OneParams): Promise<T>;
     remove(properties: T, params?: OneParams): Promise<void>;
-    scan(properties: T, params?: OneParams): Promise<Paged<T[]>>;
+    scan(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     update(properties: T, params?: OneParams): Promise<T>;
     deleteItem(properties: T, params?: OneParams): Promise<void>;
     getItem(properties: T, params?: OneParams): Promise<T>;
