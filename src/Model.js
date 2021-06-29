@@ -53,6 +53,12 @@ export class Model {
         this.name = name
         this.options = options
 
+        //  Primary hash and sort attributes and properties
+        this.hash = null
+        this.sort = null
+        this.hashProperty = null
+        this.sortProperty = null
+
         //  Cache table properties
         this.V3 = table.V3
         this.createdField = table.createdField
@@ -132,6 +138,10 @@ export class Model {
                 throw new Error(`Missing field type for ${pathname}`)
             }
 
+            field.pathname = pathname
+            field.name = name
+            fields[name] = field
+
             let to = field.map
             if (to) {
                 let [att, sub] = to.split('.')
@@ -166,10 +176,13 @@ export class Model {
                 }
                 if (index == 'primary') {
                     field.required = true
-                    if (field.attribute[0] == primary.hash) {
-                        this.hash = name
-                    } else if (field.attribute[0] == primary.sort) {
-                        this.sort = name
+                    let attribute = field.attribute[0]
+                    if (attribute == primary.hash) {
+                        this.hash = attribute
+                        this.hashProperty = field.name
+                    } else if (attribute == primary.sort) {
+                        this.sort = attribute
+                        this.sortProperty = field.name
                     }
                 }
             }
@@ -182,11 +195,6 @@ export class Model {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
-
-            field.pathname = pathname
-            field.name = name
-            fields[name] = field
-
             if (field.type == Object && field.schema) {
                 field.block = {deps: [], fields: {}}
                 this.prepModel(field.schema, field.block, name)
@@ -421,7 +429,6 @@ export class Model {
     parseResponse(op, expression, items) {
         let table = this.table
         if (op == 'put') {
-            // items = [expression.getItem()]
             items = [expression.properties]
         } else {
             items = table.unmarshall(items)
@@ -438,7 +445,7 @@ export class Model {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
-                items[index] = model.transformReadItem('find', item, expression.params)
+                items[index] = model.transformReadItem(op, item, expression.params)
             }
         }
         return items
@@ -576,8 +583,8 @@ export class Model {
             throw new Error('dynamo: cannot update multiple items')
         }
         //  Add primary key to the properties
-        properties[this.hash] = grid[0][this.hash]
-        properties[this.sort] = grid[0][this.sort]
+        properties[this.hashProperty] = grid[0][this.hashProperty]
+        properties[this.sortProperty] = grid[0][this.sortProperty]
         return await this.update(properties, {retry: true})
     }
 
@@ -655,7 +662,12 @@ export class Model {
             if (field.hidden && params.hidden !== true) {
                 continue
             }
-            let [att, sub] = field.attribute
+            let att, sub
+            if (op == 'put') {
+                att = field.name
+            } else {
+                [att, sub] = field.attribute
+            }
             let value = raw[att]
             if (value == undefined) {
                 continue
@@ -721,6 +733,7 @@ export class Model {
             }
             if (op != 'find' && op != 'scan') {
                 //  GSIs only support find and scan
+                //MOB
                 return null
             }
         } else {
@@ -732,16 +745,20 @@ export class Model {
         //  TODO - need better way of passing these args around
         this.transformProperties(op, block, index, properties, params)
 
-        let rec = {}
+        let rec = {}, hash
         for (let [name, field] of Object.entries(block.fields)) {
+            let attribute = field.attribute[0]
             let value = properties[name]
-            if (value == null && field.attribute[0] == index.sort && params.high &&
-                    (op == 'get' || op == 'delete' || op == 'update')) {
+            if (value == null && attribute == index.sort && params.high && (op == 'get' || op == 'delete' || op == 'update')) {
                 //  High level API without sort key. Fallback to find to select the items of interest.
                 return null
             }
-            if ((op == 'get' || op == 'delete') && field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
+            if ((op == 'get' || op == 'delete') && attribute != index.hash && attribute != index.sort) {
+                //  Keys only for get and delete
                 continue
+            }
+            if (attribute == index.hash) {
+                hash = field.name
             }
             if (project && project != 'all' && Array.isArray(project) && project.indexOf(field.name) < 0) {
                 //  Property is not projected
@@ -751,7 +768,7 @@ export class Model {
                 rec[name] = this.transformWriteAttribute(field, value)
             }
         }
-        if (op != 'scan' && properties[index.hash] == null) {
+        if (op != 'scan' && rec[hash] == null) {
             throw new Error(`dynamo: Empty hash key`)
         }
         if (typeof params.transform == 'function') {

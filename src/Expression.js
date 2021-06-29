@@ -21,8 +21,9 @@ export class Expression {
         //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
         this.conditions = []        //  Condition expressions
         this.filters = []           //  Filter expressions
-        this.key = {}               //  Primary key
+        this.key = {}               //  Primary key attribute
         this.keys = []              //  Key conditions
+        this.mapped = {}            //  Mapped fields
         this.names = {}             //  Expression names. Keys are the indexes.
         this.namesMap = {}          //  Expression names reverse map. Keys are the names.
         this.project = []           //  Projection expressions
@@ -42,9 +43,14 @@ export class Expression {
         this.tableName = model.tableName
 
         /*
-            Find the index for this expression
+            Find the index for this expression. Then store the attribute names for the index.
          */
         this.index = this.selectIndex(model.indexes, params)
+        let fields = model.block.fields
+
+        /*
+            Get the request index hash/sort attributes
+         */
         this.hash = this.index.hash
         this.sort = this.index.sort
     }
@@ -57,7 +63,7 @@ export class Expression {
                 this.add(fields[name], value)
             }
         }
-        //  Emit mapped attributes
+        //  Emit mapped attributes. 'mapped' is created when adding fields that are mapped.
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
@@ -76,7 +82,7 @@ export class Expression {
 
         } else if (op == 'scan') {
             this.addFilters()
-            //  Setup scan filters for properties outside the model
+            //  Setup scan filters for properties outside the model. Use the property name here as there can't be a mapping.
             for (let [name, value] of Object.entries(this.properties)) {
                 if (fields[name] == null && value != null) {
                     this.addFilter(name, value)
@@ -85,7 +91,8 @@ export class Expression {
         }
         if (this.params.fields) {
             for (let name of this.params.fields) {
-                this.project.push(`#_${this.addName(name)}`)
+                let att = fields[name].attribute[0]
+                this.project.push(`#_${this.addName(att)}`)
             }
         }
     }
@@ -101,9 +108,6 @@ export class Expression {
         if (attribute.length > 1) {
             //  Mapped (packed) field
             let mapped = this.mapped
-            if (!mapped) {
-                mapped = this.mapped = {}
-            }
             let [k,v] = attribute
             mapped[k] = mapped[k] || {}
             mapped[k][v] = value
@@ -111,15 +115,15 @@ export class Expression {
             return
         }
         let pathname = attribute[0]
-        let name = pathname.split('.').shift()
+        let att = pathname.split('.').shift()
 
-        if (name == this.hash || name == this.sort) {
+        if (att == this.hash || att == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
 
             } else if (op == 'scan') {
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(name, value)
+                    this.addFilter(att, value)
                 }
 
             } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
@@ -127,19 +131,19 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[name] = value
+                this.values[att] = value
             }
 
         } else {
             if ((op == 'find' || op == 'scan')) {
                 //  schema.filter == false disables a field from being used in a filter
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(name, value)
+                    this.addFilter(att, value)
                 }
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[name] = value
+                this.values[att] = value
 
             } else if (op == 'update') {
                 this.addUpdate(field, value)
@@ -181,8 +185,8 @@ export class Expression {
         let fields = this.model.block.fields
         where = where.replace(/\${(.*?)}/g, (match, varName) => {
             let field = fields[varName]
-            let attribute = field ? field.attribute[0] : varName
-            return `#_${this.addName(attribute)}`
+            let att = field ? field.attribute[0] : varName
+            return `#_${this.addName(att)}`
         })
         where = where.replace(/{(.*?)}/g, (match, value) => {
             let index
@@ -213,44 +217,45 @@ export class Expression {
     }
 
     /*
-        Add filters for non-key properties for find and scan
+        Add filters for non-key attributes for find and scan
      */
-    addFilter(name, value) {
-        this.filters.push(`#_${this.addName(name)} = :_${this.addValue(value)}`)
+    addFilter(att, value) {
+        this.filters.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
     }
 
     /*
         Add key for find, delete, get or update
      */
     addKey(op, field, value) {
-        let name = field.attribute[0]
+        let att = field.attribute[0]
         if (op == 'find') {
             let keys = this.keys
-            if (name == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
+            if (att == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
                 let [action,vars] = Object.entries(value)[0]
                 if (KeyOperators.indexOf(action) < 0) {
                     throw new Error(`Invalid KeyCondition operator "${action}"`)
                 }
                 if (action == 'begins_with' || action == 'begins') {
-                    keys.push(`begins_with(#_${this.addName(name)}, :_${this.addValue(vars)})`)
+                    keys.push(`begins_with(#_${this.addName(att)}, :_${this.addValue(vars)})`)
 
                 } else if (action == 'between') {
-                    keys.push(`#_${this.addName(name)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`)
+                    keys.push(`#_${this.addName(att)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`)
 
                 } else {
-                    keys.push(`#_${this.addName(name)} ${action} :_${this.addValue(value[action])}`)
+                    keys.push(`#_${this.addName(att)} ${action} :_${this.addValue(value[action])}`)
                 }
             } else {
-                keys.push(`#_${this.addName(name)} = :_${this.addValue(value)}`)
+                keys.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
             }
         } else {
-            this.key[name] = value
+            this.key[att] = value
         }
     }
 
     addUpdate(field, value) {
         let {params, properties, updates} = this
-        if (field.attribute[0] == this.hash || field.attribute[0] == this.sort) {
+        let att = field.attribute[0]
+        if (att == this.hash || att == this.sort) {
             return
         }
         if (field.name == this.model.typeField) {
@@ -268,37 +273,46 @@ export class Expression {
         if (field.isIndexed && params.updateIndexes !== true) {
             return
         }
-        updates.set.push(`#_${this.addName(field.attribute[0])} = :_${this.addValue(value)}`)
+        updates.set.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
     }
 
     addUpdates() {
         let {params, updates} = this
+        let fields = this.model.block.fields
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
-                updates.add.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                let att = fields[key].attribute[0]
+                updates.add.push(`#_${this.addName(att)} :_${this.addValue(value)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                updates.delete.push(`#_${this.addName(key)} :_${this.addValue(value)}`)
+                let att = fields[key].attribute[0]
+                updates.delete.push(`#_${this.addName(att)} :_${this.addValue(value)}`)
             }
 
         } else if (params.remove) {
             if (!Array.isArray(params.remove)) {
                 params.remove = [params.remove]
             }
-            for (let field of params.remove) {
-                updates.remove.push(`#_${this.addName(field)}`)
+            for (let key of params.remove) {
+                let att = fields[key].attribute[0]
+                updates.remove.push(`#_${this.addName(att)}`)
             }
 
         } else if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
+                /* nested
                 let target = []
                 for (let prop of key.split('.')) {
+                    let att = fields[key].attribute[0]
                     target.push(`#_${this.addName(prop)}`)
                 }
                 target = target.join('.')
                 updates.set.push(`${target} = ${this.expand(value)}`)
+                */
+                let att = fields[key].attribute[0]
+                updates.set.push(`${att} = ${this.expand(value)}`)
             }
         }
     }
