@@ -20,6 +20,6 @@ test('ULID toString()', async() => {
 test('ULID decode', async() => {
     let u = new ULID()
     let ulid = new ULID()
-    let decoded = ulid.decode(ulid.toString())
+    let decoded = ulid.decode(u.toString())
     expect(decoded).toEqual(expect.any(Number))
 })
