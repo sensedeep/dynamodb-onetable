@@ -1,44 +1,30 @@
 /*
-    Test just for debugging the latest great code idea
+    debug.ts - Just for debug
  */
-import {AWS, Client, Table, print, dump, delay} from './utils/init'
-import {DebugSchema} from './schemas'
+import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 
-describe('Debug only', () => {
-const table = new Table({
-    name: 'DebugTest',
-    client: Client,
-    schema: DebugSchema,
-})
-const User = table.getModel('User')
+test('Debug', async () => {
 
-test('Create', async() => {
-    if (!(await table.exists())) {
-        await table.createTable()
-    }
-})
-
-let user: any
-
-test('User Create', async() => {
-    user = await User.create({
-        name: 'Peter Smith',
-        location: {
-            zip: 98011,
-            address: '444 Cherry Tree Lane',
-            city: 'Seattle',
+    const table = new Table({
+        name: 'TypeScriptDebugTestTable',
+        client: Client,
+        schema: {
+            indexes: {primary: {hash: 'pk'}},
+            models: {},
         }
     })
-})
+    await table.createTable()
 
-test('GetItem', async() => {
-    let item = await table.getItem({
-        pk: `user#${user.id}`,
-        sk: 'user#',
-    })
-})
+    const CardSchema = {
+        pk:     { type: String, value: 'card:${id}' },
+        id:     { type: Number },
+        issuer: { type: String },
+    }
+    type CardType = Entity<typeof CardSchema>
 
-test('Destroy', async() => {
+    let Card = new Model<CardType>(table, 'Card', { fields: CardSchema })
+
+    let card = await Card.create({id: 4567, issuer: 'visa'}, {hidden: true})
+
     await table.deleteTable('DeleteTableForever')
-})
 })

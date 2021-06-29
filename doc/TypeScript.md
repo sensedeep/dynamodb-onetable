@@ -8,7 +8,7 @@ Using TypeScript dynamic, generic types, OneTable automatically converts your On
 
 For example:
 
-```
+```typescript
 const schema = {
     models: {
         Account: {
@@ -47,7 +47,7 @@ account.unknown = 42            //  Error
 
 Another example:
 
-```
+```typescript
 let BlogSchema = {
     pk:        { type: String, value: 'blog:${email}' },
     sk:        { type: String, value: 'blog:' },

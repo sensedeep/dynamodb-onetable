@@ -1,13 +1,15 @@
 /*
-    typescript.ts - Typescript Basic create, read, update delete
+    typescript-crud.ts - Typescript Basic create, read, update delete
+
+    Uses table schema and not inline model schemas
  */
-import {AWS, Client, Model, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Entity, Model, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
-describe.skip('Crud', () => {
+describe('TypeScript', () => {
 
     const table = new Table({
-        name: 'TypeScriptTestTable',
+        name: 'TypeScriptCrudTestTable',
         client: Client,
         schema: DefaultSchema,
     })
@@ -19,23 +21,13 @@ describe.skip('Crud', () => {
         }
     })
 
-    // type UserType = Entity<typeof DefaultSchema.models.User>
-    // let User: Model<UserType> = table.getModel('User')
-    // let user: any
-
-    /*
-    test('Validate user', () => {
-        User = table.getModel('User')
-        expect(User).toEqual({
-            name: 'User',
-            hash: 'pk',
-            sort: 'sk',
-        })
-    })
+    type UserType = Entity<typeof DefaultSchema.models.User>
+    let User: Model<UserType> = table.getModel('User')
+    let user = null
 
     test('Create', async() => {
         user = await User.create({name: 'Peter Smith'})
-        expect(user).toEqual({
+        expect(user).toMatchObject({
             name: 'Peter Smith'
         })
     })
@@ -65,7 +57,6 @@ describe.skip('Crud', () => {
             await User.remove({id: user.id})
         }
     })
-    */
 
     test('Destroy Table', async() => {
         await table.deleteTable('DeleteTableForever')
