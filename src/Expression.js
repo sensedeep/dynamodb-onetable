@@ -265,10 +265,8 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        if (properties[field.name] === undefined) {
-            if (field.isIndexed && params.updateIndexes !== true) {
-                return
-            }
+        if (field.isIndexed && params.updateIndexes !== true) {
+            return
         }
         updates.set.push(`#_${this.addName(field.attribute[0])} = :_${this.addValue(value)}`)
     }
