@@ -950,6 +950,15 @@ The `find` method returns an array of items after applying any schema mappings. 
 
 The `find` method will automatically invoke DynamoDB query to fetch additional items and aggregate the result up to the limit specified by `params.limit`. If the limit is exceeded, the last key fetched is set in the 'result.start' property of the returned array of items. You can provide this as `params.start` to a subsequent API call to continue the query with the next page of results.
 
+```typescript
+let start
+do {
+    let items: any = await User.find({accountId}, {limit: 10, start})
+    //  process items
+    start = items.start
+} while (start)
+```
+
 If the limit is exceeded, an `result.next` property is also set to a callback function so you can easily invoke the API to retrieve the next page of results. For example:
 
 ```javascript
@@ -967,7 +976,6 @@ while (items.length) {
 Note: the limit is the number of items read by DynamoDB before filtering and is thus not equal to the number of items returned.
 
 To control the number of pages that queryItems will request, set the `params.maxPages` to the desired number.
-
 
 The optional params are fully described in [Model API Params](#params). Some relevant params include:
 

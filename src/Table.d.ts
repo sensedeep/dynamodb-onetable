@@ -62,4 +62,5 @@ export class Table {
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    uuid(): {};
 }
