@@ -109,9 +109,7 @@ export type AnyEntity = {
 };
 
 type ModelConstructorOptions = {
-    fields?: {
-        [key: string]: OneModelSchema
-    },
+    fields?: OneModelSchema
     indexes?: {
         [key: string]: OneIndexSchema
     },
