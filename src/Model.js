@@ -932,6 +932,11 @@ export class Model {
                 properties[name] = value
             }
         }
+        for (let field of Object.values(fields)) {
+            if (properties[field.name] == null && field.required) {
+                details[field.name] = `Value not defined for required field "${field.name}"`
+            }
+        }
         if (Object.keys(details).length > 0) {
             this.log('info', `Validation error for "${this.name}"`, {model: this.name, properties, details})
             let err = new Error(`dynamo: Validation Error for "${this.name}"`)
@@ -942,15 +947,17 @@ export class Model {
 
     validateProperty(field, value, details) {
         let validate = field.validate
+        let fieldName = field.name
         if (validate) {
             if (value === null) {
                 if (field.required && field.value == null) {
                     details[fieldName] = `Value not defined for "${fieldName}"`
                 }
             } else if (typeof validate == 'function') {
+                let error
                 ({error, value} = validate(this, field, value))
                 if (error) {
-                    details[fieldName] = msg
+                    details[fieldName] = error
                 }
             } else if (validate instanceof RegExp) {
                 if (!validate.exec(value)) {

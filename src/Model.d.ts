@@ -43,7 +43,7 @@ type OneFieldSchema = {
     type: OneType,
     unique?: boolean,
     uuid?: boolean | string,
-    validate?: RegExp | string,
+    validate?: RegExp | string | (model: AnyModel, field: {}, value: any) => any,
     value?: ((name: string, context: {}, properties: {}) => any) | string,
 
     //  Deprecated
