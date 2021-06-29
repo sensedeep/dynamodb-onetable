@@ -12,7 +12,7 @@ type TableConstructorParams = {
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
 
-    logger?: (tag: string, message: string, context: {}) => void,      // Logging callback
+    logger?: boolean | (tag: string, message: string, context: {}) => void,      // Logging callback
 
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
