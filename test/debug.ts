@@ -1,32 +1,39 @@
 /*
-    debug.ts - Just for debug
+    debug.ts -
  */
-import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
+import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
+import {DefaultSchema} from './schemas'
 
 jest.setTimeout(7200 * 1000)
 
-test('Debug', async () => {
+const table = new Table({
+    name: 'DebugTestTable',
+    client: Client,
+    schema: DefaultSchema,
+    logger: true,
+})
 
-    const table = new Table({
-        name: 'TypeScriptDebugTestTable',
-        client: Client,
-        schema: {
-            indexes: {primary: {hash: 'pk'}},
-            models: {},
-        }
-    })
-    await table.createTable()
+let User = null
+let user: any
+let users: any[]
 
-    const CardSchema = {
-        pk:     { type: String, value: 'card:${id}' },
-        id:     { type: Number },
-        issuer: { type: String },
+test('Create Table', async() => {
+    if (!(await table.exists())) {
+        await table.createTable()
+        expect(await table.exists()).toBe(true)
     }
-    type CardType = Entity<typeof CardSchema>
+    User = table.getModel('User')
+})
 
-    let Card = new Model<CardType>(table, 'Card', { fields: CardSchema })
+test('Create', async() => {
+    user = await User.create({name: 'Peter Smith', status: 'active'})
+    expect(user).toMatchObject({
+        name: 'Peter Smith',
+        status: 'active',
+    })
+})
 
-    let card = await Card.create({id: 4567, issuer: 'visa'}, {hidden: true})
-
+test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
+    expect(await table.exists()).toBe(false)
 })

@@ -782,7 +782,7 @@ let users = items.Users
 
 #### async update(modelName, properties, params = {})
 
-Create a new item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.update` API. See [Model.update](#model-update) for details.
+Update an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.update` API. See [Model.update](#model-update) for details.
 
 
 #### async updateItem(properties, params)

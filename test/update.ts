@@ -8,6 +8,7 @@ const table = new Table({
     name: 'UpdateTableTest',
     client: Client,
     schema: DefaultSchema,
+    logger: true,
 })
 
 test('Create Table', async() => {
@@ -38,11 +39,12 @@ test('Create Users', async() => {
 test('Update via where', async() => {
     //  FUTURE - need a better data set with multiple items on the same PK
     let users = await User.scan()
-    let items = await User.update({id: users[0].id, active: 'suspended'}, {
+    expect(users.length).toBe(data.length)
+    let item = await User.update({id: users[0].id, status: 'suspended'}, {
         where: '${status} = {active}',
-        log: true,
+        // log: true,
     })
-    expect(items.length)
+    expect(item.status).toBe('suspended')
 })
 
 test('Destroy Table', async() => {

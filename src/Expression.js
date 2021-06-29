@@ -31,7 +31,6 @@ export class Expression {
         this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
         this.nindex = 0             //  Next index into names
         this.vindex = 0             //  Next index into values
-        this.fallback = false       //  Falling back to use find first
         this.updates = {
             add: [],
             delete: [],
@@ -173,7 +172,7 @@ export class Expression {
         if (op == 'update') {
             this.addUpdates()
         }
-        if (params.where && (op == 'delete' || op == 'update')) {
+        if (params.where && op == 'delete' /* || op == 'update') */) {
             conditions.push(this.expand(params.where))
         }
     }
@@ -323,11 +322,6 @@ export class Expression {
         if (this.params.index) {
             if (this.params.index != 'primary') {
                 index = indexes[this.params.index]
-                if (op != 'find' && op != 'scan') {
-                    //  GSIs only support find and scan
-                    //  TODO - is this already detected in model? (yes)
-                    this.fallback = true
-                }
             }
         }
         return index
@@ -339,9 +333,6 @@ export class Expression {
     command() {
         let {conditions, filters, key, keys, hash, model, names, op, params, project, sort, values} = this
 
-        if (this.fallback) {
-            return null
-        }
         if (key == null && values[hash] == null && op != 'scan') {
             throw new Error(`dynamo: Cannot find hash key for "${op}"`, {values})
         }

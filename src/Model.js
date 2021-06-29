@@ -236,6 +236,7 @@ export class Model {
         deps.push(field)
     }
 
+    /*
     getValue(obj, pathname) {
         for (let prop of pathname.split('.')) {
             if (obj[prop] === undefined) {
@@ -244,7 +245,7 @@ export class Model {
             obj = obj[prop]
         }
         return obj
-    }
+    } */
 
     /*
         Return the value template variable references in a list
@@ -452,8 +453,7 @@ export class Model {
     }
 
     async create(properties, params = {}) {
-        this.checkArgs(properties, params)
-        params = Object.assign({parse: true, high: true, exists: false}, params)
+        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
         let result
         if (this.hasUniqueFields) {
             result = await this.createUnique(properties, params)
@@ -493,40 +493,38 @@ export class Model {
     }
 
     async find(properties = {}, params = {}) {
-        this.checkArgs(properties, params)
-        params = Object.assign({parse: true, high: true}, params)
+        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
         return await this.queryItems(properties, params)
     }
 
     async get(properties = {}, params = {}) {
-        this.checkArgs(properties, params)
-        params = Object.assign({parse: true, high: true}, params)
+        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+
         properties = this.prepareProperties('get', properties, params)
-        if (properties) {
-            let expression = new Expression(this, 'get', properties, params)
-            return await this.run('get', expression)
-        } else {
+        if (params.fallback) {
+            //  Fallback via find
             let items = await this.find(properties, params)
             if (items.length > 1) {
                 this.log('info', `Get fallback with more than one result`, {model: this.name, properties, params})
             }
             return items[0]
         }
+        let expression = new Expression(this, 'get', properties, params)
+        return await this.run('get', expression)
     }
 
     async remove(properties, params = {}) {
-        this.checkArgs(properties, params)
-        params = Object.assign({exists: null, high: true}, params)
+        ({params, properties} = this.checkArgs(properties, params, {exists: null, high: true}))
+
         properties = this.prepareProperties('get', properties, params)
-        if (properties) {
-            let expression = new Expression(this, 'delete', properties, params)
-            if (this.hasUniqueFields) {
-                await this.removeUnique(properties, params)
-            } else {
-                await this.run('delete', expression)
-            }
-        } else {
+        if (params.fallback) {
             return await this.removeByFind(properties, params)
+        }
+        let expression = new Expression(this, 'delete', properties, params)
+        if (this.hasUniqueFields) {
+            await this.removeUnique(properties, params)
+        } else {
+            await this.run('delete', expression)
         }
     }
 
@@ -537,6 +535,7 @@ export class Model {
         if (params.retry) {
             throw new Error('dynamo: Remove cannot retry')
         }
+        params.parse = true
         let items = await this.find(properties, params)
         if (items.length > 1 && !params.many) {
             throw new Error(`dynamo: warning: removing multiple items from "${this.name}". Use many:true to enable.`)
@@ -562,48 +561,59 @@ export class Model {
     }
 
     async scan(properties = {}, params = {}) {
-        this.checkArgs(properties, params)
-        params = Object.assign({parse: true, high: true}, params)
-        properties = Object.assign({}, properties)
+        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+
         properties[this.typeField] = this.name
         return await this.scanItems(properties, params)
     }
 
     async update(properties, params = {}) {
-        params = Object.assign({exists: true, parse: true, high: true}, params)
+        ({params, properties} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         return await this.updateItem(properties, params)
     }
 
+    /*
     async updateByFind(properties, params) {
         if (params.retry) {
             throw new Error(`dynamo: Update retry failed for ${this.name}`, {properties, params})
         }
         let grid = await this.find(properties, params)
-        if (grid.length != 1) {
+        if (grid.length == 0) {
+            if (params.throw === false) {
+                return null
+            } else {
+                throw new Error('Cannot find item to update')
+            }
+        } else if (grid.length > 1) {
             throw new Error('dynamo: cannot update multiple items')
         }
         //  Add primary key to the properties
         properties[this.hashProperty] = grid[0][this.hashProperty]
         properties[this.sortProperty] = grid[0][this.sortProperty]
         return await this.update(properties, {retry: true})
-    }
+    } */
 
     //  Low level API
 
-    /* private */ async deleteItem(properties, params = {}) {
+    /* private */
+    async deleteItem(properties, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         properties = this.prepareProperties('delete', properties, params)
         let expression = new Expression(this, 'delete', properties, params)
         await this.run('delete', expression)
     }
 
-    /* private */ async getItem(properties, params = {}) {
+    /* private */
+    async getItem(properties, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
     }
 
-    /* private */ async putItem(properties, params = {}) {
-        properties = Object.assign({}, properties)
+    /* private */
+    async putItem(properties, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         if (!this.generic) {
             properties[this.typeField] = this.name
         }
@@ -615,8 +625,9 @@ export class Model {
         return await this.run('put', expression)
     }
 
-    /* private */ async queryItems(properties = {}, params = {}) {
-        properties = Object.assign({}, properties)
+    /* private */
+    async queryItems(properties = {}, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         if (!this.generic) {
             properties[this.typeField] = this.name
         }
@@ -626,14 +637,17 @@ export class Model {
     }
 
     //  Note: scanItems will return all model types
-    /* private */ async scanItems(properties = {}, params = {}) {
+    /* private */
+    async scanItems(properties = {}, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         properties = this.prepareProperties('scan', properties, params)
         let expression = new Expression(this, 'scan', properties, params)
         return await this.run('scan', expression)
     }
 
-    /* private */ async updateItem(properties, params = {}) {
-        properties = Object.assign({}, properties)
+    /* private */
+    async updateItem(properties, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
         if (!this.generic) {
             properties[this.typeField] = this.name
         }
@@ -641,9 +655,12 @@ export class Model {
             properties[this.updatedField] = new Date()
         }
         properties = this.prepareProperties('update', properties, params)
-        if (!properties) {
+        /*
+        if (params.fallback) {
+            //  Fallback for high level invocation via find
+            delete properties[this.updatedField]
             return await this.updateByFind(properties, params)
-        }
+        } */
         let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
     }
@@ -732,9 +749,12 @@ export class Model {
                 throw new Error(`Cannot find index ${params.index}`)
             }
             if (op != 'find' && op != 'scan') {
-                //  GSIs only support find and scan
-                //MOB
-                return null
+                if (params.low) {
+                    throw new Error('Cannot use non-primary index for "${op}" operation')
+                }
+                //  Fallback for get/delete as GSIs only support find and scan
+                params.fallback = true
+                return properties
             }
         } else {
             index = this.indexes.primary
@@ -749,9 +769,10 @@ export class Model {
         for (let [name, field] of Object.entries(block.fields)) {
             let attribute = field.attribute[0]
             let value = properties[name]
-            if (value == null && attribute == index.sort && params.high && (op == 'get' || op == 'delete' || op == 'update')) {
+            if (value == null && attribute == index.sort && params.high && (op == 'get' || op == 'delete' /* || op == 'update' */)) {
                 //  High level API without sort key. Fallback to find to select the items of interest.
-                return null
+                params.fallback = true
+                return properties
             }
             if ((op == 'get' || op == 'delete') && attribute != index.hash && attribute != index.sort) {
                 //  Keys only for get and delete
@@ -1077,13 +1098,21 @@ export class Model {
         return this.table.decrypt(text, inCode, outCode)
     }
 
-    checkArgs(properties, params) {
+    checkArgs(properties, params, overrides = {}) {
+        if (params.checked) {
+            return {params, properties}
+        }
         if (!properties) {
             throw new Error('Missing properties')
         }
         if (typeof params != 'object') {
             throw new Error('Invalid type for params')
         }
+        params = Object.assign(overrides, params)
+        params.checked = true
+        //  MOB BUG - not copying nested properties
+        properties = Object.assign({}, properties)
+        return {params, properties}
     }
 
     removeEmptyStrings(field, obj) {
@@ -1105,18 +1134,4 @@ export class Model {
         }
         return result
     }
-
-    /*  MOB - not used (this.sort not right)
-    shouldFallback(fields) {
-        for (let field of Object.values(fields)) {
-            let value = p
-            //  value == null &&
-            if (field.attribute[0] == this.sort && this.params.high && op != 'scan' && op != 'put' && op != 'find') {
-                //  op == 'get', 'update', 'delete'
-                //  High level API without sort key. Fallback to find to select the items of interest.
-                this.fallback = true
-                value = undefined
-            }
-        }
-    } */
 }
