@@ -43,10 +43,12 @@ export class Table {
 
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
+    describeTable(): Promise<{}>;
     find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getModel(name: string): AnyModel;
+    getSchema(): {};
     groupByType(items: AnyEntity[]): {};
     listModels(): AnyModel[];
     listTables(): string[];

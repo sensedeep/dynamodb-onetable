@@ -147,7 +147,7 @@ export class Table {
         let schema = {name: this.name, models: {}, indexes: this.indexes}
         for (let [name, model] of Object.entries(this.models)) {
             let item = {}
-            for (let [field, properties] of Object.entries(model.fields)) {
+            for (let [field, properties] of Object.entries(model.block.fields)) {
                 item[field] = {
                     crypt: properties.crypt,
                     enum: properties.enum,
@@ -261,7 +261,7 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
-        this.log('info', `Dynamo createTable for "${this.name}"`, {def})
+        this.log('trace', `Dynamo createTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.createTable(def)
         } else {
@@ -271,7 +271,7 @@ export class Table {
 
     async deleteTable(confirmation) {
         if (confirmation == ConfirmRemoveTable) {
-            this.log('info', `Dynamo deleteTable for "${this.name}"`)
+            this.log('trace', `Dynamo deleteTable for "${this.name}"`)
             if (this.V3) {
                 await this.service.deleteTable({TableName: this.name})
             } else {
