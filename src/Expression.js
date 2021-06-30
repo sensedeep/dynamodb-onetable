@@ -55,11 +55,13 @@ export class Expression {
     }
 
     prepare() {
-        let op = this.op
+        let {op, properties} = this
         let fields = this.model.block.fields
-        for (let [name, value] of Object.entries(this.properties)) {
+        for (let [name, value] of Object.entries(properties)) {
             if (fields[name]) {
                 this.add(fields[name], value)
+            } else if (this.model.generic) {
+                this.add({attribute: [name]}, value)
             }
         }
         //  Emit mapped attributes. 'mapped' is created when adding fields that are mapped.
@@ -70,7 +72,7 @@ export class Expression {
                 }
             }
             for (let [k,v] of Object.entries(this.mapped)) {
-                this.add({attribute: [k], name: k, filter: false}, v, this.properties)
+                this.add({attribute: [k], name: k, filter: false}, v, properties)
             }
         }
         if (op == 'find') {
@@ -160,19 +162,23 @@ export class Expression {
         let attribute
         if (params.exists === true) {
             conditions.push(`attribute_exists(${hash})`)
-            conditions.push(`attribute_exists(${sort})`)
+            if (sort) {
+                conditions.push(`attribute_exists(${sort})`)
+            }
 
         } else if (params.exists === false) {
             conditions.push(`attribute_not_exists(${hash})`)
-            conditions.push(`attribute_not_exists(${sort})`)
+            if (sort) {
+                conditions.push(`attribute_not_exists(${sort})`)
+            }
         }
-        if (params.type) {
+        if (params.type && sort) {
             conditions.push(`attribute_type(${sort}, ${params.type})`)
         }
         if (op == 'update') {
             this.addUpdates()
         }
-        if (params.where && op == 'delete' /* || op == 'update') */) {
+        if (params.where && op == 'delete') {
             conditions.push(this.expand(params.where))
         }
     }
@@ -182,10 +188,9 @@ export class Expression {
      */
     expand(where) {
         let fields = this.model.block.fields
-        where = where.replace(/\${(.*?)}/g, (match, varName) => {
-            let field = fields[varName]
-            let att = field ? field.attribute[0] : varName
-            return `#_${this.addName(att)}`
+        where = where.toString().replace(/\${(.*?)}/g, (match, varName) => {
+            let ref = this.makeTarget(fields, varName)
+            return ref
         })
         where = where.replace(/{(.*?)}/g, (match, value) => {
             let index
@@ -260,12 +265,6 @@ export class Expression {
         if (field.name == this.model.typeField) {
             return
         }
-        if (params.add && params.add.indexOf(field.name) >= 0) {
-            return
-        }
-        if (params.delete && params.delete.indexOf(field.name) >= 0) {
-            return
-        }
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
@@ -280,14 +279,14 @@ export class Expression {
         let fields = this.model.block.fields
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
-                let att = fields[key].attribute[0]
-                updates.add.push(`#_${this.addName(att)} :_${this.addValue(value)}`)
+                let target = this.makeTarget(fields, key)
+                updates.add.push(`${target} :_${this.addValue(value)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                let att = fields[key].attribute[0]
-                updates.delete.push(`#_${this.addName(att)} :_${this.addValue(value)}`)
+                let target = this.makeTarget(fields, key)
+                updates.delete.push(`${target} :_${this.addValue(value)}`)
             }
 
         } else if (params.remove) {
@@ -295,25 +294,65 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let key of params.remove) {
-                let att = fields[key].attribute[0]
-                updates.remove.push(`#_${this.addName(att)}`)
+                let target = this.makeTarget(fields, key)
+                updates.remove.push(`${target}`)
             }
 
         } else if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
-                /* nested
-                let target = []
-                for (let prop of key.split('.')) {
-                    let att = fields[key].attribute[0]
-                    target.push(`#_${this.addName(prop)}`)
+                let target = this.makeTarget(fields, key)
+                //  If value is number of simple string then don't expand
+                if (value.toString().match(/\${.*?}|{.*?}/)) {
+                    updates.set.push(`${target} = ${this.expand(value)}`)
+                } else {
+                    updates.set.push(`${target} = :_${this.addValue(value)}`)
                 }
-                target = target.join('.')
-                updates.set.push(`${target} = ${this.expand(value)}`)
-                */
-                let att = fields[key].attribute[0]
-                updates.set.push(`${att} = ${this.expand(value)}`)
             }
         }
+    }
+
+    //  Translate an attribute reference to use name attributes. Works with "."
+    makeTarget(fields, name) {
+        let target = []
+        for (let prop of name.split('.')) {
+            let subscript = prop.match(/\[[^\]]+\]+/)
+            if (subscript) {
+                prop = prop.replace(/\[[^\]]+\]+/, '')
+                subscript = subscript[0]
+            } else {
+                subscript = ''
+            }
+            let field = fields[prop]
+            if (field) {
+                target.push(`#_${this.addName(field.attribute[0])}${subscript}`)
+                //  If nested schema, advance to the next level
+                fields = field.schema
+            } else {
+                //  No field, so just use the property name.
+                target.push(`#_${this.addName(prop)}${subscript}`)
+                fields = null
+            }
+        }
+        return target.join('.')
+    }
+
+    //  Translate an attribute reference to use name attributes. Works with "."
+    makeRef(fields, name) {
+        let target = []
+        for (let prop of name.split('.')) {
+            //  If not top level, fields may be null if the previous property was not a schema.
+            //  In this case, just use the property name.
+            //  MOB - must handle [] too
+            let field = fields[prop]
+            if (field) {
+                target.push(`:_${this.addName(field.attribute[0])}`)
+                fields = field.schema
+            } else {
+                target.push(`:_${this.addName(prop)}`)
+                fields = null
+            }
+        }
+        return target.join('.')
     }
 
     selectIndex(indexes) {

@@ -30,6 +30,7 @@ export class Table {
             createdField,   //  Name of "created" timestamp attribute.
             crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
             delimiter,      //  Composite sort key delimiter (default ':').
+            generic,        //  Don't restrict properties to the schema. Default false.
             hidden,         //  Hide key attributes in Javascript properties. Default false.
             intercept,      //  Intercept hook function(model, operation, item, params, raw). Operation: 'create', 'delete', 'put', ...
             isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
@@ -67,27 +68,27 @@ export class Table {
 
         this.createdField = createdField || 'created'
         this.delimiter = delimiter || '#'
+        this.generic = generic != null ? generic : false
         this.hidden = hidden != null ? hidden : true
         this.intercept = intercept
         this.isoDates = isoDates || false
         this.name = name
         this.nulls = nulls || false
-        this.timestamps = timestamps != null ? timestamps : true
+        this.timestamps = timestamps != null ? timestamps : false
         this.typeField = typeField || '_type'
         this.updatedField = updatedField || 'updated'
 
-        //  FUTURE - should the default be ulid?
+        this.genericModel = null
+        this.uniqueModel = null
+
         if (uuid == 'uuid') {
             this.makeID = this.uuid
         } else if (uuid == 'ulid') {
             this.makeID = this.ulid
         } else {
+            //  Need to have uuid the default so browsers will resolve without node:crypto
             this.makeID = uuid || this.uuid
         }
-
-        //  DEPRECATED
-        this.ulid = ulid || this.ulid
-        this.ksuid = ksuid
 
         //  Schema models
         this.models = {}
@@ -104,11 +105,14 @@ export class Table {
             Model for unique attributes
          */
         let primary = this.indexes.primary
-        this.unique = new Model(this, '_Unique', {
-            fields: {
-                [primary.hash]: { type: String, value: '_unique:${' + primary.hash + '}'},
-                [primary.sort]: { type: String, value: '_unique:'},
-            },
+        let fields = {
+            [primary.hash]: { type: String, value: '_unique:${' + primary.hash + '}'},
+        }
+        if (primary.sort) {
+            fields[primary.sort] = { type: String, value: '_unique:'}
+        }
+        this.uniqueModel = new Model(this, '_Unique', {
+            fields: fields,
             indexes: this.indexes,
             timestamps: false
         })
@@ -116,11 +120,12 @@ export class Table {
         /*
             Model for genric low-level API access
          */
-        this.generic = new Model(this, '_Generic', {
-            fields: {
-                [primary.hash]: { type: String },
-                [primary.sort]: { type: String },
-            },
+        fields = { [primary.hash]: { type: String } }
+        if (primary.sort) {
+            fields[primary.sort] = { type: String }
+        }
+        this.genericModel = new Model(this, '_Generic', {
+            fields: fields,
             indexes: this.indexes,
             timestamps: false,
             generic: true,
@@ -159,6 +164,7 @@ export class Table {
                     nulls: properties.nulls,
                     required: properties.required,
                     size: properties.size,
+                    schema: properties.schema,
                     type: (typeof properties.type == 'function') ? properties.type.name : properties.type,
                     unique: properties.unique,
                     validate: properties.validate ? properties.validate.toString() : null,
@@ -401,7 +407,7 @@ export class Table {
                         item = this.unmarshall(item)
                         let type = item[this.typeField] || '_unknown'
                         let model = this.models[type]
-                        if (model && model != this.unique) {
+                        if (model && model != this.uniqueModel) {
                             result.push(model.transformReadItem('get', item, params))
                         }
                     }
@@ -432,27 +438,27 @@ export class Table {
     }
 
     async deleteItem(properties, params) {
-        return await this.generic.deleteItem(properties, params)
+        return await this.genericModel.deleteItem(properties, params)
     }
 
     async getItem(properties, params) {
-        return await this.generic.getItem(properties, params)
+        return await this.genericModel.getItem(properties, params)
     }
 
     async putItem(properties, params) {
-        return await this.generic.putItem(properties, params)
+        return await this.genericModel.putItem(properties, params)
     }
 
     async queryItems(properties, params) {
-        return await this.generic.queryItems(properties, params)
+        return await this.genericModel.queryItems(properties, params)
     }
 
     async scanItems(properties, params) {
-        return await this.generic.scanItems(properties, params)
+        return await this.genericModel.scanItems(properties, params)
     }
 
     async updateItem(properties, params) {
-        return await this.generic.updateItem(properties, params)
+        return await this.genericModel.updateItem(properties, params)
     }
 
     /*
@@ -479,7 +485,7 @@ export class Table {
                             let item = this.unmarshall(r.Item)
                             let type = item[this.typeField] || '_unknown'
                             let model = this.models[type]
-                            if (model && model != this.unique) {
+                            if (model && model != this.uniqueModel) {
                                 items.push(model.transformReadItem('get', item, params))
                             }
                         }
