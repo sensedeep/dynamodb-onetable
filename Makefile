@@ -6,3 +6,9 @@ build:
 
 publish promote: build
 	npm publish
+
+test:
+	jest
+
+cov:
+	jest --coverage

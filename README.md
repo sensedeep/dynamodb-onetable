@@ -212,6 +212,7 @@ To update an item:
 ```javascript
 await User.update({id: userId, balance: 50})
 await User.update({id: userId}, {add: {balance: 10.00}})
+await User.update({id: userId}, {set: {status: '{active}}})
 ```
 
 To do a transactional update:
@@ -350,10 +351,10 @@ The Table constructor takes a parameter of type `object` with the following prop
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
-| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default true. |
+| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used when required. |
+| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -518,7 +519,7 @@ The `value` property defines a literal string template or function that is used 
 
 String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other properties passed in the API call or via the context. If any of the variable references are undefined, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
-The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(attributeName, context, properties)` where `properties` is the properties provided to the API and `context` is the table context properties (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the context or properties parameters. Note: table context properties should take precedence over the API properties.
+The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(propertyName, properties)` where `properties` is the properties provided to the API after blending with the `context` (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the properties parameters.
 
 ### Table Contexts
 
