@@ -3,9 +3,11 @@
     https://github.com/ulid/spec
  */
 import Crypto from 'crypto'
+import { privateEncrypt } from 'node:crypto'
 
-const Letters = "0123456789ABCDEFGHJKMNPQRSTVWXYZZ"
-const LettersLen = Letters.length
+//  Repeat Z to make encoding faster for rand == 0xFF
+const Letters = "0123456789ABCDEFGHIJKMNPQRSTVWXYZZ"
+const LettersLen = Letters.length - 1
 const RandomLength = 16
 const TimeLen = 10
 
@@ -39,6 +41,7 @@ export default class ULID {
         let bytes = []
         let buffer = Crypto.randomBytes(RandomLength)
         for (let i = 0; i < RandomLength; i++) {
+            //  Letters is one longer than LettersLen
             bytes[i] = Letters[Math.floor(buffer.readUInt8(i) / 0xFF * LettersLen)]
         }
         return bytes.join('')
