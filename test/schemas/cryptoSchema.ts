@@ -1,5 +1,5 @@
 /*
-    Default schema with a test User entity
+    Schema to use with crypto
  */
 export default {
     indexes: {

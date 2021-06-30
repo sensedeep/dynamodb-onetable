@@ -14,7 +14,13 @@ export default {
             id:         { type: String, uuid: true },
             name:       { type: String },
             email:      { type: String },
-            status:     { type: String },
+            status:     { type: String, default: 'idle' },
+            tag:        { type: Number, default: (model, field, properties) => {
+                            // Just to demonstrate default value function
+                            return `${model.name}:${field}:${properties.name}`
+                        }
+            },
+            profile:    { type: Object },
 
             /*
             //  Properties packed into the "data" attribute projected to the gs3 secondary index

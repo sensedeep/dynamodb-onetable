@@ -12,7 +12,7 @@ type TableConstructorParams = {
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
 
-    logger?: boolean | (tag: string, message: string, context: {}) => void,      // Logging callback
+    logger?: boolean | ((tag: string, message: string, context: {}) => void),      // Logging callback
 
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
@@ -52,12 +52,14 @@ export class Table {
     groupByType(items: AnyEntity[]): {};
     listModels(): AnyModel[];
     listTables(): string[];
+    makeID(): {};
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     queryItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     removeModel(name: string): void;
     scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     scanItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;

@@ -4,6 +4,7 @@ import DefaultSchema from './defaultSchema'
 import FullSchema from './fullSchema'
 import MappedSchema from './mappedSchema'
 import NestedSchema from './nestedSchema'
+import SingleKeySchema from './singleKeySchema'
 import TenantSchema from './tenantSchema'
 import ValidationSchema from './validationSchema'
 
@@ -14,6 +15,7 @@ export {
     FullSchema,
     MappedSchema,
     NestedSchema,
+    SingleKeySchema,
     TenantSchema,
     ValidationSchema
 }

@@ -1,5 +1,5 @@
 /*
-    Default schema with a test User entity
+    Schema with a nested schema
  */
 export default {
     indexes: {
@@ -11,15 +11,19 @@ export default {
             sk:          { type: String, value: 'user#' },
             id:          { type: String, uuid: true },
             name:        { type: String },
+            email:       { type: String },
+            status:      { type: String },
+            balance:     { type: Number },
+            tokens:      { type: Array },
 
             //  test value templates with references at top level and other levels
             //  packing of these attributes (scatter gather)
             // location:    { type: Object },
+
             location:    { type: Object, schema: {
                 address: { type: String },
                 city:    { type: String },
                 zip:     { type: String },
-                status:  { type: String },
             }}
         }
     }

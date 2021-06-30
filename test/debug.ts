@@ -10,7 +10,11 @@ const table = new Table({
     name: 'DebugTestTable',
     client: Client,
     schema: DefaultSchema,
-    logger: true,
+    /*
+    logger: (type, message, context) => {
+        console.log(`${new Date().toLocaleString()}: ${type}: ${message}`);
+        console.log(JSON.stringify(context, null, 4) + '\n');
+    } */
 })
 
 let User = null
@@ -26,11 +30,6 @@ test('Create Table', async() => {
 })
 
 test('Create', async() => {
-    user = await User.create({name: 'Peter Smith', status: 'active'})
-    expect(user).toMatchObject({
-        name: 'Peter Smith',
-        status: 'active',
-    })
 })
 
 test('Destroy Table', async() => {

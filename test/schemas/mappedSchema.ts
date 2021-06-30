@@ -1,5 +1,5 @@
 /*
-    Default schema with a test User entity
+    Schema with mapped properties
  */
 export default {
     indexes: {
