@@ -27,6 +27,7 @@ const InterceptTags = {
     update: 'write'
 }
 
+const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const SanityPages = 1000
@@ -56,8 +57,6 @@ export class Model {
         //  Primary hash and sort attributes and properties
         this.hash = null
         this.sort = null
-        this.hashProperty = null
-        this.sortProperty = null
 
         //  Cache table properties
         this.V3 = table.V3
@@ -65,10 +64,12 @@ export class Model {
         this.delimiter = table.delimiter
         this.generic = options.generic
         this.log = table.log.bind(table)
+        this.nested = false
         this.nulls = table.nulls || false
         this.tableName = table.name
         this.typeField = table.typeField
         this.timestamps = options.timestamps
+        this.generic = options.generic != null ? options.generic : table.generic
         if (this.timestamps == null) {
             this.timestamps = table.timestamps
         }
@@ -127,7 +128,7 @@ export class Model {
         let {indexes, table} = this
         let primary = indexes.primary
 
-        //  Hold attributes that are mapped to a different attribute
+        //  Attributes that are mapped to a different attribute. Indexed by attribute name for this block.
         let mapTargets = {}
         let map = {}
 
@@ -147,10 +148,10 @@ export class Model {
                 let [att, sub] = to.split('.')
                 mapTargets[att] = mapTargets[att] || []
                 if (sub) {
-                    if (map[pathname] && !Array.isArray(map[pathname])) {
+                    if (map[name] && !Array.isArray(map[name])) {
                         throw new Error(`dynamo: Map already defined as literal for ${this.name}.${name}`)
                     }
-                    field.attribute = map[pathname] = [att, sub]
+                    field.attribute = map[name] = [att, sub]
                     if (mapTargets[att].indexOf(sub) >= 0) {
                         throw new Error(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
                     }
@@ -159,11 +160,11 @@ export class Model {
                     if (mapTargets[att].length > 1) {
                         throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
                     }
-                    field.attribute = map[pathname] = [att]
+                    field.attribute = map[name] = [att]
                     mapTargets[att].push(true)
                 }
             } else {
-                field.attribute = map[pathname] = [pathname]
+                field.attribute = map[name] = [name]
             }
             if (field.nulls !== true && field.nulls !== false) {
                 field.nulls = this.nulls
@@ -179,14 +180,11 @@ export class Model {
                     let attribute = field.attribute[0]
                     if (attribute == primary.hash) {
                         this.hash = attribute
-                        this.hashProperty = field.name
                     } else if (attribute == primary.sort) {
                         this.sort = attribute
-                        this.sortProperty = field.name
                     }
                 }
             }
-
             if (field.value) {
                 //  Value template properties are hidden by default
                 if (field.hidden != null) {
@@ -198,6 +196,7 @@ export class Model {
             if (field.type == Object && field.schema) {
                 field.block = {deps: [], fields: {}}
                 this.prepModel(field.schema, field.block, name)
+                this.nested = true
             }
         }
         if (!prefix) {
@@ -442,7 +441,7 @@ export class Model {
             let type = item[this.typeField] ? item[this.typeField] : this.name
             let model = table.models[type] ? table.models[type] : this
             if (model) {
-                if (model == table.unique) {
+                if (model == table.uniqueModel) {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
@@ -473,7 +472,7 @@ export class Model {
         let fields = this.block.fields
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
-            await this.table.unique.create({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {
+            await this.table.uniqueModel.create({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {
                 transaction,
                 exists: false,
                 return: 'NONE',
@@ -554,7 +553,7 @@ export class Model {
         let fields = this.block.fields
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
-            await this.table.unique.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
+            await this.table.uniqueModel.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
         }
         await this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
@@ -697,7 +696,7 @@ export class Model {
             }
             if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
-                    value = field.default(this, fieldName, properties)
+                    value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
                 }
@@ -712,6 +711,13 @@ export class Model {
 
             } else {
                 rec[name] = this.transformReadAttribute(field, name, value)
+            }
+        }
+        if (this.generic) {
+            for (let [name, value] of Object.entries(raw)) {
+                if (rec[name] === undefined) {
+                    rec[name] = value
+                }
             }
         }
         if (typeof params.transform == 'function') {
@@ -742,54 +748,18 @@ export class Model {
         Note: this does not map names to attributes or evaluate value templates, that happens in Expression.
      */
     prepareProperties(op, properties, params) {
-        let index
-        if (params.index && params.index != 'primary') {
-            index = this.indexes[params.index]
-            if (!index) {
-                throw new Error(`Cannot find index ${params.index}`)
+        let index = this.selectIndex(op, params)
+        if (index != this.indexes.primary && (op != 'find' && op != 'scan')) {
+            if (params.low) {
+                throw new Error('Cannot use non-primary index for "${op}" operation')
             }
-            if (op != 'find' && op != 'scan') {
-                if (params.low) {
-                    throw new Error('Cannot use non-primary index for "${op}" operation')
-                }
-                //  Fallback for get/delete as GSIs only support find and scan
-                params.fallback = true
-                return properties
-            }
-        } else {
-            index = this.indexes.primary
+            //  Fallback for get/delete as GSIs only support find and scan
+            params.fallback = true
+            return properties
         }
-        let project = index.project
-        let block = this.block
+        let rec = this.transformProperties(op, this.block, index, properties, params)
 
-        //  TODO - need better way of passing these args around
-        this.transformProperties(op, block, index, properties, params)
-
-        let rec = {}, hash
-        for (let [name, field] of Object.entries(block.fields)) {
-            let attribute = field.attribute[0]
-            let value = properties[name]
-            if (value == null && attribute == index.sort && params.high && (op == 'get' || op == 'delete' /* || op == 'update' */)) {
-                //  High level API without sort key. Fallback to find to select the items of interest.
-                params.fallback = true
-                return properties
-            }
-            if ((op == 'get' || op == 'delete') && attribute != index.hash && attribute != index.sort) {
-                //  Keys only for get and delete
-                continue
-            }
-            if (attribute == index.hash) {
-                hash = field.name
-            }
-            if (project && project != 'all' && Array.isArray(project) && project.indexOf(field.name) < 0) {
-                //  Property is not projected
-                continue
-            }
-            if (value !== undefined) {
-                rec[name] = this.transformWriteAttribute(field, value)
-            }
-        }
-        if (op != 'scan' && rec[hash] == null) {
+        if (op != 'scan' && rec[this.getHash(this.block.fields, index)] == null) {
             throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
         }
         if (typeof params.transform == 'function') {
@@ -801,10 +771,31 @@ export class Model {
         return rec
     }
 
-    //  TODO - need better way of passing these args around
-    transformProperties(op, block, index, properties, params) {
-        let {deps, fields} = block
-        this.addContext(op, fields, index, properties, params)
+    selectIndex(op, params) {
+        let index
+        if (params.index && params.index != 'primary') {
+            index = this.indexes[params.index]
+            if (!index) {
+                throw new Error(`Cannot find index ${params.index}`)
+            }
+        } else {
+            index = this.indexes.primary
+        }
+        return index
+    }
+
+    getHash(fields, index) {
+        let hash = Object.values(fields).find(f => f.attribute[0] == index.hash)
+        return hash ? hash.name : null
+
+    }
+
+    transformProperties(op, block, index, properties, params, context, rec = {}) {
+        let fields = block.fields
+        if (!context) {
+            context = params.context ? params.context : this.table.context
+        }
+        this.addContext(op, fields, index, properties, params, context)
         if (op == 'put') {
             this.addDefaults(fields, properties, params)
         }
@@ -813,12 +804,63 @@ export class Model {
         if (op == 'put' || op == 'update') {
             this.validateProperties(fields, properties)
         }
-        for (let [name, value] of Object.entries(properties)) {
-            let field = fields[name]
-            if (field && field.schema && typeof value == 'object') {
-                this.transformProperties(op, field.block, index, value, params)
+        //  Process nested schema
+        if (this.nested && !KeysOnly[op]) {
+            for (let [name, value] of Object.entries(properties)) {
+                let field = fields[name]
+                if (field && field.schema && typeof value == 'object') {
+                    let r = rec[name] = rec[name] || {}
+                    this.transformProperties(op, field.block, index, value, params, context[name] || {}, r)
+                }
             }
         }
+        return this.selectProperties(op, block, index, properties, params, rec)
+    }
+
+    selectProperties(op, block, index, properties, params, rec) {
+        let project = index.project
+        if (!(project && project != 'all' && Array.isArray(project))) {
+            project = null
+        }
+        for (let [name, field] of Object.entries(block.fields)) {
+            if (field.schema) continue
+            let attribute = field.attribute[0]
+            let value = properties[name]
+            if (block == this.block) {
+                //  Top level only
+                if (value == null && attribute == index.sort && params.high && KeysOnly[op]) {
+                    //  High level API without sort key. Fallback to find to select the items of interest.
+                    params.fallback = true
+                    return properties
+                }
+                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort) {
+                    //  Keys only for get and delete
+                    continue
+                }
+                if (project && project.indexOf(field.name) < 0) {
+                    //  Property is not projected
+                    continue
+                }
+            }
+            if (value !== undefined) {
+                rec[name] = this.transformWriteAttribute(field, value)
+            }
+        }
+        //  For generic (table low level APIs), add all properties that are projected
+        let generic = params.generic != null ? params.generic : this.generic
+        if (generic && !KeysOnly[op]) {
+            for (let [name, value] of Object.entries(properties)) {
+                if (project && project.indexOf(field.name) < 0) {
+                    continue
+                }
+                if (rec[name] === undefined) {
+                    //  No type transformations - don't have enough info without fields
+                    rec[name] = value
+                }
+            }
+            return rec
+        }
+        return rec
     }
 
     /*
@@ -842,7 +884,7 @@ export class Model {
             if (value === undefined && !field.value) {
                 if (field.default) {
                     if (typeof field.default == 'function') {
-                        value = field.default(this, fieldName, properties)
+                        value = field.default(this, field.name, properties)
                     } else {
                         value = field.default
                     }
