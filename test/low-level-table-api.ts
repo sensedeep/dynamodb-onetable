@@ -8,6 +8,7 @@ const table = new Table({
     name: 'LowLevelTableApi',
     client: Client,
     schema: DefaultSchema,
+    uuid: 'ulid',
 })
 
 test('Create Table', async() => {
@@ -38,9 +39,7 @@ test('ScanItems with filter', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toBe(`user#${user.id}`)
     expect(user.sk).toBe('user#')
     expect(user.gs1pk).toBe('user#Peter Smith')
@@ -56,9 +55,7 @@ test('QueryItems with begins', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toBe(`user#${user.id}`)
     expect(user.sk).toBe('user#')
     expect(user.gs1pk).toBe('user#Peter Smith')

@@ -16,6 +16,9 @@ const table = new Table({
     name: 'V2TestTable',
     client: client,
     schema: DefaultSchema,
+    timestamps: true,
+    isoDates: true,
+    uuid: 'ulid',
 })
 
 let User = null
@@ -44,6 +47,12 @@ test('List tables', async() => {
     expect(tables).toContain('V2TestTable')
 })
 
+test('List Models', async() => {
+    let models = await table.listModels()
+    expect(models.length).toBeGreaterThan(0)
+    expect(models).toContain('User')
+})
+
 test('Validate User model', () => {
     User = table.getModel('User')
     expect(User).toMatchObject({
@@ -68,9 +77,7 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Get including hidden', async() => {
@@ -83,10 +90,15 @@ test('Get including hidden', async() => {
         gs1pk: 'user#Peter Smith',
         gs1sk: 'user#',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toMatch(/^user#/)
+})
+
+test('Get raw', async() => {
+    let data = await User.get({id: user.id}, {parse: false, hidden: true})
+    //  ISO dates 2021-06-30T01:27:19.986Z
+    expect(data.created).toMatch(/2.*Z/)
+    expect(data.updated).toMatch(/2.*Z/)
 })
 
 test('Find by ID', async() => {
@@ -118,9 +130,7 @@ test('Update', async() => {
         name: 'Peter Smith',
         status: 'inactive',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove attribute', async() => {
@@ -140,9 +150,7 @@ test('Remove attribute 2', async() => {
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove item', async() => {

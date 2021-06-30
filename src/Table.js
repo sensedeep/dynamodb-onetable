@@ -38,14 +38,10 @@ export class Table {
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
             schema,         //  Table models schema.
-            timestamps,     //  Make "created" and "updated" timestamps. Default true.
+            timestamps,     //  Make "created" and "updated" timestamps. Default false.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
-
-            //  DEPRECATED
-            ksuid,          //  Function to create a KSUID if field schema requires it.
-            ulid,           //  Function to create a ULID if field schema requires it.
         } = params
 
         if (!name) {

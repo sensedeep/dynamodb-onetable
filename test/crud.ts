@@ -9,6 +9,8 @@ const table = new Table({
     client: Client,
     schema: DefaultSchema,
     logger: true,
+    timestamps: true,
+    uuid: 'ulid',
 })
 
 let User = null
@@ -47,11 +49,26 @@ test('Validate User model', () => {
 })
 
 test('Create', async() => {
-    user = await User.create({name: 'Peter Smith', status: 'active'})
-    expect(user).toMatchObject({
+    let properties = {
         name: 'Peter Smith',
+        email: 'peter@example.com',
+        profile: {
+            avatar: 'eagle'
+        },
         status: 'active',
-    })
+    }
+    //  Unknown properties must not be written to the table. Note: the profile object is schemaless.
+    let params = Object.assign({unknown: 42}, properties)
+    user = await User.create(params)
+    expect(user).toMatchObject(properties)
+    expect(user.id).toMatch(Match.ulid)
+    expect(user.profile).toBeDefined()
+    expect(user.profile.avatar).toBe('eagle')
+    expect(user.unknown).toBeUndefined()
+    expect(user.created).toEqual(expect.any(Date))
+    expect(user.updated).toEqual(expect.any(Date))
+    expect(user.pk).toBeUndefined()
+    expect(user.sk).toBeUndefined()
 })
 
 test('Get', async() => {
@@ -63,7 +80,7 @@ test('Get', async() => {
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Get including hidden', async() => {
@@ -78,7 +95,7 @@ test('Get including hidden', async() => {
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toMatch(/^user#/)
 })
 
@@ -113,7 +130,7 @@ test('Update', async() => {
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove attribute', async() => {
@@ -135,7 +152,7 @@ test('Remove attribute 2', async() => {
     expect(user.gs1sk).toBeUndefined()
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove item', async() => {

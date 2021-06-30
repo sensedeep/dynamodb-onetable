@@ -47,8 +47,6 @@ test('Get', async() => {
         name: 'Peter Smith',
         email: 'peter@example.com',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
 })
 

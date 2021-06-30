@@ -8,6 +8,7 @@ const table = new Table({
     name: 'ScanTable',
     client: Client,
     schema: DefaultSchema,
+    uuid: 'ulid',
 })
 
 test('Create Table', async() => {
@@ -45,9 +46,7 @@ test('Scan revealing hidden', async() => {
             name: item.name,
             status: item.status,
         })
-        expect(user.created).toEqual(expect.any(Date))
-        expect(user.updated).toEqual(expect.any(Date))
-        expect(user.id).toMatch(Match.uuid)
+        expect(user.id).toMatch(Match.ulid)
         expect(user.pk).toBe(`user#${user.id}`)
         expect(user.sk).toBe('user#')
         expect(user.gs1pk).toBe(`user#${item.name}`)

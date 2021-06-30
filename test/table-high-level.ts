@@ -13,6 +13,11 @@ const table = new Table({
 let user: any
 let users: any[]
 
+test('Set Client', async() => {
+    table.setClient(Client)
+    expect(true).toBe(true)
+})
+
 test('Create Table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
@@ -35,8 +40,6 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.uuid)
 })
 
@@ -50,8 +53,6 @@ test('Get including hidden', async() => {
         gs1pk: 'user#Peter Smith',
         gs1sk: 'user#',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.uuid)
     expect(user.pk).toMatch(/^user#/)
 })
@@ -85,8 +86,6 @@ test('Update', async() => {
         name: 'Peter Smith',
         status: 'inactive',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.uuid)
 })
 
@@ -107,8 +106,6 @@ test('Remove attribute 2', async() => {
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.uuid)
 })
 

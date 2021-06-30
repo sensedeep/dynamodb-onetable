@@ -16,8 +16,6 @@ const table = new Table({
     // _logger: true,
 })
 
-//  MOB - map updated, created, type
-
 test('Create Table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
@@ -52,8 +50,6 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
 })
 
@@ -73,7 +69,6 @@ test('Get including hidden', async() => {
     expect(u.primarySort).toEqual(`us#`)
     expect(u.secHash).toEqual(`ty#us`)
     expect(u.secSort).toEqual(`us#${u.id}`)
-    expect(u.updated).toEqual(expect.any(Date))
 })
 
 test('Get without parse', async() => {
@@ -116,8 +111,6 @@ test('Update', async() => {
         name: 'Peter Smith',
         status: 'inactive',
     })
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
 })
 
@@ -138,8 +131,6 @@ test('Remove attribute 2', async() => {
     })
     expect(user.secHash).toBeUndefined()
     expect(user.secSort).toBeUndefined()
-    expect(user.created).toEqual(expect.any(Date))
-    expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
 })
 
