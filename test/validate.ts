@@ -66,3 +66,11 @@ test('Create invalid', async() => {
         expect(details.age).not.toBeDefined()
     }
 })
+
+test('Remove required property', async() => {
+    try {
+        await User.update({id: user.id, email: null})
+    } catch (err) {
+        expect(err.message).toMatch('dynamo: Validation Error for "User"')
+    }
+})

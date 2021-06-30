@@ -27,6 +27,12 @@ test('List tables', async() => {
     expect(tables).toContain(TableName)
 })
 
+test('List Models', async() => {
+    let models = await table.listModels()
+    expect(models.length).toBeGreaterThan(0)
+    expect(models).toContain('User')
+})
+
 test('Destroy', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
