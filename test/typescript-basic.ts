@@ -4,14 +4,14 @@
     Uses table schema and not inline model schemas
  */
 import {AWS, Client, Entity, Model, Table, print, dump, delay} from './utils/init'
-import {DefaultSchema} from './schemas'
+import {NestedSchema} from './schemas'
 
 describe('TypeScript', () => {
 
     const table = new Table({
         name: 'TypeScriptCrudTestTable',
         client: Client,
-        schema: DefaultSchema,
+        schema: NestedSchema,
     })
 
     test('Create Table', async() => {
@@ -21,15 +21,26 @@ describe('TypeScript', () => {
         }
     })
 
-    type UserType = Entity<typeof DefaultSchema.models.User>
+    type UserType = Entity<typeof NestedSchema.models.User>
     let User: Model<UserType> = table.getModel('User')
     let user = null
+    const Properties: UserType = {
+        name: 'Peter Smith',
+        email: 'peter@example.com',
+        status: 'active',
+        location: {
+            //  Typescript will not (yet) validate the types of nested schemas
+            address: '444 Cherry Tree Lane',
+            city: 'Seattle',
+            zip: 98011,
+        },
+        balance: 0,
+        tokens: ['red', 'white', 'blue'],
+    }
 
     test('Create', async() => {
-        user = await User.create({name: 'Peter Smith'})
-        expect(user).toMatchObject({
-            name: 'Peter Smith'
-        })
+        user = await User.create(Properties)
+        expect(user).toMatchObject(Properties)
     })
 
     test('Update', async() => {
