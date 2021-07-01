@@ -14,3 +14,6 @@ test: always
 
 cov:
 	jest --coverage
+
+pubcov:
+	jest --coverage && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
