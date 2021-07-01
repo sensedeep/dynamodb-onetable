@@ -15,7 +15,7 @@ const table = new Table({
 })
 const accountId = table.uuid()
 
-test('Create Table', async() => {
+test('Create table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -34,18 +34,18 @@ let data = [
     {name: 'Cu Later', email: 'cu@example.com' },
 ]
 
-test('Create Account', async() => {
+test('Create account', async() => {
     account = await Account.create({name: 'Acme'})
     expect(account.name).toBe('Acme')
     expect(account.id).toMatch(Match.ulid)
     expect(account._type).toBe('Account')
 })
 
-test('Set Context', async() => {
+test('Set context', async() => {
     table.setContext({accountId: account.id})
 })
 
-test('Create Users', async() => {
+test('Create users', async() => {
     for (let item of data) {
         //  Account ID comes from context
         user = await User.create(item)
@@ -57,11 +57,19 @@ test('Create Users', async() => {
     expect(users.length).toBe(data.length)
 })
 
-test('Get Users', async() => {
+test('Get users', async() => {
     //  PK comes from context
     users = await User.find()
     expect(users.length).toBe(data.length)
 })
+
+test('Remove many users', async() => {
+    //  PK comes from context
+    await User.remove({}, {many: true})
+    users = await User.scan()
+    expect(users.length).toBe(0)
+})
+
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
