@@ -490,7 +490,9 @@ export class Table {
                 }
             }
         } catch (err) {
-            this.log('error', `Transaction error`, {message: err.message, transaction})
+            if (params.log !== false) {
+                this.log('error', `Transaction error`, {message: err.message, transaction})
+            }
             throw err
         }
         return result
