@@ -56,14 +56,6 @@ test('Remove with fallback', async() => {
     expect(user).toBeUndefined()
 })
 
-/*
-test('Update with fallback', async() => {
-    //  Use gs1 to query via email. This will do a find, then a get.
-    user = await User.update({email: 'patty@gmail.com'}, {index: 'gs1'})
-    expect(user.length).toBe(1)
-    expect(user.email).toBe('patty@gmail.com')
-}) */
-
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)

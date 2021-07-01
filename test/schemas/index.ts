@@ -6,6 +6,7 @@ import MappedSchema from './mappedSchema'
 import NestedSchema from './nestedSchema'
 import SingleKeySchema from './singleKeySchema'
 import TenantSchema from './tenantSchema'
+import UniqueSchema from './uniqueSchema'
 import ValidationSchema from './validationSchema'
 
 export {
@@ -17,5 +18,6 @@ export {
     NestedSchema,
     SingleKeySchema,
     TenantSchema,
+    UniqueSchema,
     ValidationSchema
 }

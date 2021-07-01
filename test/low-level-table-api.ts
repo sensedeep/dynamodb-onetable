@@ -5,11 +5,19 @@ import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
 const table = new Table({
-    name: 'LowLevelTableApi',
+    name: 'LowLevelTableApiTestTable',
     client: Client,
     schema: DefaultSchema,
     uuid: 'ulid',
 })
+
+const Properties = {
+    pk: 'custom#Peter Smith',
+    sk: 'custom#12345',
+    name: 'Peter Smith',
+    status: 'idle',
+    profile: {avatar: 'eagle'},
+}
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -18,48 +26,54 @@ test('Create Table', async() => {
     }
 })
 
-let User = table.getModel('User')
-let user: any
-let users: any[]
+let item: any
+let items: any[]
 
-test('Create User', async() => {
-    user = await User.create({name: 'Peter Smith', status: 'active'})
-    expect(user).toMatchObject({
-        name: 'Peter Smith',
-        status: 'active',
-    })
+test('Create Item', async() => {
+    item = await table.putItem(Properties, {parse: true})
+    expect(item).toMatchObject(Properties)
 })
 
-test('ScanItems with filter', async() => {
-    users = await table.scanItems({_type: 'User'}, {parse: true, hidden: true})
-    expect(users.length).toBe(1)
-    user = users[0]
-    expect(user).toMatchObject({
-        _type: 'User',
-        name: 'Peter Smith',
-        status: 'active',
-    })
-    expect(user.id).toMatch(Match.ulid)
-    expect(user.pk).toBe(`user#${user.id}`)
-    expect(user.sk).toBe('user#')
-    expect(user.gs1pk).toBe('user#Peter Smith')
-    expect(user.gs1sk).toBe('user#')
+test('Get Item', async() => {
+    item = await table.getItem({pk: Properties.pk, sk: Properties.sk}, {parse: true})
+    expect(item).toMatchObject(Properties)
+})
+
+test('Update Item', async() => {
+    item = await table.updateItem({pk: Properties.pk, sk: Properties.sk, status: 'active'}, {parse: true})
+    expect(item.status).toBe('active')
+
+    //  Revert
+    item = await table.updateItem({pk: Properties.pk, sk: Properties.sk, status: 'idle'}, {parse: true})
+    expect(item).toMatchObject(Properties)
+})
+
+test('Query Items', async() => {
+    items = await table.queryItems({pk: Properties.pk, sk: Properties.sk}, {parse: true})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item).toMatchObject(Properties)
 })
 
 test('QueryItems with begins', async() => {
-    users = await table.queryItems({pk: `user#${user.id}`, sk: {begins: 'use'}}, {hidden: true, parse: true})
-    expect(users.length).toBe(1)
-    user = users[0]
-    expect(user).toMatchObject({
-        _type: 'User',
-        name: 'Peter Smith',
-        status: 'active',
-    })
-    expect(user.id).toMatch(Match.ulid)
-    expect(user.pk).toBe(`user#${user.id}`)
-    expect(user.sk).toBe('user#')
-    expect(user.gs1pk).toBe('user#Peter Smith')
-    expect(user.gs1sk).toBe('user#')
+    items = await table.queryItems({pk: Properties.pk, sk: {begins: 'custom'}}, {parse: true})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item).toMatchObject(Properties)
+})
+
+test('ScanItems', async() => {
+    items = await table.scanItems({}, {parse: true})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item).toMatchObject(Properties)
+})
+
+test('ScanItems with filter', async() => {
+    items = await table.scanItems({status: 'idle'}, {parse: true})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item).toMatchObject(Properties)
 })
 
 test('Destroy Table', async() => {

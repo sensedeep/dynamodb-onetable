@@ -3,7 +3,7 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: "LegacyTestTable",

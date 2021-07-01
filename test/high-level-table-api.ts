@@ -5,7 +5,7 @@ import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
 const table = new Table({
-    name: 'TableHighLevelTestTable',
+    name: 'HighLevelTableApiTestTable',
     client: Client,
     schema: DefaultSchema,
 })
