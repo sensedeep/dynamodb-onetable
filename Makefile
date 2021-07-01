@@ -15,3 +15,6 @@ test: always
 
 cov:
 	jest --coverage
+
+pubcov: cov
+	coveralls < coverage/lcov.info

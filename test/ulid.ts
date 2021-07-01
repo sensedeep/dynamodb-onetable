@@ -1,5 +1,5 @@
 /*
-    ulid.ts - Unit test for ULIDk/
+    ulid.ts - Unit test for ULID
  */
 import {Match} from './utils/init'
 import ULID from '../src/ULID'
@@ -20,6 +20,27 @@ test('ULID decode', async() => {
     let id = new ULID().toString()
     let decoded = new ULID().decode(id)
     expect(decoded).toEqual(expect.any(Number))
+})
+
+test('ULID bad decodes', async() => {
+    await expect(async () => {
+        let decoded = new ULID().decode(null)
+    }).rejects.toThrow()
+
+    await expect(async () => {
+        let decoded = new ULID().decode('')
+    }).rejects.toThrow()
+
+    await expect(async () => {
+        let id = new ULID().toString()
+        let decoded = new ULID().decode('!' + id.slice(1))
+    }).rejects.toThrow()
+})
+
+test('ULID with date', async() => {
+    let ulid = new ULID(new Date(0))
+    expect(ulid.toString()).toMatch(Match.ulid)
+    expect(ulid.when).toEqual(expect.any(Date))
 })
 
 test('ULID repeat', async() => {

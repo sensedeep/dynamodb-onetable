@@ -20,6 +20,7 @@ export default class ULID {
     }
 
     decode(ulid) {
+        ulid = ulid.toString()
         if (ulid.length !== (TimeLen + RandomLength)) {
             throw new Error('Invalid ULID')
         }

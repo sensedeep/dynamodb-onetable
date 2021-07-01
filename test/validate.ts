@@ -31,6 +31,7 @@ test('Create valid', async() => {
         address: '444 Cherry Tree Lane',
         city: 'San Francisco',
         zip: 98103,
+        phone: '(408) 4847700',
         status: 'active',
     }
     user = await User.create(params)

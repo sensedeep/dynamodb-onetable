@@ -49,4 +49,4 @@ const Match = {
     phone:  /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/,
 }
 
-export {AWS, Client, Entity, Match, Model, Table, delay, dump, print}
+export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print}

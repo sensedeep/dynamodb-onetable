@@ -1,7 +1,10 @@
 /*
     Expression.js - DynamoDB API command builder
+
+    This module converts API requests into DynamoDB commands.
 */
 
+//  Operators used on sort keys for get/delete
 const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
 
 export class Expression {
@@ -18,7 +21,6 @@ export class Expression {
         this.params = params
 
         this.table = model.table
-        //  Facets of the API call parsed into Dynamo conditions, filters, key, keys, updates...
         this.conditions = []        //  Condition expressions
         this.filters = []           //  Filter expressions
         this.key = {}               //  Primary key attribute
@@ -61,6 +63,9 @@ export class Expression {
     prepare() {
         let {op, properties} = this
         let fields = this.model.block.fields
+        /*
+            Parse the API properties. Only accept properties defined in the schema unless generic.
+        */
         for (let [name, value] of Object.entries(properties)) {
             if (fields[name]) {
                 this.add(fields[name], value)
@@ -68,7 +73,10 @@ export class Expression {
                 this.add({attribute: [name]}, value)
             }
         }
-        //  Emit mapped attributes. 'mapped' is created when adding fields that are mapped.
+
+        /*
+            Emit mapped attributes that don't correspond to schema fields.
+        */
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
@@ -87,7 +95,10 @@ export class Expression {
 
         } else if (op == 'scan') {
             this.addFilters()
-            //  Setup scan filters for properties outside the model. Use the property name here as there can't be a mapping.
+            /*
+                Setup scan filters for properties outside the model.
+                Use the property name here as there can't be a mapping.
+            */
             for (let [name, value] of Object.entries(this.properties)) {
                 if (fields[name] == null && value != null) {
                     this.addFilter(name, value)
@@ -109,9 +120,11 @@ export class Expression {
         let properties = this.properties
         let op = this.op
         let attribute = field.attribute
-        //  TODO - review all mappings
+
+        /*
+            Handle mapped and packed attributes
+        */
         if (attribute.length > 1) {
-            //  Mapped (packed) field
             let mapped = this.mapped
             let [k,v] = attribute
             mapped[k] = mapped[k] || {}
@@ -192,10 +205,12 @@ export class Expression {
      */
     expand(where) {
         let fields = this.model.block.fields
+        //  Expand attribute references and make attribute name
         where = where.toString().replace(/\${(.*?)}/g, (match, varName) => {
             let ref = this.makeTarget(fields, varName)
             return ref
         })
+        //  Expand value references and make attribute values
         where = where.replace(/{(.*?)}/g, (match, value) => {
             let index
             if (value.match(/^\d+$/)) {
@@ -267,6 +282,7 @@ export class Expression {
             return
         }
         if (field.name == this.model.typeField) {
+            //  Don't need to update the type -- users can use low-level API if required
             return
         }
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
@@ -340,26 +356,6 @@ export class Expression {
         return target.join('.')
     }
 
-    /* KEEP
-    //  Translate an attribute reference to use name attributes. Works with "."
-    makeRef(fields, name) {
-        let target = []
-        for (let prop of name.split('.')) {
-            //  If not top level, fields may be null if the previous property was not a schema.
-            //  In this case, just use the property name.
-            //  MOB - must handle [] too
-            let field = fields[prop]
-            if (field) {
-                target.push(`:_${this.addName(field.attribute[0])}`)
-                fields = field.schema
-            } else {
-                target.push(`:_${this.addName(prop)}`)
-                fields = null
-            }
-        }
-        return target.join('.')
-    } */
-
     selectIndex(indexes) {
         let op = this.op
         let index = indexes.primary
@@ -372,7 +368,7 @@ export class Expression {
     }
 
     /*
-        Create the Dynamo command parameters
+        Create the Dynamo command parameters. Called from Model.run
      */
     command() {
         let {conditions, filters, key, keys, hash, model, names, op, params, project, sort, values} = this

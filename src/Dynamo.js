@@ -1,12 +1,17 @@
 /*
     Dynamo.js -- AWS V3 SDK API
 
-    import {Model, Table} from 'dynamodb-onetable'
-    import Dynamo from 'dynamodb-onetable/Dynamo'
+    This module provides a wrapper and convenience API over the AWS V3 SDK.
+    It is used by OneTable internally and is not a public API.
 
-    const dynamo = new Dynamo(params)
-    const table = new Table({ dynamo, ... })
-*/
+    Use:
+        import {Model, Table} from 'dynamodb-onetable'
+        import Dynamo from 'dynamodb-onetable/Dynamo'
+
+        const dynamo = new Dynamo(params)
+        const table = new Table({ dynamo, ... })
+
+    */
 
 import {
     BatchGetItemCommand,

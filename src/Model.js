@@ -1,5 +1,7 @@
 /*
     Model.js - DynamoDB model class
+
+    A model represents a DynamoDB single-table entity.
 */
 import {Expression} from './Expression.js'
 
@@ -143,6 +145,9 @@ export class Model {
             field.name = name
             fields[name] = field
 
+            /*
+                Handle mapped attributes. May be packed also (obj.prop)
+            */
             let to = field.map
             if (to) {
                 let [att, sub] = to.split('.')
@@ -169,6 +174,10 @@ export class Model {
             if (field.nulls !== true && field.nulls !== false) {
                 field.nulls = this.nulls
             }
+
+            /*
+                Handle index requirements
+            */
             let index = this.indexProperties[field.attribute[0]]
             if (index && !prefix) {
                 field.isIndexed = true
@@ -193,6 +202,9 @@ export class Model {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
+            /*
+                Handle nested schema (recursive)
+            */
             if (field.type == Object && field.schema) {
                 field.block = {deps: [], fields: {}}
                 this.prepModel(field.schema, field.block, name)
@@ -209,6 +221,9 @@ export class Model {
         }
         this.mappings = mapTargets
 
+        /*
+            Order the fields so value templates can depend on each other safely
+        */
         for (let field of Object.values(fields)) {
             this.orderFields(block, field)
         }
@@ -226,25 +241,11 @@ export class Model {
                 let ref = fields[name]
                 if (ref && ref != field && (ref.schema || ref.value)) {
                     this.orderFields(field.block, ref)
-                } else {
-                    //  Allow ordinary non-field properties
-                    // throw new Error(`dynamo: Cannot find value variable "${v}" in field "${field.name}"`)
                 }
             }
         }
         deps.push(field)
     }
-
-    /*
-    getValue(obj, pathname) {
-        for (let prop of pathname.split('.')) {
-            if (obj[prop] === undefined) {
-                return undefined
-            }
-            obj = obj[prop]
-        }
-        return obj
-    } */
 
     /*
         Return the value template variable references in a list
@@ -306,6 +307,9 @@ export class Model {
                 return list.push({[bop]: cmd})
             }
         }
+        /*
+            Prep the metrics
+        */
         let stats = params.stats || params.metrics
         if (stats && typeof params == 'object') {
             stats.count = stats.count || 0
@@ -368,9 +372,17 @@ export class Model {
             }
         } while (result.LastEvaluatedKey && (maxPages == null || ++pages < maxPages))
 
+        /*
+            Process the response
+        */
         if (params.parse) {
             items = this.parseResponse(op, expression, items)
         }
+
+        /*
+            Handle transparent follow. Get/Update/Find the actual item using the keys
+            returned from the request on the GSI.
+        */
         if (params.follow || (index.follow && params.follow !== false)) {
             if (op == 'get') {
                 return await this.get(items[0])
@@ -394,11 +406,19 @@ export class Model {
                 return results
             }
         }
+        /*
+            Log unless the user provides params.log: false.
+            The logger will typically filter data/trace.
+        */
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
             this.log('data', `Dynamo result for "${op}" "${this.name}"`, {trace}, params)
         }
+
+        /*
+            Create a pagination iterator
+        */
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
                 /*
@@ -424,11 +444,12 @@ export class Model {
     }
 
     /*
-        Parse the response into Javascript objects for the high level API.
+        Parse the response into Javascript objects and transform for the high level API.
      */
     parseResponse(op, expression, items) {
         let table = this.table
         if (op == 'put') {
+            //  Put requests do not return the item. So use the properties.
             items = [expression.properties]
         } else {
             items = table.unmarshall(items)
@@ -451,6 +472,9 @@ export class Model {
         return items
     }
 
+    /*
+        Create/Put a new item. Will overwrite existing items if exists: null.
+    */
     async create(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
         let result
@@ -571,27 +595,6 @@ export class Model {
         return await this.updateItem(properties, params)
     }
 
-    /*
-    async updateByFind(properties, params) {
-        if (params.retry) {
-            throw new Error(`dynamo: Update retry failed for ${this.name}`, {properties, params})
-        }
-        let grid = await this.find(properties, params)
-        if (grid.length == 0) {
-            if (params.throw === false) {
-                return null
-            } else {
-                throw new Error('Cannot find item to update')
-            }
-        } else if (grid.length > 1) {
-            throw new Error('dynamo: cannot update multiple items')
-        }
-        //  Add primary key to the properties
-        properties[this.hashProperty] = grid[0][this.hashProperty]
-        properties[this.sortProperty] = grid[0][this.sortProperty]
-        return await this.update(properties, {retry: true})
-    } */
-
     //  Low level API
 
     /* private */
@@ -654,12 +657,6 @@ export class Model {
             properties[this.updatedField] = new Date()
         }
         properties = this.prepareProperties('update', properties, params)
-        /*
-        if (params.fallback) {
-            //  Fallback for high level invocation via find
-            delete properties[this.updatedField]
-            return await this.updateByFind(properties, params)
-        } */
         let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
     }
@@ -714,6 +711,7 @@ export class Model {
             }
         }
         if (this.generic) {
+            //  Generic must include attributes outside the schema.
             for (let [name, value] of Object.entries(raw)) {
                 if (rec[name] === undefined) {
                     rec[name] = value
@@ -771,6 +769,9 @@ export class Model {
         return rec
     }
 
+    /*
+        Get the index for the request
+    */
     selectIndex(op, params) {
         let index
         if (params.index && params.index != 'primary') {
@@ -784,10 +785,12 @@ export class Model {
         return index
     }
 
+    /*
+        Return the hash property name for the selected index.
+    */
     getHash(fields, index) {
         let hash = Object.values(fields).find(f => f.attribute[0] == index.hash)
         return hash ? hash.name : null
-
     }
 
     transformProperties(op, block, index, properties, params, context, rec = {}) {
@@ -796,12 +799,11 @@ export class Model {
             context = params.context ? params.context : this.table.context
         }
         this.addContext(op, fields, index, properties, params, context)
-        if (op == 'put') {
-            this.addDefaults(fields, properties, params)
-        }
+        this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
         this.validateProperties(op, fields, properties)
+
         //  Process nested schema
         if (this.nested && !KeysOnly[op]) {
             for (let [name, value] of Object.entries(properties)) {
@@ -815,6 +817,9 @@ export class Model {
         return this.selectProperties(op, block, index, properties, params, rec)
     }
 
+    /*
+        Select the properties to include in the request
+    */
     selectProperties(op, block, index, properties, params, rec) {
         let project = index.project
         if (!(project && project != 'all' && Array.isArray(project))) {
@@ -844,6 +849,7 @@ export class Model {
                 rec[name] = this.transformWriteAttribute(field, value)
             }
         }
+
         //  For generic (table low level APIs), add all properties that are projected
         let generic = params.generic != null ? params.generic : this.generic
         if (generic && !KeysOnly[op]) {
@@ -876,7 +882,11 @@ export class Model {
         }
     }
 
-    addDefaults(fields, properties, params) {
+    /*
+        Set default property values on Put.
+    */
+    setDefaults(op, fields, properties, params) {
+        if (op != 'put') return
         for (let field of Object.values(fields)) {
             let value = properties[field.name]
             if (value === undefined && !field.value) {
@@ -902,6 +912,10 @@ export class Model {
         }
     }
 
+    /*
+        Remove null properties from the table unless Table.nulls == true
+        Also remove empty strings (DynamoDB cannot handle empty strings)
+    */
     convertNulls(fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
@@ -916,6 +930,7 @@ export class Model {
             }
         }
     }
+
     /*
         Process value templates and property values that are functions
      */
@@ -942,6 +957,10 @@ export class Model {
         Expand a value template by substituting ${variable} values from context and properties.
      */
     runTemplate(op, index, field, properties, params, value) {
+        /*
+            Replace property references in ${var}
+            Support ${var:length:pad-character} which is useful for sorting.
+        */
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
             //  TODO need to handle "." split as well
             let [name, len, pad] = varName.split(':')
@@ -959,6 +978,7 @@ export class Model {
             }
             return v
         })
+
         /*
             Consider unresolved template variables. If field is the sort key and doing find,
             then use sort key prefix and begins_with, (provide no where clause).
@@ -1100,6 +1120,9 @@ export class Model {
         return obj
     }
 
+    /*
+        Handle dates. Supports epoch and ISO date transformations.
+    */
     transformWriteDate(value) {
         if (this.table.isoDates) {
             if (value instanceof Date) {
@@ -1141,8 +1164,12 @@ export class Model {
         return this.table.decrypt(text, inCode, outCode)
     }
 
+    /*
+        Clone properties and params to callers objects are not polluted
+    */
     checkArgs(properties, params, overrides = {}) {
         if (params.checked) {
+            //  Only need to clone once
             return {params, properties}
         }
         if (!properties) {
@@ -1153,7 +1180,6 @@ export class Model {
         }
         params = Object.assign(overrides, params)
         params.checked = true
-        //  MOB BUG - not copying nested properties
         properties = Object.assign({}, properties)
         return {params, properties}
     }

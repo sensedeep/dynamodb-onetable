@@ -10,5 +10,5 @@ module.exports = async () => {
     let dynamodb = DynamoDbLocal.spawn({port: PORT})
     process.env.DYNAMODB_PID = dynamodb.pid
     process.env.DYNAMODB_PORT = PORT.toString()
-    console.log('Spawn DynamoDB', dynamodb.pid)
+    // console.log('Spawn DynamoDB', dynamodb.pid)
 }

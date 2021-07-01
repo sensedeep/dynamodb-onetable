@@ -1,13 +1,22 @@
 /*
     Table.js - DynamoDB table class
+
+    A OneTable Table represents a single (connected) DynamoDB table
  */
 
 import Crypto from 'crypto'
 import ULID from './ULID.js'
 import {Model} from './Model.js'
 
-const IV_LENGTH = 16
+/*
+    Safety string required on API to delete a table
+*/
 const ConfirmRemoveTable = 'DeleteTableForever'
+
+/*
+    Crypto IV length
+*/
+const IV_LENGTH = 16
 
 /*
     Default index keys if not supplied
@@ -112,7 +121,7 @@ export class Table {
         })
 
         /*
-            Model for genric low-level API access
+            Model for genric low-level API access. Generic models allow reading attributes that are not defined on the schema.
          */
         fields = { [primary.hash]: { type: String } }
         if (primary.sort) {
@@ -143,7 +152,9 @@ export class Table {
         this.service = this.V3 ? this.client : this.client.service
     }
 
-    //  Return the current schema. This may include model schema defined at run-time
+    /*
+        Return the current schema. This may include model schema defined at run-time.
+    */
     getSchema() {
         let schema = {name: this.name, models: {}, indexes: this.indexes}
         for (let [name, model] of Object.entries(this.models)) {
@@ -176,6 +187,9 @@ export class Table {
         return schema
     }
 
+    /*
+        Prepare the schema by creating models for all the entities
+    */
     prepSchema(params) {
         let {models, indexes} = params
         if (!models || typeof models != 'object') {
@@ -191,7 +205,8 @@ export class Table {
     }
 
     /*
-        Create a table. Params may contain standard DynamoDB createTable parameters
+        Create a table. Yes, the actually creates the DynamoDB table.
+        Params may contain standard DynamoDB createTable parameters
     */
     async createTable(params = {}) {
         let def = {
@@ -271,6 +286,9 @@ export class Table {
         }
     }
 
+    /*
+        Delete the DynamoDB table forever. Be careful.
+    */
     async deleteTable(confirmation) {
         if (confirmation == ConfirmRemoveTable) {
             this.log('trace', `Dynamo deleteTable for "${this.name}"`)
@@ -284,6 +302,9 @@ export class Table {
         }
     }
 
+    /*
+        Return the raw AWS table description
+    */
     async describeTable() {
         if (this.V3) {
             return await this.service.describeTable({TableName: this.name})
@@ -292,11 +313,17 @@ export class Table {
         }
     }
 
+    /*
+        Return true if the underlying DynamoDB table represented by this OneTable instance is present.
+    */
     async exists() {
         let results = await this.listTables()
         return results && results.find(t => t == this.name) != null ? true : false
     }
 
+    /*
+        Return a list of tables in the AWS region described by the Table instance
+    */
     async listTables() {
         let results
         if (this.V3) {
@@ -357,8 +384,11 @@ export class Table {
         return this.clearContext()
     }
 
-    //  High level model factory API
-
+    /*
+        High level model factory API
+        The high level API is similar to the Model API except the model name is provided as the first parameter.
+        This API is useful for factories
+    */
     async create(modelName, properties, params) {
         let model = this.getModel(modelName)
         return await model.create(properties, params)
@@ -389,8 +419,11 @@ export class Table {
         return await model.update(properties, params)
     }
 
-    //  Low level API
+    /*
+        Low level API
 
+        The low level API does not use models. It permits the reading / writing of any attribute.
+    */
     async batchGet(batch, params = {}) {
         let result
         try {
@@ -464,8 +497,7 @@ export class Table {
     }
 
     /*
-        Invoke a prepared transaction
-        Note: transactGet does not work on non-primary indexes
+        Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
     async transact(op, transaction, params = {}) {
         let result
@@ -506,7 +538,7 @@ export class Table {
 
     /*
         Convert items into a map of items by model type
-     */
+    */
     groupByType(items) {
         let result = {}
         for (let item of items) {
@@ -527,6 +559,10 @@ export class Table {
         }
     }
 
+    /*
+        The default logger (logger == true) will emit all log message types except trace and data.
+        If APIs provide params {log: true}, the log message type is changed from trace/data into info and will be emitted.
+    */
     defaultLogger(type, message, context) {
         if (type == 'trace' || type == 'data') {
             return
@@ -534,7 +570,10 @@ export class Table {
         console.log(type, message, JSON.stringify(context, null, 4))
     }
 
-    // Simple non-crypto UUID. See node-uuid if you require crypto UUIDs.
+    /*
+        Simple non-crypto UUID. See node-uuid if you require crypto UUIDs.
+        Consider ULIDs which are crypto sortable.
+    */
     uuid() {
         return 'xxxxxxxxxxxxxxxxyxxxxxxxxxyxxxxx'.replace(/[xy]/g, function(c) {
             let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
@@ -595,6 +634,9 @@ export class Table {
         return text
     }
 
+    /*
+        Marshall data into and out of DynamoDB format
+    */
     marshall(item) {
         let client = this.client
         if (client.V3) {
@@ -610,6 +652,9 @@ export class Table {
         return item
     }
 
+    /*
+        Marshall data out of DynamoDB format
+    */
     unmarshall(item) {
         if (this.V3) {
             let client = this.client
