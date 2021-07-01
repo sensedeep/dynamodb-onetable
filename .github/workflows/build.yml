@@ -30,8 +30,4 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build --if-present
-    - run: ls node_modules
-    - run: npm ls dynamo-db-local
-    - run: ls node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal_lib node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal.jar
     - run: npm test
-    # - run: java -Djava.library.path=node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal_lib -jar node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal.jar -inMemory -port 4567

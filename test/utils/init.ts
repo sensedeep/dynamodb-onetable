@@ -9,7 +9,6 @@ const Client = new Dynamo({
     client: new DynamoDBClient({
         endpoint: `http://localhost:${PORT}`,
         region: 'local',
-        // region: 'us-east-1',
         credentials: new AWS.Credentials({
             accessKeyId: 'test',
             secretAccessKey: 'test',

@@ -10,6 +10,10 @@ const PORT = parseInt(process.env.DYNAMODB_PORT)
 const client = new DynamoDB.DocumentClient({
     endpoint: `http://localhost:${PORT}`,
     region: 'local',
+    credentials: new AWS.Credentials({
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+    })
 })
 
 const table = new Table({
