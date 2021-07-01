@@ -56,9 +56,10 @@ test('Create', async() => {
             avatar: 'eagle'
         },
         status: 'active',
+        age: 42,
     }
     //  Unknown properties must not be written to the table. Note: the profile object is schemaless.
-    let params = Object.assign({unknown: 42}, properties)
+    let params = Object.assign({unknown: 99}, properties)
     user = await User.create(params)
     expect(user).toMatchObject(properties)
     expect(user.id).toMatch(Match.ulid)
@@ -67,6 +68,7 @@ test('Create', async() => {
     expect(user.unknown).toBeUndefined()
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
+    expect(user.age).toBe(42)
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
 })
@@ -122,12 +124,14 @@ test('Find by name on GSI', async() => {
 })
 
 test('Update', async() => {
-    user = await User.update({id: user.id, status: 'inactive'})
+    user = await User.update({id: user.id, status: 'inactive', age: 99})
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
-        status: 'inactive',
+        status: 'inactive', 
+        age: 99,
     })
+    expect(user.age).toBe(99)
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)

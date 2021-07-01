@@ -20,10 +20,13 @@
         "onetable",
         "serverless",
         "aws",
+        "amazon",
         "nosql",
         "singletable",
+        "single-table",
         "datamapper",
-        "dynamo"
+        "dynamo",
+        "orm"
     ],
     "author": "Michael O'Brien <mob@sensedeep.com>",
     "license": "MIT",

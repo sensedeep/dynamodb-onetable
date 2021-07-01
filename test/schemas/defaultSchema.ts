@@ -20,6 +20,7 @@ export default {
                             return `${model.name}:${field}:${properties.name}`
                         }
             },
+            age:        { type: Number },
             profile:    { type: Object },
 
             //  Find by name

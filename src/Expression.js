@@ -476,7 +476,7 @@ export class Expression {
 
     addValue(value) {
         let index
-        if (value && typeof value != 'object') {
+        if (value && typeof value != 'object' && typeof value != 'number') {
             index = this.valuesMap[value]
         }
         if (index == null) {
