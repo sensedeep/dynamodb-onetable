@@ -2,7 +2,7 @@
     ulid.ts - Unit test for ULIDk/
  */
 import {Match} from './utils/init'
-import ULID from '../src/ulid'
+import ULID from '../src/ULID'
 
 // jest.setTimeout(7200 * 1000)
 
