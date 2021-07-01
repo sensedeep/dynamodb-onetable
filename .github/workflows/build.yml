@@ -24,7 +24,8 @@ jobs:
       with:
         distribution: 'adopt'
         java-version: '11'
-    - run: java -cp java HelloWorldApp
+    # - run: java -Djava.library.path=node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal_lib -jar node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal.jar -inMemory -port 4567
+    - run: ls node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal_lib -jar node_modules/dynamo-db-local/lib/dynamodb_local_2021-05-03/DynamoDBLocal.jar
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v2
       with:
