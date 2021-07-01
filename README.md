@@ -1,6 +1,7 @@
 # DynamoDB OneTable
 One table to rule them all.
 
+[![Build Status](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build)](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build)
 [![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
