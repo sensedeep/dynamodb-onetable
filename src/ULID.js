@@ -3,7 +3,6 @@
     https://github.com/ulid/spec
  */
 import Crypto from 'crypto'
-import { privateEncrypt } from 'node:crypto'
 
 //  Repeat Z to make encoding faster for rand == 0xFF
 const Letters = "0123456789ABCDEFGHIJKMNPQRSTVWXYZZ"
