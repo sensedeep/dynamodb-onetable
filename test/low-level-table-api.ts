@@ -76,6 +76,12 @@ test('ScanItems with filter', async() => {
     expect(item).toMatchObject(Properties)
 })
 
+test('Remove Item', async() => {
+    await table.deleteItem({pk: Properties.pk, sk: Properties.sk})
+    items = await table.scanItems({}, {parse: true})
+    expect(items.length).toBe(0)
+})
+
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)

@@ -48,7 +48,7 @@ test('List tables', async() => {
 })
 
 test('List Models', async() => {
-    let models = await table.listModels()
+    let models = table.listModels()
     expect(models.length).toBeGreaterThan(0)
     expect(models).toContain('User')
 })

@@ -47,9 +47,6 @@ export class Table {
         if (!name) {
             throw new Error('Missing "name" property')
         }
-        if (!client) {
-            throw new Error('Missing "client" property')
-        }
         if (logger === true) {
             this.logger = this.defaultLogger
         } else if (logger) {
@@ -58,10 +55,11 @@ export class Table {
         this.log('trace', `Loading OneTable`)
 
         this.params = params
-        this.client = client
-        this.V3 = client.V3
-        this.service = this.V3 ? this.client : this.client.service
-
+        if (client) {
+            this.V3 = client.V3
+            this.client = client
+            this.service = this.V3 ? client : client.service
+        }
         this.createdField = createdField || 'created'
         this.delimiter = delimiter || '#'
         this.generic = generic != null ? generic : false
@@ -139,8 +137,10 @@ export class Table {
     }
 
     setClient(client) {
+        if (!client) return
         this.client = client
         this.V3 = client.V3
+        this.service = this.V3 ? this.client : this.client.service
     }
 
     //  Return the current schema. This may include model schema defined at run-time
@@ -312,7 +312,7 @@ export class Table {
     }
 
     addModel(name, fields) {
-        this.models[name] = new Model(this, name, {indexes: schema.indexes, fields})
+        this.models[name] = new Model(this, name, {indexes: this.indexes, fields})
     }
 
     /*
@@ -335,6 +335,10 @@ export class Table {
         }
     }
 
+    getContext() {
+        return this.context
+    }
+
     /*
         Set or update the context object. Return this for chaining.
      */
@@ -343,12 +347,14 @@ export class Table {
         return this
     }
 
-    /*
-        Clear the context
-     */
-    clear() {
+    clearContext() {
         this.context = {}
         return this
+    }
+
+    //  DEPRECATE
+    clear() {
+        return this.clearContext()
     }
 
     //  High level model factory API

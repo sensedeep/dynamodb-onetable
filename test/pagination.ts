@@ -73,7 +73,6 @@ test('Find with start offset', async() => {
     expect(total).toBe(MaxUsers)
     expect(pages).toBe(MaxUsers / PerPage)
 })
-//params.maxPages`
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')

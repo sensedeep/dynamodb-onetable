@@ -70,6 +70,15 @@ test('Remove many users', async() => {
     expect(users.length).toBe(0)
 })
 
+test('Clear context', async() => {
+    //  PK comes from context
+    let context = table.getContext()
+    expect(context).toMatchObject({accountId: account.id})
+
+    table.clearContext()
+    context = table.getContext()
+    expect(context).toMatchObject({})
+})
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')

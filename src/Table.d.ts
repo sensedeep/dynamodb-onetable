@@ -30,22 +30,22 @@ type TableConstructorParams = {
 };
 
 export class Table {
+    name: string;
     constructor(params: TableConstructorParams);
 
     addModel(name: string, fields: OneModelSchema): void;
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
-    clear(): Table;
-
+    clearContext(): Table;
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
     exists(): Promise<Boolean>;
-
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     describeTable(): Promise<{}>;
     find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    getContext(): {};
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getModel(name: string): AnyModel;
     getSchema(): {};

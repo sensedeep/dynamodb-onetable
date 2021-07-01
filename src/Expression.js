@@ -52,6 +52,10 @@ export class Expression {
          */
         this.hash = this.index.hash
         this.sort = this.index.sort
+
+        if (!this.table.client) {
+            throw new Error('Table has not yet defined a "client" instance')
+        }
     }
 
     prepare() {
@@ -336,6 +340,7 @@ export class Expression {
         return target.join('.')
     }
 
+    /* KEEP
     //  Translate an attribute reference to use name attributes. Works with "."
     makeRef(fields, name) {
         let target = []
@@ -353,7 +358,7 @@ export class Expression {
             }
         }
         return target.join('.')
-    }
+    } */
 
     selectIndex(indexes) {
         let op = this.op
