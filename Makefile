@@ -1,5 +1,7 @@
 all: build
 
+.PHONY: always
+
 build:
 	npm i --package-lock-only
 	npm run build
@@ -7,7 +9,7 @@ build:
 publish promote: build
 	npm publish
 
-test:
+test: always
 	jest
 
 cov:

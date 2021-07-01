@@ -801,9 +801,7 @@ export class Model {
         }
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
-        if (op == 'put' || op == 'update') {
-            this.validateProperties(fields, properties)
-        }
+        this.validateProperties(op, fields, properties)
         //  Process nested schema
         if (this.nested && !KeysOnly[op]) {
             for (let [name, value] of Object.entries(properties)) {
@@ -985,7 +983,10 @@ export class Model {
         return value
     }
 
-    validateProperties(fields, properties) {
+    validateProperties(op, fields, properties) {
+        if (op != 'put' && op != 'update') {
+            return
+        }
         let details = {}
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
@@ -996,7 +997,7 @@ export class Model {
             }
         }
         for (let field of Object.values(fields)) {
-            if (properties[field.name] == null && field.required) {
+            if (op == 'put' && properties[field.name] == null && field.required) {
                 details[field.name] = `Value not defined for required field "${field.name}"`
             }
         }

@@ -37,6 +37,11 @@ test('Create valid', async() => {
     expect(user).toMatchObject(params)
 })
 
+test('Update without updating required properties', async() => {
+    user = await User.update({id: user.id, age: 42})
+    expect(user.age).toBe(42)
+})
+
 test('Create invalid', async() => {
     let params = {
         name: 'Peter@O\'Flanagan',
@@ -64,6 +69,29 @@ test('Create invalid', async() => {
         expect(details.status).toBeDefined()
         expect(details.zip).toBeDefined()
         expect(details.age).not.toBeDefined()
+    }
+})
+
+test('Create missing required property', async() => {
+    let params = {
+        name: 'Jenny Smith',
+        //  Missing email
+        address: '444 Cherry Tree Lane',
+        status: 'active',
+        age: 42,
+    }
+    try {
+        user = await User.create(params)
+        //  Never get here
+        expect(false).toBeTruthy()
+    } catch (err) {
+        expect(err.message).toMatch('dynamo: Validation Error for "User"')
+        let details = err.details
+        expect(details).toBeDefined()
+        expect(details.email).toBeDefined()
+        expect(details.status).toBeUndefined()
+        expect(details.age).toBeUndefined()
+        expect(details.name).toBeUndefined()
     }
 })
 
