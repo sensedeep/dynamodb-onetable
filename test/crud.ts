@@ -39,7 +39,11 @@ test('Describe Table', async() => {
     expect(info.Table.TableName).toBe('CrudTestTable')
 })
 
-test('Validate User model', () => {
+test('Validate User model', async() => {
+    await expect(async() => {
+        User = table.getModel('Unknown')
+    }).rejects.toThrow()
+
     User = table.getModel('User')
     expect(User).toMatchObject({
         name: 'User',
@@ -128,7 +132,7 @@ test('Update', async() => {
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
-        status: 'inactive', 
+        status: 'inactive',
         age: 99,
     })
     expect(user.age).toBe(99)

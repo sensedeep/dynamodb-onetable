@@ -43,6 +43,18 @@ test('Create account', async() => {
 
 test('Set context', async() => {
     table.setContext({accountId: account.id})
+    let context: any = table.getContext()
+    expect(context).toMatchObject({accountId: account.id})
+
+    //  Merge new values
+    table.setContext({color: 'blue'}, true)
+    context = table.getContext()
+    expect(context).toMatchObject({accountId: account.id, color: 'blue'})
+
+    //  Revert
+    table.setContext({accountId: account.id})
+    context = table.getContext()
+    expect(context).toMatchObject({accountId: account.id})
 })
 
 test('Create users', async() => {

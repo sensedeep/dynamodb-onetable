@@ -59,6 +59,10 @@ test('Remove model', async() => {
     table.removeModel('Card')
     let models = table.listModels()
     expect(models.length).toBe(0)
+
+    await expect(async() => {
+        table.removeModel('Unknown')
+    }).rejects.toThrow()
 })
 
 test('Destroy table', async() => {
