@@ -214,7 +214,7 @@ To update an item:
 ```javascript
 await User.update({id: userId, balance: 50})
 await User.update({id: userId}, {add: {balance: 10.00}})
-await User.update({id: userId}, {set: {status: '{active}}})
+await User.update({id: userId}, {set: {status: '{active}'}})
 ```
 
 To do a transactional update:
@@ -255,17 +255,17 @@ const MySchema = {
 }
 
 //  Fully typed Account object based on the schema
-type Account = Entity<typeof MySchema.models.Account>
+type AccountType = Entity<typeof MySchema.models.Account>
 
-let account: Account = {
+let account: AccountType = {
     name: 'Coyote',        //  OK
     unknown: 42,           //  Error
 }
 
 //  Get an Account access model
-let AccountModel: Model<Account> = table.getModel('Account')
+let Account: Model<AccountType> = table.getModel<AccountType>('Account')
 
-let account = await AccountModel.update({
+let account = await Account.update({
     name: 'Acme',               //  OK
     unknown: 42,                //  Error
 })
