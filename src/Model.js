@@ -1144,13 +1144,19 @@ export class Model {
     }
 
     /*
-        Get a hash of all the property names of the indexes
+        Get a hash of all the property names of the indexes. Keys are properties, values are index names.
+        Primary takes precedence if property used in multiple indexes (LSIs)
      */
     getIndexProperties(indexes) {
         let properties = {}
         for (let [indexName, index] of Object.entries(indexes)) {
-            for (let pname of Object.values(index)) {
-                properties[pname] = indexName
+            for (let [type, pname] of Object.entries(index)) {
+                if (type == 'hash' || type == 'sort') {
+                    if (properties[pname] != 'primary') {
+                        //  Let primary take precedence
+                        properties[pname] = indexName
+                    }
+                }
             }
         }
         return properties

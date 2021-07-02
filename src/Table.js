@@ -223,14 +223,16 @@ export class Table {
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
+        let attributes = {}
         let indexes = this.indexes
+        
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
             if (name == 'primary') {
                 keys = def.KeySchema
             } else {
                 if (index.hash == null || index.hash == indexes.primary.hash) {
-                    collection = LocalSecondaryIndexes
+                    collection = 'LocalSecondaryIndexes'
                 } else {
                     collection = 'GlobalSecondaryIndexes'
                 }
@@ -253,19 +255,25 @@ export class Table {
                     }
                 })
             }
-            def.AttributeDefinitions.push({
-                AttributeName: index.hash,
-                AttributeType: 'S',
-            })
             keys.push({
                 AttributeName: index.hash || indexes.primary.hash,
                 KeyType: 'HASH',
             })
-            if (index.sort) {
+            if (!attributes[index.hash]) {
                 def.AttributeDefinitions.push({
-                    AttributeName: index.sort,
+                    AttributeName: index.hash,
                     AttributeType: 'S',
                 })
+                attributes[index.hash] = true
+            }
+            if (index.sort) {
+                if (!attributes[index.sort]) {
+                    def.AttributeDefinitions.push({
+                        AttributeName: index.sort,
+                        AttributeType: 'S',
+                    })
+                    attributes[index.sort] = true
+                }
                 keys.push({
                     AttributeName: index.sort,
                     KeyType: 'RANGE',
