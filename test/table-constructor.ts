@@ -4,6 +4,8 @@
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
+jest.setTimeout(7200 * 1000)
+
 let TableName = 'TableConstructorTestTable'
 let table: Table = null
 
@@ -82,7 +84,7 @@ test('Create table with provisioned throughput', async() => {
     expect(await table.exists()).toBe(false)
 })
 
-test('Create table LSI and project keys', async() => {
+test('Create table with GSI and project keys', async() => {
     table = new Table({
         name: TableName,
         client: Client,
@@ -98,6 +100,46 @@ test('Create table LSI and project keys', async() => {
                     id: { type: String, uuid: true },
                     email: { type: String, required: true },
                 }
+            }
+        }
+    })
+    expect(table instanceof Table).toBe(true)
+    await table.createTable()
+    expect(await table.exists()).toBe(true)
+    await table.deleteTable('DeleteTableForever')
+    expect(await table.exists()).toBe(false)
+})
+
+test('Create table with LSI and project', async() => {
+    table = new Table({
+        name: TableName,
+        client: Client,
+        schema: {
+            indexes: {
+                primary: { hash: 'pk', sort: 'sk' },
+                //  Should fail -- projects not legal
+                ls1: { sort: 'email', project: 'keys' },
+            },
+            models: {
+            }
+        }
+    })
+    expect(table instanceof Table).toBe(true)
+    await expect(async() => {
+        await table.createTable()
+    }).rejects.toThrow()
+})
+
+test('Create table with LSI', async() => {
+    table = new Table({
+        name: TableName,
+        client: Client,
+        schema: {
+            indexes: {
+                primary: { hash: 'pk', sort: 'sk' },
+                ls1: { sort: 'email' },
+            },
+            models: {
             }
         }
     })

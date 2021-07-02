@@ -232,6 +232,9 @@ export class Table {
             } else {
                 if (index.hash == null || index.hash == indexes.primary.hash) {
                     collection = 'LocalSecondaryIndexes'
+                    if (index.project) {
+                        throw new Error('Unwanted project for LSI')
+                    }
                 } else {
                     collection = 'GlobalSecondaryIndexes'
                 }
@@ -245,20 +248,23 @@ export class Table {
                 } else {
                     project = 'ALL'
                 }
-                def[collection].push({
+                let projDef = {
                     IndexName: name,
                     KeySchema: keys,
                     Projection: {
-                        NonKeyAttributes: attributes,
                         ProjectionType: project,
                     }
-                })
+                }
+                if (attributes) {
+                    projDef.Projection.NonKeyAttributes = attributes
+                }
+                def[collection].push(projDef)
             }
             keys.push({
                 AttributeName: index.hash || indexes.primary.hash,
                 KeyType: 'HASH',
             })
-            if (!attributes[index.hash]) {
+            if (index.hash && !attributes[index.hash]) {
                 def.AttributeDefinitions.push({
                     AttributeName: index.hash,
                     AttributeType: 'S',
@@ -281,6 +287,10 @@ export class Table {
         }
         if (def.GlobalSecondaryIndexes.length == 0) {
             delete def.GlobalSecondaryIndexes
+        } else if (provisioned) {
+            for (let index of def.GlobalSecondaryIndexes) {
+                index.ProvisionedThroughput = provisioned
+            }
         }
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
@@ -384,11 +394,6 @@ export class Table {
     clearContext() {
         this.context = {}
         return this
-    }
-
-    //  DEPRECATE
-    clear() {
-        return this.clearContext()
     }
 
     /*
