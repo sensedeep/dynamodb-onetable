@@ -14,8 +14,9 @@ export default {
             id:         { type: String, uuid: true },
             name:       { type: String },
             email:      { type: String },
+
             status:     { type: String, default: 'idle' },
-            tag:        { type: Number, default: (model, field, properties) => {
+            tag:        { type: 'number', default: (model, field, properties) => {
                             // Just to demonstrate default value function
                             return `${model.name}:${field}:${properties.name}`
                         }

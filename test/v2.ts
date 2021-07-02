@@ -36,6 +36,10 @@ test('Create Table', async() => {
     }
 })
 
+test('Set Client', async() => {
+    table.setClient(client)
+})
+
 test('Get Schema', () => {
     let schema:any = table.getSchema()
     expect(schema.name).toBe('V2TestTable')
@@ -49,6 +53,12 @@ test('List tables', async() => {
     let tables = await table.listTables()
     expect(tables.length).toBeGreaterThan(0)
     expect(tables).toContain('V2TestTable')
+})
+
+test('Describe Table', async() => {
+    let info:any = await table.describeTable()
+    expect(info.Table).toBeDefined()
+    expect(info.Table.TableName).toBe('V2TestTable')
 })
 
 test('List Models', async() => {

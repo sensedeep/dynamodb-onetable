@@ -4,8 +4,8 @@
 export default {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        ls1: { hash: 'pk', sort: 'ls1sk', project: 'all' },
-        ls2: { hash: 'pk', sort: 'ls2sk', project: 'all' },
+        ls1: { hash: 'pk', sort: 'ls1sk' },
+        ls2: { hash: 'pk', sort: 'ls2sk' },
     },
     models: {
         User: {

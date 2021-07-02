@@ -136,7 +136,7 @@ export class Table {
 
         if (crypto) {
             this.initCrypto(crypto)
-            this.crypto = Object.assign(crypto || {})
+            this.crypto = Object.assign(crypto)
             for (let [name, crypto] of Object.entries(this.crypto)) {
                 crypto.secret = Crypto.createHash('sha256').update(crypto.password, 'utf8').digest()
                 this.crypto[name] = crypto
@@ -146,7 +146,6 @@ export class Table {
     }
 
     setClient(client) {
-        if (!client) return
         this.client = client
         this.V3 = client.V3
         this.service = this.V3 ? this.client : this.client.service
@@ -192,10 +191,10 @@ export class Table {
     */
     prepSchema(params) {
         let {models, indexes} = params
-        if (!models || typeof models != 'object') {
+        if (!models) {
             throw new Error('Schema is missing models')
         }
-        if (!indexes || typeof indexes != 'object') {
+        if (!indexes) {
             throw new Error('Schema is missing indexes')
         }
         this.indexes = indexes
@@ -225,7 +224,7 @@ export class Table {
         }
         let attributes = {}
         let indexes = this.indexes
-        
+
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
             if (name == 'primary') {

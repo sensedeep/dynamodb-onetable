@@ -9,6 +9,7 @@ type TableConstructorParams = {
     createdField?: string,          //  Name of "created" timestamp attribute.
     crypto?: {},                    //  Crypto configuration.
     delimiter?: string,             //  Composite sort key delimiter (default ':').
+    generic?: boolean,              //  Create a generic (low-level) raw model. Default false.
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
 

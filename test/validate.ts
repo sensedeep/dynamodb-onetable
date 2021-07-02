@@ -24,6 +24,15 @@ test('Create Table', async() => {
     User = table.getModel('User')
 })
 
+test('Get Schema', () => {
+    let schema:any = table.getSchema()
+    expect(schema.name).toBe('ValidateTestTable')
+    expect(schema.models).toBeDefined()
+    expect(schema.indexes).toBeDefined()
+    expect(schema.models.User).toBeDefined()
+    expect(schema.models.User.pk).toBeDefined()
+})
+
 test('Create valid', async() => {
     let params = {
         name: 'Peter O\'Flanagan',
