@@ -757,7 +757,7 @@ export class Model {
         }
         let rec = this.transformProperties(op, this.block, index, properties, params)
 
-        if (op != 'scan' && rec[this.getHash(this.block.fields, index)] == null) {
+        if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
             throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
         }
         if (typeof params.transform == 'function') {
@@ -767,6 +767,21 @@ export class Model {
             rec = this.table.intercept(this, op, rec, params)
         }
         return rec
+    }
+
+    /*
+        Return the hash property name for the selected index.
+    */
+    getHash(rec, fields, index, params) {
+        let generic = params.generic != null ? params.generic : this.generic
+        if (generic) {
+            return rec[index.hash]
+        }
+        let field = Object.values(fields).find(f => f.attribute[0] == index.hash)
+        if (!field) {
+            return null
+        }
+        return rec[field.name]
     }
 
     /*
@@ -783,14 +798,6 @@ export class Model {
             index = this.indexes.primary
         }
         return index
-    }
-
-    /*
-        Return the hash property name for the selected index.
-    */
-    getHash(fields, index) {
-        let hash = Object.values(fields).find(f => f.attribute[0] == index.hash)
-        return hash ? hash.name : null
     }
 
     transformProperties(op, block, index, properties, params, context, rec = {}) {

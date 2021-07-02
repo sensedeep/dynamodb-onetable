@@ -21,9 +21,10 @@ type OneType =
     Schema.indexes signature
  */
 type OneIndexSchema = {
-    hash: string,
+    hash?: string,
     sort?: string,
     description?: string,
+    project?: string | string[],
     follow?: boolean,
 };
 
