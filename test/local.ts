@@ -1,10 +1,10 @@
 /*
-    crud.ts - Basic create, read, update delete
+    Local.ts - Test LSIs
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {LocalSchema} from './schemas'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'LocalTestTable',
