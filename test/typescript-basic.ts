@@ -23,7 +23,8 @@ describe('TypeScript', () => {
 
     type UserType = Entity<typeof NestedSchema.models.User>
     let User: Model<UserType> = table.getModel('User')
-    let user = null
+    let user: UserType = null
+
     const Properties: UserType = {
         name: 'Peter Smith',
         email: 'peter@example.com',

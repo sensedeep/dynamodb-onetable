@@ -17,7 +17,8 @@ const CardSchema = {
     id:     { type: Number },
     issuer: { type: String },
 }
-let Card = null
+type CardType = Entity<typeof CardSchema>
+let Card: Model<CardType> = null
 
 test('Create table', async () => {
     if (!(await table.exists())) {
@@ -26,7 +27,6 @@ test('Create table', async () => {
 })
 
 test('Create model', async () => {
-    type CardType = Entity<typeof CardSchema>
     //  This model is free-standing not added to the list of table models
     Card = new Model<CardType>(table, 'Card', {
         fields: CardSchema,
@@ -49,8 +49,10 @@ test('Add model', async() =>{
     expect(models.length).toBe(1)
     expect(models[0]).toBe('Card')
 
-    let cs = table.getModel('Card')
-    expect(cs).toBeDefined()
+    let Card = table.getModel<CardType>('Card')
+    expect(Card).toBeDefined()
+    let card = await Card.create({id: 99, issuer: 'amex'})
+    expect(card.issuer).toBe('amex')
 })
 
 test('Remove model', async() => {

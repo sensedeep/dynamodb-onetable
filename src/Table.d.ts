@@ -47,7 +47,7 @@ export class Table {
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    getModel(name: string): AnyModel;
+    getModel<T>(name: string): Model<T>;
     getSchema(): {};
     groupByType(items: AnyEntity[]): {};
     listModels(): AnyModel[];
