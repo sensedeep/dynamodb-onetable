@@ -11,16 +11,17 @@ const table = new Table({
     logger: true,
 })
 
+let User
+let user: any
+let users: any[]
+
 test('Create Table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
+    User = table.getModel('User')
 })
-
-let User = table.getModel('User')
-let user: any
-let users: any[]
 
 let data = [
     {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
@@ -42,7 +43,6 @@ test('Update via where', async() => {
     expect(users.length).toBe(data.length)
     let item = await User.update({id: users[0].id, status: 'suspended'}, {
         where: '${status} = {active}',
-        // log: true,
     })
     expect(item.status).toBe('suspended')
 })
