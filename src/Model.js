@@ -282,6 +282,9 @@ export class Model {
          */
         let t = params.transaction
         if (t) {
+            if (params.batch) {
+                throw new Error('Cannot have batched transactions')
+            }
             let top = TransactOps[op]
             if (top) {
                 params.expression = expression
@@ -427,6 +430,7 @@ export class Model {
                 let params = expression.params
                 let properties = expression.properties
                 items.start = this.table.unmarshall(result.LastEvaluatedKey)
+                //  DEPRECATED - not ideal as the stack depth can get large unless tail-recursion is supported
                 items.next = async () => {
                     params = Object.assign({}, params, {start: items.start})
                     if (!params.high) {
@@ -491,6 +495,9 @@ export class Model {
         unique attribute.
      */
     async createUnique(properties, params) {
+        if (params.batch) {
+            throw new Error('Cannot use batch with unique properties which require transactions')
+        }
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
@@ -570,7 +577,7 @@ export class Model {
 
     /*
         Remove an item with unique properties. Use transactions to remove unique items.
-     */
+    */
     async removeUnique(properties, params) {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
@@ -659,6 +666,21 @@ export class Model {
         properties = this.prepareProperties('update', properties, params)
         let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
+    }
+
+    /* private */
+    async fetch(models, properties = {}, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
+
+        let where = []
+        for (let model of models) {
+            where.push(`\${${this.typeField}} = {${model}}`)
+        }
+        params.where = where.join(' or ')
+        params.parse = true
+
+        let items = await this.queryItems(properties, params)
+        return this.table.groupByType(items)
     }
 
     /*
@@ -878,8 +900,7 @@ export class Model {
         Add context to properties for key fields and if put, then for all fields.
         Context overrides properties.
      */
-    addContext(op, fields, index, properties, params) {
-        let context = params.context ? params.context : this.table.context
+    addContext(op, fields, index, properties, params, context) {
         for (let field of Object.values(fields)) {
             if (op == 'put' || (field.attribute[0] != index.hash && field.attribute[0] != index.sort)) {
                 if (context[field.name] !== undefined) {
