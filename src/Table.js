@@ -507,6 +507,10 @@ export class Table {
         return await this.genericModel.updateItem(properties, params)
     }
 
+    async fetch(models, properties, params) {
+        return await this.genericModel.fetch(models, properties, params)
+    }
+
     /*
         Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
