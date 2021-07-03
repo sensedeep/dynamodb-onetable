@@ -44,6 +44,7 @@ export class Table {
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     describeTable(): Promise<{}>;
+    fetch(models: string[], properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};

@@ -123,6 +123,7 @@ type ModelConstructorOptions = {
 export type OneParams = {
     add?: object,
     batch?: object,
+    between?: any[],
     capacity?: string,
     consistent?: boolean,
     context?: object,
