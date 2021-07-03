@@ -164,7 +164,8 @@ export type OneProperties = {
 
 export class Paged<T> extends Array {
     start: string;
-    next: () => Paged<T>;
+    //  DEPRECATED
+    next: () => Promise<Paged<T>>;
 }
 
 export type AnyModel = {
