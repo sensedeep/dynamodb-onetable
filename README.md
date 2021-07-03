@@ -24,7 +24,7 @@ After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.yo
 
 OneTable was used in production by the [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
-A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/) blog, posts and code.
+A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/).
 
 ## OneTable Features
 
@@ -226,11 +226,15 @@ await User.update({id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 ```
 
-## Working Sample
+## Working Samples
 
 To get you going quickly, try out the working samples in the OneTable repository at:
 
-[OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
+* [OneTable Overview Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/overview)
+* [OneTable CRUD Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/crud)
+* [All OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
+
+Checkout the
 
 ## TypeScript
 
@@ -564,7 +568,7 @@ Set batch params.consistent for a consistent read.
 Same as batchGet but for write operations.
 
 
-#### clear()
+#### clearContext()
 
 Clear the table context properties. The `Table` has a `context` of properties that are blended with `Model` properties before writing items to the database.
 
@@ -961,20 +965,6 @@ do {
     //  process items
     start = items.start
 } while (start)
-```
-
-If the limit is exceeded, an `result.next` property is also set to a callback function so you can easily invoke the API to retrieve the next page of results. For example:
-
-```javascript
-let items = await db.queryItems({...}, {limit: 100})
-while (items.length) {
-    //  process items
-    if (items.next) {
-        items = await items.next()
-    } else {
-        break
-    }
-}
 ```
 
 Note: the limit is the number of items read by DynamoDB before filtering and is thus not equal to the number of items returned.

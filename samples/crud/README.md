@@ -10,17 +10,12 @@ It has the following features:
 * Create, delete and test for existence of a DynamoDB table
 * Entity model create, find, update and delete with removing attributes
 * AWS V3 SDK
+* Starts own DynamoDB instance on port 4567
 
 ## Read the Code
 
 * [CRUD Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud/src/index.js)
 
-
-## Requirements
-
-* DynamoDB instance on localhost:8000.
-
-Read [Local DynamoDB](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) for a local DynamoDB.
 
 ## Building
 

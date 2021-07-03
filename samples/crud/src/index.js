@@ -15,13 +15,7 @@ import DynamoDbLocal from 'dynamo-db-local'
 import Dynamo from '../../../dist/mjs/Dynamo.js'
 import { Table } from '../../../dist/mjs/index.js'
 
-/*
-    Start the DynamoDB instance
-*/
 const PORT = 4567
-let dynamodb = DynamoDbLocal.spawn({port: PORT})
-// process.env.DYNAMODB_PID = dynamodb.pid
-// process.env.DYNAMODB_PORT = PORT.toString()
 
 const client = new Dynamo({
     client: new DynamoDBClient({
@@ -63,11 +57,21 @@ const table = new Table({
 //  Create a model to manage User entities
 const User = table.getModel('User')
 
-async function main() {
+let dynamodb = null
 
-    if (!(await table.exists())) {
-        await table.createTable()
-    }
+async function start() {
+    //  Start the dynamodb instance and then short wait for it to open a listening port.
+    dynamodb = DynamoDbLocal.spawn({port: PORT})
+    await delay(1000)
+}
+
+async function stop() {
+    process.kill(dynamodb.pid)
+}
+
+async function test() {
+
+    await table.createTable()
 
     let user = await User.create({
         name: 'Peter Smith',
@@ -95,6 +99,24 @@ async function main() {
 
     //  Cleanup. The argument is a safety string
     await table.deleteTable('DeleteTableForever')
+
+    process.kill(dynamodb.pid)
+}
+
+async function delay(time) {
+    return new Promise(function(resolve, reject) {
+        setTimeout(() => resolve(true), time)
+    })
+}
+
+async function main() {
+    await start()
+    try {
+        await test()
+    } catch (err) {
+        console.error(err)
+    }
+    await stop()
 }
 
 main()

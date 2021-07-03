@@ -5,5 +5,4 @@ types
 node_modules
 dist/
 coverage
-samples/nested
 .coveralls.yml
