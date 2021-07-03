@@ -371,9 +371,11 @@ export class Table {
     }
 
     removeModel(name) {
-        if (this.getModel(name)) {
-            delete this.models[name]
+        let model = this.models[name.toString()]
+        if (!model) {
+            throw new Error(`Cannot find model ${name}`)
         }
+        delete this.models[name.toString()]
     }
 
     getContext() {
@@ -437,7 +439,7 @@ export class Table {
         let result
         try {
             this.log('trace', `Dynamo batchGet on "${this.name}"`, {batch}, params)
-            batch.ConsistentRead = params.ConsistenRead ? true : false
+            batch.ConsistentRead = params.consistent ? true : false
             if (this.V3) {
                 result = await this.client.batchGet(batch)
             } else {
@@ -512,13 +514,16 @@ export class Table {
         let result
         try {
             this.log('trace', `Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
+            let promise
             if (op == 'write') {
-                result = await this.client.transactWrite(transaction)
+                promise = this.client.transactWrite(transaction)
             } else {
-                result = await this.client.transactGet(transaction)
+                promise = this.client.transactGet(transaction)
             }
-            if (!this.V3) {
-                result = result.promise()
+            if (this.V3) {
+                result = await promise
+            } else {
+                result = await promise.promise()
             }
             if (op == 'get') {
                 if (params.parse) {

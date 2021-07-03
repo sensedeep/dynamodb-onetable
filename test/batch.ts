@@ -41,7 +41,11 @@ test('Batch get', async() => {
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
     }
-    let items:any = await table.batchGet(batch, {parse: true, hidden: false})
+    let items:any = await table.batchGet(batch, {
+        parse: true, 
+        hidden: false,
+        consistent: true,
+    })
     expect(items.length).toBe(data.length)
 
     for (let item of items) {
@@ -65,6 +69,33 @@ test('Batch put and delete combined', async() => {
     expect(users[0]).toMatchObject(data[0])
 })
 
+test('Batch get without parse', async() => {
+    let batch = {}
+    for (let user of users) {
+        table.get('User', {id: user.id}, {batch})
+    }
+    let response: any = await table.batchGet(batch, {hidden: false})
+    expect(response.Responses).toBeDefined()
+    expect(response['$metadata']).toBeDefined()
+})
+
+test('Batch with error', async() => {
+    let batch: any = {}
+    for (let user of users) {
+        table.get('User', {id: user.id}, {batch})
+    }
+    await expect(async() => {
+        delete batch.RequestItems 
+        await table.batchGet(batch, {parse: true, hidden: false, consistent: true})
+    }).rejects.toThrow()
+
+    batch = {}
+    table.create('User', {name: 'Buy MoreMilk', email: 'milk@example.com', status: 'inactive'}, {batch})
+    await expect(async() => {
+        delete batch.RequestItems 
+        await table.batchWrite(batch)
+    }).rejects.toThrow()
+})
 
 test('Destroy', async() => {
     await table.deleteTable('DeleteTableForever')

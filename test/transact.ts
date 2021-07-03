@@ -51,6 +51,15 @@ test('Transaction get', async() => {
     }
 })
 
+test('Transaction get without parse', async() => {
+    let transaction = {}
+    for (let user of users) {
+        table.get('User', {id: user.id}, {transaction})
+    }
+    let results:any = await table.transact('get', transaction, {parse: false, hidden: true})
+    expect(results.Responses.length).toBe(users.length)
+})
+
 test('Transaction update', async() => {
     let transaction = {}
     for (let user of users) {

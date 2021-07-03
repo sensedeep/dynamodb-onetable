@@ -121,6 +121,12 @@ test('Create table with LSI and project', async() => {
                 ls1: { sort: 'email', project: 'keys' },
             },
             models: {
+                User: {
+                    pk:     { type: String, value: 'user#${email}' },
+                    sk:     { type: String, value: 'user#' },
+                    name:   { type: String },
+                    email:  { type: String },
+                }
             }
         }
     })
@@ -138,8 +144,15 @@ test('Create table with LSI', async() => {
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
                 ls1: { sort: 'email' },
+                gs1: { hash: 'name', sort: 'email' },
             },
             models: {
+                User: {
+                    pk:     { type: String, value: 'user#${email}' },
+                    sk:     { type: String, value: 'user#' },
+                    name:   { type: String },
+                    email:  { type: String },
+                }
             }
         }
     })

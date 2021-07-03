@@ -7,6 +7,12 @@ import DynamoDB from 'aws-sdk/clients/dynamodb'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
+let data = [
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
+    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+]
+
 const client = new DynamoDB.DocumentClient({
     endpoint: `http://localhost:${PORT}`,
     region: 'local',
@@ -194,6 +200,60 @@ test('Remove all users', async() => {
     }
     users = await User.scan({})
     expect(users.length).toBe(0)
+})
+
+test('Batch put', async() => {
+    let batch = {}
+    for (let item of data) {
+        table.create('User', item, {batch})
+    }
+    await table.batchWrite(batch)
+    users = await table.scan('User')
+    expect(users.length).toBe(data.length)
+})
+
+test('Batch get', async() => {
+    let batch = {}
+    for (let user of users) {
+        table.get('User', {id: user.id}, {batch})
+    }
+    let items:any = await table.batchGet(batch, {parse: true, hidden: false})
+    expect(items.length).toBe(data.length)
+
+    for (let item of items) {
+        let datum = data.find(i => i.name == item.name)
+        expect(item).toMatchObject(datum)
+    }
+    //  Cleanup
+    users = await User.scan({})
+    for (let user of users) {
+        await User.remove({id: user.id})
+    }
+})
+
+test('Transaction create', async() => {
+    let transaction = {}
+    for (let item of data) {
+        table.create('User', item, {transaction})
+    }
+    await table.transact('write', transaction, {parse: true, hidden: false})
+
+    users = await table.scan('User')
+    expect(users.length).toBe(data.length)
+})
+
+test('Transaction get', async() => {
+    let transaction = {}
+    for (let user of users) {
+        table.get('User', {id: user.id}, {transaction})
+    }
+    let items:any = await table.transact('get', transaction, {parse: true, hidden: false})
+    expect(items.length).toBe(data.length)
+
+    for (let item of items) {
+        let datum = data.find(i => i.name == item.name)
+        expect(item).toMatchObject(datum)
+    }
 })
 
 test('Destroy Table', async() => {

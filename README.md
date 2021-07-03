@@ -557,6 +557,7 @@ await User.get({id: userId}, {batch})
 let results = await table.batchGet(batch)
 ```
 
+Set batch params.consistent for a consistent read.
 
 #### async batchWrite(batch, params = {})
 
