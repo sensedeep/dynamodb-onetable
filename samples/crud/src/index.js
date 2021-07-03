@@ -1,20 +1,32 @@
 /*
     Demonstrate simple CRUD with OneTable
+
+    This sample runs its own local dynamodb instance on port 4567
  */
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { Table } from 'dynamodb-onetable'
+import DynamoDbLocal from 'dynamo-db-local'
 
 //  For AWS V3
-import Dynamo from 'dynamodb-onetable/Dynamo'
+// import Dynamo from 'dynamodb-onetable/Dynamo'
+// import { Table } from 'dynamodb-onetable'
 
 //  To debug locally
-// import { Table } from '../../../dist/mjs/index.js'
-// import Dynamo from '../../../dist/mjs/Dynamo.js'
+import Dynamo from '../../../dist/mjs/Dynamo.js'
+import { Table } from '../../../dist/mjs/index.js'
+
+/*
+    Start the DynamoDB instance
+*/
+const PORT = 4567
+let dynamodb = DynamoDbLocal.spawn({port: PORT})
+// process.env.DYNAMODB_PID = dynamodb.pid
+// process.env.DYNAMODB_PORT = PORT.toString()
 
 const client = new Dynamo({
     client: new DynamoDBClient({
-        region: 'local', endpoint: 'http://localhost:8000'
+        region: 'local',
+        endpoint: `http://localhost:${PORT}`,
     })
 })
 

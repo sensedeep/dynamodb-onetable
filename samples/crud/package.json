@@ -1,7 +1,7 @@
 {
     "name": "onetable-sample-crud",
-    "version": "1.0.0",
     "description": "Demonstrate basic OneTable CRUD",
+    "version": "1.0.0",
     "main": "index.js",
     "type": "module",
     "scripts": {
@@ -12,9 +12,10 @@
         "@aws-sdk/client-dynamodb": "^3.18.0",
         "@aws-sdk/util-dynamodb": "^3.18.0",
         "core-js": "^3.15.1",
-        "dynamodb-onetable": "^1.4.8"
+        "dynamodb-onetable": "^1"
     },
     "devDependencies": {
+        "dynamo-db-local": "^4.0.2",
         "typescript": "^4.3.4"
     }
 }

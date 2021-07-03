@@ -4,7 +4,6 @@
 export default {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        //  MOB - try project keys
         gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: 'all' },
     },
     models: {
