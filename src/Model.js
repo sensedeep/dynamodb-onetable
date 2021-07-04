@@ -439,8 +439,6 @@ export class Model {
                     }
                     return await this[op](properties, params)
                 }
-            } else {
-                items.start = result.LastEvaluatedKey
             }
             return items
         }
@@ -994,6 +992,9 @@ export class Model {
             let [name, len, pad] = varName.split(':')
             let v = properties[name]
             if (v !== undefined) {
+                if (v instanceof Date) {
+                    v = this.transformWriteDate(v)
+                }
                 if (len) {
                     //  Add leading padding for sorting numerics
                     pad = pad || '0'

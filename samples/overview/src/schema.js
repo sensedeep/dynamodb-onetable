@@ -14,9 +14,10 @@ const Match = {
 export default {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs2pk', 'data'] },
+        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs1sk', 'data'] },
     },
     models: {
+
         Account: {
             pk:         { type: String, value: 'account#${id}' },
             sk:         { type: String, value: 'account#' },
@@ -24,10 +25,11 @@ export default {
             name:       { type: String, required: true, unique: true, validate: Match.name },
             balance:    { type: Number, default: 0 },
 
-            //  Search by account name
-            gs1pk:      { type: String, value: 'account#${name}' },
-            gs1sk:      { type: String, value: 'account#' },
+            //  Search by account name or by type
+            gs1pk:      { type: String, value: 'account#' },
+            gs1sk:      { type: String, value: 'account#${name}${id}' },
         },
+
         User: {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'user#${email}' },
@@ -46,26 +48,38 @@ export default {
             status:     { type: String, required: true, default: 'active', enum: ['active', 'inactive'] },
             balance:    { type: Number, default: 0 },
 
-            //  Search by user name
-            gs1pk:      { type: String, value: 'user#${name}' },
-            gs1sk:      { type: String, value: 'user#${id}' },
+            //  Search by user name or by type
+            gs1pk:      { type: String, value: 'user#' },
+            gs1sk:      { type: String, value: 'user#${name}#${id}' },
         },
+
         Product: {
             pk:         { type: String, value: 'product#${id}' },
             sk:         { type: String, value: 'product#' },
             id:         { type: String, uuid: true, validate: Match.ulid },
             name:       { type: String, required: true },
             price:      { type: Number, required: true },
+
+            //  Search by product name or by type
+            gs1pk:      { type: String, value: 'product#' },
+            gs1sk:      { type: String, value: 'product#${name}#${id}' },
         },
+
         Invoice: {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'invoice#${id}' },
+
+            //  MOB - between won't work
             accountId:  { type: String, required: true },
             date:       { type: Date, default: () => new Date() },
             id:         { type: String, uuid: true },
             product:    { type: String },
             count:      { type: Number },
             total:      { type: Number },
+
+            //  Search by invoice date or by type
+            gs1pk:      { type: String, value: 'invoice#' },
+            gs1sk:      { type: String, value: 'invoice#${date}#${id}' },
         }
     }
 }
