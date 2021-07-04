@@ -1,7 +1,8 @@
 /*
     OneTable Overview -- in JavaScript
 
-    This sample runs its own local dynamodb instance on port 4567
+    If using typescript, see the 'typescript' overview sample.
+    This sample runs its own local dynamodb instance on port 4567.
  */
 
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
@@ -11,10 +12,13 @@ import DynamoDbLocal from 'dynamo-db-local'
 // import Dynamo from 'dynamodb-onetable/Dynamo'
 // import { Table } from 'dynamodb-onetable'
 
-//  To debug locally
+//  Use local source when debugging
 import Dynamo from '../../../dist/mjs/Dynamo.js'
 import { Table } from '../../../dist/mjs/index.js'
 
+/*
+    Import the OneTable schema
+*/
 import Schema from './schema.js'
 
 //  Local DynamoDB connection port
@@ -50,13 +54,6 @@ const table = new Table({
     schema: Schema,
 })
 
-/*  For typescript, create types
-type AccountType = Entity<typeof Schema.models.Account>
-type InvoiceType = Entity<typeof Schema.models.Invoice>
-type ProductType = Entity<typeof Schema.models.Product>
-type UserType = Entity<typeof Schema.models.User>
-*/
-
 let dynamodb = null
 
 async function start() {
@@ -66,6 +63,7 @@ async function start() {
 }
 
 async function stop() {
+    //  Stop the local test dynamodb instance
     process.kill(dynamodb.pid)
 }
 
@@ -75,11 +73,8 @@ async function test() {
     */
     await table.createTable()
 
-    /*  Create typed models. We can also access items using the table APIs. E.g. table.get('User', ...)
-    const Account = table.getModel<AccountType>('Account')
-    const Invoice = table.getModel<InvoiceType>('Invoice')
-    const Product = table.getModel<ProductType>('Product')
-    const User = table.getModel<UserType>('User')
+    /*
+        Get OneTable entities. You can use these models for create/read/write etc. Or you can use table.*('Account').
     */
     const Account = table.getModel('Account')
     const Invoice = table.getModel('Invoice')
@@ -190,11 +185,21 @@ async function test() {
     collection = await table.fetch(['Account', 'User', 'Invoice'], {pk: `account#${account.id}`})
 
     /*
-        Get invoices for the account this month
+        Get invoices for the account this month. The sk is of the form invoice#iso-date#id
+        So we take advantage of the fact that ISO dates sort.
     */
-    let to = new Date()
-    let from = new Date().setMonth(to.getMonth() - 1)
-    let invoices = await Invoice.find({}, {between: [from, to]})
+    let from = new Date()
+    from.setMonth(from.getMonth() - 1)
+    let invoices = await Invoice.find({gs1sk: {
+        between: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`]}
+    }, {index: 'gs1', follow: true})
+
+    /*
+        For maintenance, useful to be able to query by entity type. This is not a costly scan.
+    */
+    let accounts = await Account.find({}, {index: 'gs1'})
+    users = await Users.find({}, {index: 'gs1'})
+    invoices = await Invoice.find({}, {index: 'gs1'})
 
     /*
         Cleanup
