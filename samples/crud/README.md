@@ -29,3 +29,9 @@ make build
 ```
 make run
 ```
+
+## To debug in VS CODE
+
+```
+code .
+```

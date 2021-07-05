@@ -64,6 +64,13 @@ onetable migrate up             # To apply the v0.0.1 migration
 ```
 
 
+## To debug Migrate.js or your migrations in VS CODE, use `make debug` instead of `make run`.
+
+```
+make debug
+```
+
+
 ### Example Commands
 
 Here is a list of available commands:

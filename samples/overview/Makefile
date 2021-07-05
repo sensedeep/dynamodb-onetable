@@ -11,3 +11,6 @@ run:
 
 configure:
 	npm install
+
+debug:
+	code .
