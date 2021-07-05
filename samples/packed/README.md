@@ -1,8 +1,7 @@
 OneTable Packed Attributes sample
 ===
 
-This sample demonstrates how to pack properties into a single attribute. Useful when projecting a single
-data attribute to a GSI.
+This sample demonstrates how to pack properties into a single attribute. Useful when projecting a single data attribute to a GSI.
 
 This demonstrates the techniques discussed in:
 
