@@ -837,6 +837,7 @@ export class Model {
         if (!context) {
             context = params.context ? params.context : this.table.context
         }
+        this.tunnelProperties(properties, params)
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, fields, properties, params)
@@ -854,6 +855,20 @@ export class Model {
             }
         }
         return this.selectProperties(op, block, index, properties, params, rec)
+    }
+
+    /*
+        For typescript, we cant use properties: {name: [between], name: {begins}}
+        so tunnel from the params. Works for between, begins, < <= = >= >
+    */
+    tunnelProperties(properties, params) {
+        if (params.tunnel) {
+            for (let [kind, settings] of Object.values(params.tunnel)) {
+                for (let [key, value] of Object.entries(settings)) {
+                    properties[key] = {[kind]: value}
+                }
+            }
+        }
     }
 
     /*

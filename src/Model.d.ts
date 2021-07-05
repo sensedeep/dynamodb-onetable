@@ -151,6 +151,7 @@ export type OneParams = {
     throw?: boolean,
     transaction?: object,
     type?: string,
+    tunnel?: object,
     updateIndexes?: boolean,
     where?: string,
 };

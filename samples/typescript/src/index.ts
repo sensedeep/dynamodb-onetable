@@ -190,18 +190,24 @@ async function test() {
     /*
         Get invoices for the account this month. The sk is of the form invoice#iso-date#id
         So we take advantage of the fact that ISO dates sort.
+        For TypeScript, we can supply the between: {} parameter directly in properties, so we tunnel via params.
     */
     let from = new Date()
     from.setMonth(from.getMonth() - 1)
-    let invoices = await Invoice.find({gs1sk: {
-        between: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`]}
-    }, {index: 'gs1', follow: true})
+    debugger
+    let invoices = await Invoice.find({}, {
+        tunnel: { between: {
+            gs1sk: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`],
+        } },
+        index: 'gs1',
+        follow: true,
+    })
 
     /*
         For maintenance, useful to be able to query by entity type. This is not a costly scan.
     */
     let accounts = await Account.find({}, {index: 'gs1'})
-    users = await Users.find({}, {index: 'gs1'})
+    users = await User.find({}, {index: 'gs1'})
     invoices = await Invoice.find({}, {index: 'gs1'})
 
     /*

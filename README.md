@@ -697,13 +697,22 @@ begins or begins_with
 between
 ```
 
-Additional fields supplied in `properties` are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
+For TypeScript, the OneTable creates strict typings which make using {beings}, {between} etc. To accomodate TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
+
+```typescript
+let user = await table.queryItems({pk}, {tunnel: {begins: {sk: 'user:john'}}})
+let tickets = await table.queryItems({pk}, {tunnel: {between: {sk: [1000, 2000]}}})
+let invoices = await table.queryItems({pk}, {tunnel: {'<=': {sk: 1000}}})
+```
+
+Non-key fields are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
 
 More complex filter expressions may be created via a `params.where` property. For example:
 
 ```javascript
 let invoices = await table.queryItems({pk}, {where: '${sk} <= {1000}'})
 ```
+
 See [Where Clause](#where-clauses) for more details.
 
 If `queryItems` is called without a sort key, `queryItems` will utilize the model type as a sort key prefix and return all matching model items. This can be used to fetch all items that match the primary hash key and are of the specified model type.
