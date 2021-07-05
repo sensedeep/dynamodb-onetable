@@ -1,4 +1,4 @@
-OneTable Overview sample
+OneTable TypeScript sample
 ===
 
 This sample demonstrates a tour of the important features of OneTable.
@@ -15,7 +15,7 @@ It has the following features:
 
 ## Read the Code
 
-* [Overview Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/overview/src/index.js)
+* [Overview Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/typescript/src/index.ts)
 
 ## Building
 
