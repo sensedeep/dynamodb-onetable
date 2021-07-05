@@ -280,8 +280,6 @@ The latest migration should remove all data from the database and then initializ
 
 When creating your `latest.js` migration, be very careful when removing all items from the database. We typically protect this with a test against the deployment profile to ensure you never do this on a production database.
 
-```
-
 ### References
 
 - [OneTable NPM](https://www.npmjs.com/package/dynamodb-onetable)
