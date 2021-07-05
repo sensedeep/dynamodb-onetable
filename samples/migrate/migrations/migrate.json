@@ -1,0 +1,12 @@
+{
+    "schema": "./Schema.js",
+    "name": "onetable-migrate",
+    "arn": "migrate-dev-invoke",
+    "aws": {
+        "accessKeyId": "test",
+        "secretAccessKey": "test",
+        "region": "local",
+        "endpoint": "http://localhost:5001"
+    }
+
+}

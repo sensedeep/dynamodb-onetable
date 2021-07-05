@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [{
+        "name": "Debug",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceRoot}",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": [
+            "--preserve-symlinks",
+            "run-script",
+            "debug"
+        ],
+        "skipFiles": [
+            "<node_internals>/**"
+        ],
+        "port": 9229
+    }]
+}

@@ -6,4 +6,4 @@ node_modules
 dist/
 coverage
 .coveralls.yml
-samples/migrate
+.dynamodb
