@@ -1,6 +1,8 @@
 OneTable samples
 ===
 
+![Samples](https://www.sensedeep.com/images/onetable-logo.png)
+
 These samples are provided to help you get started with OneTable and single-table designs for DynamoDB.
 
 To get you going quickly, try out the working samples in the OneTable repository at:
