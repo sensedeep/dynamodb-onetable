@@ -122,7 +122,8 @@ export class Expression {
         let attribute = field.attribute
 
         /*
-            Handle mapped and packed attributes
+            Handle mapped and packed attributes.
+            The attribute[0] contains the top level attribute name. Attribute[1] contains a nested mapping name.
         */
         if (attribute.length > 1) {
             let mapped = this.mapped
@@ -132,6 +133,7 @@ export class Expression {
             properties[k] = value
             return
         }
+        //  Pathname may contain a '.'
         let pathname = attribute[0]
         let att = pathname.split('.').shift()
 
@@ -457,6 +459,9 @@ export class Expression {
         return args
     }
 
+    /*
+        Join the terms with 'and'
+    */
     and(terms) {
         if (terms.length == 1) {
             return terms.join('')
@@ -464,6 +469,9 @@ export class Expression {
         return terms.map(t => `(${t})`).join(' and ')
     }
 
+    /*
+        Add a name to the ExpressionAttribute names. Optimize duplicates and only store unique names once.
+    */
     addName(name) {
         let index = this.namesMap[name]
         if (index == null) {
@@ -474,6 +482,10 @@ export class Expression {
         return index
     }
 
+    /*
+        Add a value to the ExpressionAttribute values. Optimize duplicates and only store unique names once.
+        Except for numbers because we don't want to confuse valuesMap indexes. i.e. 7 vs "7"
+    */
     addValue(value) {
         let index
         if (value && typeof value != 'object' && typeof value != 'number') {

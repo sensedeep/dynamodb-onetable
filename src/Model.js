@@ -1219,6 +1219,10 @@ export class Model {
         return {params, properties}
     }
 
+    /*
+        DynamoDB cannot handle empty strings (Ugh!).  Remove here from objects.
+        Handle nulls properly according to nulls preference.
+    */
     removeEmptyStrings(field, obj) {
         let result
         if (obj !== null && typeof obj == 'object') {
