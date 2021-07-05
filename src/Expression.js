@@ -221,6 +221,9 @@ export class Expression {
                 let matched = value.match(/^"(.*)"$/)
                 if (matched) {
                     index = this.addValue(matched[1])
+                } else if (value instanceof Date) {
+                    value = this.table.transformWriteDate(value)
+                    index = this.addValue(value)
                 } else if (value == 'true' || value == 'false') {
                     index = this.addValue(value == 'true' ? true : false)
                 } else {
