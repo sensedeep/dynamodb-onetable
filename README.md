@@ -442,7 +442,7 @@ The `schema.indexes` property can contain one or more indexes and must contain t
 
 Note the hash and sort names are schema property names which may differ from table attribute names if you are using mapping.
 
-The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of properties to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable API.
+The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of attributes (not properties) to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable API.
 
 The `follow` property is used to support GSI indexes that project KEYS_ONLY or only a subset of an items properties. When `follow` is true, any fetch of an item via the GSI will be transparently followed by a fetch of the full item using the primary index and the GSI projected keys. This incurs an additional request for each item, but for large data sets, it is useful to minimize the size of a GSI and yet retain access to full items.
 
