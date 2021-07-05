@@ -574,7 +574,11 @@ export class Model {
             throw new Error(`dynamo: warning: removing multiple items from "${this.name}". Use many:true to enable.`)
         }
         for (let item of items) {
-            await this.remove(item, {retry: true})
+            if (this.hasUniqueFields) {
+                await this.removeUnique(item, {retry: true})
+            } else {
+                await this.remove(item, {retry: true})
+            }
         }
     }
 
