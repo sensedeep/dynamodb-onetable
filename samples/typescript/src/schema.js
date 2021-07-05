@@ -38,7 +38,6 @@ export default {
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email, crypt: true },
 
-            //  MOB - get map working with nested schema
             address:    { type: Object, default: {}, schema: {
                 street: { type: String, /* map: 'data.street' */ },
                 city:   { type: String, /* map: 'data.city' */ },
@@ -69,7 +68,6 @@ export default {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'invoice#${id}' },
 
-            //  MOB - between won't work
             accountId:  { type: String, required: true },
             date:       { type: Date, default: () => new Date() },
             id:         { type: String, uuid: true },

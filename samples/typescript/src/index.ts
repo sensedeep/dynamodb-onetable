@@ -117,7 +117,6 @@ async function test() {
      */
     let collection = await table.fetch(['Account', 'User', 'Invoice'], {pk: `account#${account.id}`})
 
-    //  MOB - this should be able to be mapped too?
     user = await User.update({email: 'roadrunner@acme.com'}, {set: {'address.zip': '{"98034"}'}})
 
     /*
