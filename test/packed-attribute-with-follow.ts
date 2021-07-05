@@ -41,13 +41,16 @@ test('Get User', async() => {
 
 test('Find without follow', async() => {
     //  Without follow will fetch just the GSI data
-    let items: any = await User.find({name: 'Peter Smith'}, {index: 'gs1'})
+    let items: any = await User.find({name: 'Peter Smith'}, {index: 'gs1', hidden: true})
     expect(items.length).toBe(1)
     let item = items[0]
     expect(item.pk).toBeDefined()
     expect(item.gs1pk).toBeDefined()
     expect(item.gs1sk).toBeDefined()
-    expect(item.data).toBeDefined()
+    expect(item.address).toBeDefined()
+    expect(item.city).toBeDefined()
+    expect(item.zip).toBeDefined()
+    expect(item.name).toBeUndefined()
 })
 
 test('Find with follow', async() => {

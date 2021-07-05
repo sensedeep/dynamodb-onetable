@@ -1,5 +1,8 @@
 /*
     Schema with mapped properties
+
+    Mapped properties use an abbreviated name for the actual attributes.
+    This makes the raw table harder to read, but uses less RCU/WCU in writing the attribute names.
  */
 export default {
     indexes: {
@@ -7,12 +10,10 @@ export default {
             hash: 'pk',     //  Attribute names
             sort: 'sk'
         },
-        //MOB are project mapped or unmapped?
         gs1: {
-            hash: 'gs1pk',
-            sort: 'gs1sk',
-            project: 'all'
-                /*['data', 'gs1pk', 'gs1sk'] */
+            hash: 'pk1',    //  Attribute names
+            sort: 'sk1',
+            project: ['pk1', 'sk1', 'data'],
         },
     },
     models: {
@@ -29,9 +30,9 @@ export default {
             city:        { type: String, map: 'data.city' },
             zip:         { type: String, map: 'data.zip' },
 
-            //  Find by type
-            secHash:     { type: String, value: 'ty#us', map: 'gs1pk' },
-            secSort:     { type: String, value: 'us#${id}', map: 'gs1sk' },
+            //  Find by type or email
+            gs1pk:     { type: String, value: 'ty#us', map: 'pk1' },
+            gs1sk:     { type: String, value: 'us#${email}', map: 'sk1' },
         }
     }
 }

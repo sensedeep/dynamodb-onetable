@@ -109,8 +109,8 @@ export class Model {
         size            Number (not implemented)
         transform       Transform hook function
         type            String, Boolean, Number, Date, 'Set', Buffer, Binary, Set, Object, Array
-        uuid            true, 'uuid', 'ulid'
         unique          Boolean
+        uuid            true, 'uuid', 'ulid'
         validate        RegExp or "/regexp/qualifier"
         value           String template, function, array
      */
@@ -396,8 +396,12 @@ export class Model {
             }
             if (op == 'find') {
                 let results = [], promises = []
+                params = Object.assign({}, params)
+                delete params.follow
+                delete params.index
+                delete params.fallback
                 for (let item of items) {
-                    promises.push(this.get(item))
+                    promises.push(this.get(item, params))
                     if (promises.length > FollowThreads) {
                         results = results.concat(await Promise.all(promises))
                         promises = []
@@ -449,16 +453,17 @@ export class Model {
         Parse the response into Javascript objects and transform for the high level API.
      */
     parseResponse(op, expression, items) {
+        let {params, properties} = expression
         let table = this.table
         if (op == 'put') {
             //  Put requests do not return the item. So use the properties.
-            items = [expression.properties]
+            items = [properties]
         } else {
             items = table.unmarshall(items)
         }
         for (let [index, item] of Object.entries(items)) {
-            if (expression.params.high && item[this.typeField] != this.name) {
-                //  High level API and item for a different model
+            if (params.high && params.index == this.indexes.primary && item[this.typeField] != this.name) {
+                //  High level API on the primary index and item for a different model
                 continue
             }
             let type = item[this.typeField] ? item[this.typeField] : this.name
@@ -468,7 +473,7 @@ export class Model {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
-                items[index] = model.transformReadItem(op, item, expression.params)
+                items[index] = model.transformReadItem(op, item, params)
             }
         }
         return items
@@ -692,7 +697,8 @@ export class Model {
         let fields = this.block.fields
 
         for (let [name, field] of Object.entries(fields)) {
-            if (field.hidden && params.hidden !== true) {
+            //  Skip hidden params. Follow needs hidden params to do the follow.
+            if (field.hidden && params.hidden !== true && params.follow !== true) {
                 continue
             }
             let att, sub
@@ -767,13 +773,15 @@ export class Model {
      */
     prepareProperties(op, properties, params) {
         let index = this.selectIndex(op, params)
-        if (index != this.indexes.primary && (op != 'find' && op != 'scan')) {
-            if (params.low) {
-                throw new Error('Cannot use non-primary index for "${op}" operation')
+        if (index != this.indexes.primary) {
+            if (op != 'find' && op != 'scan') {
+                if (params.low) {
+                    throw new Error('Cannot use non-primary index for "${op}" operation')
+                }
+                //  Fallback for get/delete as GSIs only support find and scan
+                params.fallback = true
+                return properties
             }
-            //  Fallback for get/delete as GSIs only support find and scan
-            params.fallback = true
-            return properties
         }
         let rec = this.transformProperties(op, this.block, index, properties, params)
 
@@ -867,8 +875,8 @@ export class Model {
                     //  Keys only for get and delete
                     continue
                 }
-                if (project && project.indexOf(field.name) < 0) {
-                    //  Property is not projected
+                if (project && project.indexOf(attribute) < 0) {
+                    //  Attribute is not projected
                     continue
                 }
             }

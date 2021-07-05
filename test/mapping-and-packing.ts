@@ -61,14 +61,14 @@ test('Get including hidden', async() => {
         name: 'Peter Smith',
         status: 'active',
         primarySort: 'us#',
-        secHash: 'ty#us',
-        secSort: `us#${u.id}`,
+        gs1pk: 'ty#us',
+        gs1sk: `us#${u.email}`,
     })
     expect(u.id).toMatch(Match.ulid)
     expect(u.primaryHash).toEqual(`us#${u.id}`)
     expect(u.primarySort).toEqual(`us#`)
-    expect(u.secHash).toEqual(`ty#us`)
-    expect(u.secSort).toEqual(`us#${u.id}`)
+    expect(u.gs1pk).toEqual(`ty#us`)
+    expect(u.gs1sk).toEqual(`us#${u.email}`)
 })
 
 test('Get without parse', async() => {
@@ -78,8 +78,17 @@ test('Get without parse', async() => {
     expect(u.em.S).toEqual('peter@example.com')
     expect(u.pk.S).toEqual(`us#${u.id.S}`)
     expect(u.sk.S).toEqual(`us#`)
-    expect(u.gs1pk.S).toEqual(`ty#us`)
-    expect(u.gs1sk.S).toEqual(`us#${u.id.S}`)
+    expect(u.pk1.S).toEqual(`ty#us`)
+    expect(u.sk1.S).toEqual(`us#${user.email}`)
+})
+
+test('Get via GSI', async() => {
+    let u = await User.get({email: user.email}, {index: 'gs1', follow: true})
+    expect(user).toMatchObject({
+        _type: 'User',
+        name: 'Peter Smith',
+        status: 'active',
+    })
 })
 
 test('Find by ID', async() => {
@@ -94,7 +103,7 @@ test('Find by ID', async() => {
 })
 
 test('Find by name on GSI', async() => {
-    users = await User.find({name: user.name}, {index: 'gs1'})
+    users = await User.find({name: user.name}, {index: 'gs1', follow: true})
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
@@ -122,15 +131,14 @@ test('Remove attribute', async() => {
 
 test('Remove attribute 2', async() => {
     //  Update and remove attributes using {remove}
-    user = await User.update({id: user.id, status: 'active'}, {remove: ['secHash', 'secSort'], hidden: true})
+    user = await User.update({id: user.id, email: 'peter@gmail.com'}, {remove: ['status'], hidden: true})
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
-        status: 'active',
+        email: 'peter@gmail.com',
         primarySort: 'us#',
     })
-    expect(user.secHash).toBeUndefined()
-    expect(user.secSort).toBeUndefined()
+    expect(user.status).toBeUndefined()
     expect(user.id).toMatch(Match.ulid)
 })
 
