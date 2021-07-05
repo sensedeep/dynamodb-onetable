@@ -395,6 +395,11 @@ export class Table {
         return this
     }
 
+    //  DEPRECATE
+    clear() {
+        return this.clearContext()
+    }
+
     /*
         High level model factory API
         The high level API is similar to the Model API except the model name is provided as the first parameter.
