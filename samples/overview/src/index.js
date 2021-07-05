@@ -110,11 +110,18 @@ async function test() {
     let users = await User.find({})
 
     /*
-        Get a collection of items in the account. (See below table.fetch is simpler)
-     */
-    let collection = await table.fetch(['Account', 'User', 'Invoice'], {pk: `account#${account.id}`})
+        Add a filter expression to find only those users that have an admin role.
+    */
+    let adminUsers = await User.find({role: 'admin'})
 
-    //  MOB - this should be able to be mapped too?
+    /*
+        Simple update
+    */
+    user = await User.update({email: 'roadrunner@acme.com', balance: 0, role: 'admin'})
+
+    /*
+        Update a nested field
+    */
     user = await User.update({email: 'roadrunner@acme.com'}, {set: {'address.zip': '{"98034"}'}})
 
     /*
@@ -128,6 +135,11 @@ async function test() {
     users = await User.find({accountId: account.id}, {
         where: '${balance} > {100}'
     })
+    /*
+        Get a collection of items in the account. (See below table.fetch is simpler)
+     */
+    let collection = await table.fetch(['Account', 'User', 'Invoice'], {pk: `account#${account.id}`})
+
 
     /*
         Create many users via batch
@@ -151,14 +163,6 @@ async function test() {
     /*
         Read a page of users in groups of 25 at a time
      */
-    users = await User.find({}, {limit: 25})
-    while (users.next) {
-        users = await users.next()
-    }
-
-    /*
-        Alternative pagination formulation
-    */
     let start
     do {
         users = await User.find({}, {start, limit: 25})

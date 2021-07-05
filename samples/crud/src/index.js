@@ -51,7 +51,7 @@ const table = new Table({
                 gs1sk:       { type: String, value: 'sec#${id}' },
             }
         }
-    },
+    }
 })
 
 //  Create a model to manage User entities

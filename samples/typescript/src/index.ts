@@ -154,14 +154,6 @@ async function test() {
     /*
         Read a page of users in groups of 25 at a time
      */
-    users = await User.find({}, {limit: 25})
-    while (users.next) {
-        users = await users.next()
-    }
-
-    /*
-        Alternative pagination formulation
-    */
     let start: any = null
     do {
         users = await User.find({}, {start, limit: 25})

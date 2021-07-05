@@ -1144,6 +1144,7 @@ If `stats` is defined, find/query/scan operations will return the following stat
 * capacity -- DynamoDB consumed capacity units
 
 
+<a name="where-clauses"></a>
 #### Where Clauses
 
 OneTable `where` clauses are a convenient way to express DynamoDB filter expressions. DynamoDB ExpressionAttributeNames and Values are one of the least fun parts of DynamoDB. OneTable makes this much easier via the use of templated `where` clauses to express complex filter expressions.
@@ -1158,9 +1159,11 @@ let adminUsers = await User.find({}, {
 })
 ```
 
-OneTable will extract attributes defined inside `${}` braces and values inside `{}` braces and will automatically define your filer or conditional expressions and the required ExpressionAttributeNames and ExpressionAttributeValues.
+OneTable will extract property names defined inside `${}` braces and values inside `{}` braces and will automatically define your filer or conditional expressions and the required ExpressionAttributeNames and ExpressionAttributeValues.
 
 If a value inside `{}` is a number, it will be typed as a number for DynamoDB. To force a value to be treated as a string, wrap it in quotes, for example: `{"42"}`.
+
+Note: the property name is an unmapped schema property name and not a mapped attribute name.
 
 ##### Where Clause Operators
 

@@ -37,6 +37,7 @@ export default {
             id:         { type: String, uuid: true, validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email, crypt: true },
+            role:       { type: String, default: 'user', enum: ['admin', 'user']}
 
             //  MOB - get map working with nested schema
             address:    { type: Object, default: {}, schema: {
