@@ -610,7 +610,7 @@ export class Table {
     }
 
     initCrypto(crypto) {
-        this.crypto = Object.assign(crypto || {})
+        this.crypto = Object.assign(crypto)
         for (let [name, crypto] of Object.entries(this.crypto)) {
             crypto.secret = Crypto.createHash('sha256').update(crypto.password, 'utf8').digest()
             this.crypto[name] = crypto
@@ -671,6 +671,14 @@ export class Table {
             } else {
                 item = client.marshall(item, options)
             }
+        } else {
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item = this.marshallv2(item)
+                }
+            } else {
+                item = this.marshallv2(item)
+            }
         }
         return item
     }
@@ -688,6 +696,47 @@ export class Table {
                 }
             } else {
                 item = client.unmarshall(item, options)
+            }
+        } else {
+            if (Array.isArray(item)) {
+                for (let i = 0; i < item.length; i++) {
+                    item[i] = this.unmarshallv2(item[i])
+                }
+            } else {
+                item = this.unmarshallv2(item)
+            }
+
+        }
+        return item
+    }
+
+    marshallv2(item) {
+        for (let [key, value] of Object.entries(item)) {
+            if (value instanceof Set) {
+                item[key] = this.client.createSet(Array.from(value))
+                /*
+                let first = value.values().next().value
+                if (typeof first == 'number') {
+                    item[key] = { NS: Array.from(value).map(v => v) }
+                } else if (first instanceof Buffer || first instanceof ArrayBuffer) {
+                    item[key] = { BS: Array.from(value).map(v => v.toString('base64')) }
+                } else {
+                    item[key] = { SS: Array.from(value).map(v => v.toString()) }
+                } */
+            }
+        }
+        return item
+    }
+
+    unmarshallv2(item) {
+        for (let [key, value] of Object.entries(item)) {
+            if (typeof value == 'object' && value.wrapperName == 'Set' && Array.isArray(value.values)) {
+                let list = value.values
+                if (value.type == 'Binary') {
+                    //  Match AWS SDK V3 behavior
+                    list = list.map(v => new Uint8Array(v))
+                }
+                item[key] = new Set(list)
             }
         }
         return item

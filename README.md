@@ -474,6 +474,12 @@ The `schema.models` property contains one or more models with attribute field de
 
 The name of the entity model is model map name (album and artist above).
 
+The valid types are: Array, Binary, Boolean, Buffer, Date, Number, Object, Set and String.
+
+These JavaScript types map onto the equivalent DynamoDB types. For Binary types, you can supply data values with the types: ArrayBuffer and Buffer.
+
+For Sets, you should set the schema type to Set and supply values as instances of the JavaScript Set type. DynamoDB supports sets with elements that are strings, numbers or binary data.
+
 OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish as shown in the example above.
 
 The type field can be used in PK/SK value templates by using `${_type}`. You can change the name of the type field from `_type` by setting the `params.typeField` in the Table constructor.
@@ -1095,9 +1101,17 @@ The method returns the all the Javascript properties for the item. Hidden attrib
 
 The optional params are described in [Model API Params](#params).    
 
-The `params.remove` parameter may be set to a list of attributes to remove.
 The `params.add` parameter may be set a value to add to an attribute.
 The `params.delete` parameter may be set to a hash, where the hash keys are the attribute sets to modify and the values are the items in the sets to remove.
+The `params.remove` parameter may be set to a list of attributes to remove.
+The `params.set` parameter may be set to a hash, where the hash keys are the attributes to modify and the values are expresions.
+
+For example:
+```javascript
+await User.update({id: userId}, {delete: {tokens: ['captain']})
+await User.update({id: userId}, {remove: ['special', 'suspended']})
+await User.update({id: userId}, {set: {balance: '${balance} + {100}'}})
+```
 
 Set update, the params.exists will default to a true value to ensure the item exists. If set to null, an update will be permitted to create an item if it does not already exist.
 
@@ -1129,6 +1143,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
+| set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details.
 | start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
 | stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|

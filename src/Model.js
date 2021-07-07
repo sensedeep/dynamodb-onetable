@@ -32,6 +32,7 @@ const InterceptTags = {
 const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
+const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -108,7 +109,7 @@ export class Model {
         required        Boolean
         size            Number (not implemented)
         transform       Transform hook function
-        type            String, Boolean, Number, Date, 'Set', Buffer, Binary, Set, Object, Array
+        type            See ValidtTpes
         unique          Boolean
         uuid            true, 'uuid', 'ulid'
         validate        RegExp or "/regexp/qualifier"
@@ -140,10 +141,11 @@ export class Model {
             if (!field.type) {
                 throw new Error(`Missing field type for ${pathname}`)
             }
-
             field.pathname = pathname
             field.name = name
             fields[name] = field
+
+            this.checkType(field)
 
             /*
                 Handle mapped attributes. May be packed also (obj.prop)
@@ -226,6 +228,16 @@ export class Model {
         */
         for (let field of Object.values(fields)) {
             this.orderFields(block, field)
+        }
+    }
+
+    checkType(field) {
+        let type = field.type
+        if (typeof type == 'function') {
+            type = type.name
+        }
+        if (ValidTypes.indexOf(type.toLowerCase()) < 0) {
+            throw new Error(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
         }
     }
 
@@ -766,7 +778,7 @@ export class Model {
             return value ? new Date(value) : null
         }
         if (field.type == Buffer || field.type == 'Binary') {
-            return new Buffer(value, 'base64')
+            return Buffer.from(value, 'base64')
         }
         return value
     }
@@ -1132,17 +1144,16 @@ export class Model {
         Transform types before writing data to Dynamo
      */
     transformWriteAttribute(field, value) {
-        if (field.type == Date) {
+        let type = field.type
+        if (type == Date) {
             value = this.transformWriteDate(value)
 
-        } else if (field.type == Buffer || field.type == 'Binary') {
+        } else if (type == Buffer || type == 'Binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
             }
-        } else if (field.type == 'Set') {
-            if (!Array.isArray(value)) {
-                throw new Error('Set value must be an array')
-            }
+        } else if (Array.isArray(value) && (type == Set || type == 'Set')) {
+            value = this.transformWriteSet(type, value)
         }
         if (value != null && typeof value == 'object') {
             value = this.transformNestedWriteFields(field, value)
@@ -1165,6 +1176,9 @@ export class Model {
             } else if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
 
+            } else if (Array.isArray(value) && (type == Set || type == Set)) {
+                value = this.transformWriteSet(type, value)
+
             } else if (value == null && field.nulls !== true) {
                 //  Skip nulls
                 continue
@@ -1174,6 +1188,25 @@ export class Model {
             }
         }
         return obj
+    }
+
+    transformWriteSet(type, value) {
+        if (!Array.isArray(value)) {
+            throw new Error('Set values must be arrays')
+        }
+        if (type == Set || type == 'Set') {
+            let v = value.values().next().value
+            if (typeof v == 'string') {
+                value = value.map(v => v.toString())
+            } else if (typeof v == 'number') {
+                value = value.map(v => Number(v))
+            } else if (v instanceof Buffer || v instanceof ArrayBuffer || v instanceof DataView) {
+                value = value.map(v => v.toString('base64'))
+            }
+        } else {
+            throw new Error('Unknown type')
+        }
+        return value
     }
 
     /*

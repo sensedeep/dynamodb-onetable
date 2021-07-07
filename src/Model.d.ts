@@ -13,6 +13,7 @@ type OneType =
     DateConstructor |
     NumberConstructor |
     ObjectConstructor |
+    SetConstructor |
     StringConstructor |
     Buffer |
     string;
@@ -87,12 +88,12 @@ type OneTypedModel = Record<string, OneTypedField>;
     Entity field signature generated from the schema
  */
 type EntityField<T extends OneTypedField> =
-      T['type'] extends StringConstructor ? string
-    : T['type'] extends NumberConstructor ? number
+      T['type'] extends ArrayConstructor ? any[]
     : T['type'] extends BooleanConstructor ? boolean
+    : T['type'] extends NumberConstructor ? number
     : T['type'] extends ObjectConstructor ? object
-    : T['type'] extends DateConstructor ? Date
-    : T['type'] extends ArrayConstructor ? any[]
+    : T['type'] extends SetConstructor ? Date
+    : T['type'] extends StringConstructor ? string
     : never;
 
 /*
