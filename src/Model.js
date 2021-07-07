@@ -1172,13 +1172,14 @@ export class Model {
 
     transformNestedWriteFields(field, obj) {
         for (let [key, value] of Object.entries(obj)) {
+            let type = field.type
             if (value instanceof Date) {
                 obj[key] = this.transformWriteDate(value)
 
             } else if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
 
-            } else if (Array.isArray(value) && (type == Set || type == Set)) {
+            } else if (Array.isArray(value) && (field.type == Set || type == Set)) {
                 value = this.transformWriteSet(type, value)
 
             } else if (value == null && field.nulls !== true) {
