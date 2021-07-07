@@ -550,6 +550,7 @@ Use the `Table.setContext` method to initialize the context and `Table.clear` to
 
 ### Table Methods
 
+The Table API provides a utility methods and low-level data API to manage DynamoDB. The low-level methods are: deleteItem, getItem, putItem, updateItem. Use these methods to do raw I/O on your table. In general, you should prefer the Model APIs that are based on their schema definition and provide a higher level of operation. The model methods are: create, get, find, remove and update.
 
 #### addModel(name, fields)
 
@@ -662,7 +663,6 @@ Return a list of tables in the database.
 #### listModels()
 
 Return a list of models defined on the `Table`.
-
 
 #### async putItem(properties, params = {})
 
