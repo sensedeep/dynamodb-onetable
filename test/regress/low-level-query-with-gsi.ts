@@ -3,7 +3,7 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from '../utils/init'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: "RegressLowLevelQueryWithGsiTable",
@@ -46,7 +46,7 @@ test('Create', async() => {
         name: 'Peter Smith',
         status: 'active'
     })
-    
+
     let users: any = await table.queryItems({pk: "user#peter@example.com"}, {parse: true})
     expect(users.length).toBe(1)
     user = users[0]
@@ -56,7 +56,7 @@ test('Create', async() => {
         name: 'Peter Smith',
         status: 'active'
     })
-    
+
     users = await table.queryItems({email: "peter@example.com"}, {index: "emailIndex", parse: true})
     expect(users.length).toBe(1)
     expect(user).toMatchObject({

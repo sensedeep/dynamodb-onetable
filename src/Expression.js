@@ -404,6 +404,9 @@ export class Expression {
             } else if (op == 'put') {
                 args = { Item: values }
             }
+            if (filters.length) {
+                throw new Error('Invalid filters with batch operation')
+            }
         } else {
             args = {
                 ConditionExpression: conditions.length ? this.and(conditions) : undefined,

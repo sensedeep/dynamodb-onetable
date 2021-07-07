@@ -1,9 +1,11 @@
 /*
-   Batch get/write 
+   Batch get/write
  */
 
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
+
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'BatchTest',
@@ -41,8 +43,8 @@ test('Batch get', async() => {
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
     }
-    let items:any = await table.batchGet(batch, {
-        parse: true, 
+    let items: any = await table.batchGet(batch, {
+        parse: true,
         hidden: false,
         consistent: true,
     })
@@ -52,6 +54,11 @@ test('Batch get', async() => {
         let datum = data.find(i => i.name == item.name)
         expect(item).toMatchObject(datum)
     }
+
+    batch = {}
+    let id = users[0].id
+    User.remove({id}, {where: `${id} = {${id}}`, batch})
+    await table.batchWrite(batch)
 })
 
 test('Batch put and delete combined', async() => {
@@ -62,7 +69,7 @@ test('Batch put and delete combined', async() => {
     table.remove('User', {id: users[2].id}, {batch})
     table.create('User', data[0], {exists: null, batch})
 
-    let items:any = await table.batchWrite(batch, {parse: true, hidden: false})
+    let items: any = await table.batchWrite(batch, {parse: true, hidden: false})
 
     users = await table.scan('User')
     expect(users.length).toBe(1)
@@ -85,14 +92,16 @@ test('Batch with error', async() => {
         table.get('User', {id: user.id}, {batch})
     }
     await expect(async() => {
-        delete batch.RequestItems 
+        //  Corrupt the batch object
+        delete batch.RequestItems
         await table.batchGet(batch, {parse: true, hidden: false, consistent: true})
     }).rejects.toThrow()
 
     batch = {}
     table.create('User', {name: 'Buy MoreMilk', email: 'milk@example.com', status: 'inactive'}, {batch})
     await expect(async() => {
-        delete batch.RequestItems 
+        //  Corrupt the batch object
+        delete batch.RequestItems
         await table.batchWrite(batch)
     }).rejects.toThrow()
 })

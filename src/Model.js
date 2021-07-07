@@ -547,7 +547,7 @@ export class Model {
 
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
-            //  Fallback via find
+            //  Fallback via find when using non-primary indexes
             let items = await this.find(properties, params)
             if (items.length > 1) {
                 this.log('info', `Get fallback with more than one result`, {model: this.name, properties, params})
@@ -795,6 +795,7 @@ export class Model {
                     throw new Error('Cannot use non-primary index for "${op}" operation')
                 }
                 //  Fallback for get/delete as GSIs only support find and scan
+                //  FUTURE: could allow fallback for 'get' for primary indexes when using filters or a partial sort key
                 params.fallback = true
                 return properties
             }
@@ -904,6 +905,7 @@ export class Model {
                 }
                 if (KeysOnly[op] && attribute != index.hash && attribute != index.sort) {
                     //  Keys only for get and delete
+                    //  FUTURE: could have a "strict" mode where we warn for other properties instead of ignoring.
                     continue
                 }
                 if (project && project.indexOf(attribute) < 0) {
