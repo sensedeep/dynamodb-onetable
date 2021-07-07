@@ -85,11 +85,13 @@ test('Update nested property', async() => {
     //  Test native values in set properties
     user = await User.update({id: user.id}, {set: {
         'location.zip': 98012,
+        'tokens[1]': 'black',
         balance: 10.55,
         status: 'suspended',
     }})
     expect(user.balance).toBe(10.55)
     expect(user.location.zip).toBe(98012)
+    expect(user.tokens).toMatchObject(['red', 'black', 'blue'])
     expect(user.status).toBe('suspended')
 })
 
@@ -97,6 +99,7 @@ test('Update nested property via template', async() => {
     //  Test template values in set properties
     user = await User.update({id: user.id}, {set: {
         'location.zip': '{98011}',
+        'tokens[1]': '{white}',
         status: '{active}',
         balance: 0,
     }})
@@ -113,9 +116,12 @@ test('Remove top level attribute', async() => {
     expect(user).toMatchObject(Properties)
 })
 
-test('Remove nested attribute', async() => {
-    user = await User.update({id: user.id}, {remove: ['location.zip']})
+test('Remove nested attributes', async() => {
+    user = await User.update({id: user.id}, {
+        remove: ['location.zip', 'tokens[1]'],
+    })
     expect(user.location.zip).toBeUndefined()
+    expect(user.tokens).toMatchObject(['red', 'blue'])
     user = await User.update({id: user.id}, {set: {'location.zip': 98011}})
     expect(user.location.zip).toBe(98011)
 })
