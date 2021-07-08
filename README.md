@@ -166,7 +166,7 @@ This will write the following to DynamoDB:
     id:         '8e7bbe6a-4afc-4117-9218-67081afc935b',
     name:       'Acme Airplanes',
     status:     'active',
-    zip:        98034,
+    zip:        '98034',
     created:    1610347305510,
     updated:    1610347305510,
 }
@@ -187,7 +187,7 @@ which will return:
     id:       '8e7bbe6a-4afc-4117-9218-67081afc935b',
     name:     'Acme Airplanes',
     status:   'active',
-    zip:      98034,
+    zip:      '98034',
 }
 ```
 
@@ -476,9 +476,12 @@ The name of the entity model is model map name (album and artist above).
 
 The valid types are: Array, Binary, Boolean, Buffer, Date, Number, Object, Set and String.
 
+OneTable will ensure that values are of the correct type before writing to the database. Where possible, values will be cast to their correct types. For example: 'false' will be cast to false for Boolean types and 1000 will be cast to '1000' for String types.
+
 These JavaScript types map onto the equivalent DynamoDB types. For Binary types, you can supply data values with the types: ArrayBuffer and Buffer.
 
 For Sets, you should set the schema type to Set and supply values as instances of the JavaScript Set type. DynamoDB supports sets with elements that are strings, numbers or binary data.
+
 
 OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish as shown in the example above.
 

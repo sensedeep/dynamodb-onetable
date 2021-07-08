@@ -33,7 +33,7 @@ describe('TypeScript', () => {
             //  Typescript will not (yet) validate the types of nested schemas
             address: '444 Cherry Tree Lane',
             city: 'Seattle',
-            zip: 98011,
+            zip: '98011',
         },
         balance: 0,
         tokens: ['red', 'white', 'blue'],

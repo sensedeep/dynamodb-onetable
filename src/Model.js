@@ -914,7 +914,7 @@ export class Model {
                 }
             }
             if (value !== undefined) {
-                rec[name] = this.transformWriteAttribute(field, value)
+                rec[name] = this.transformWriteAttribute(op, field, value)
             }
         }
 
@@ -1145,21 +1145,44 @@ export class Model {
     /*
         Transform types before writing data to Dynamo
      */
-    transformWriteAttribute(field, value) {
+    transformWriteAttribute(op, field, value) {
         let type = field.type
-        if (type == Date) {
+
+        if (op == 'find' && value != null && typeof value == 'object') {
+            //  Find used {begins} and other operators
+            value = this.transformNestedWriteFields(field, value)
+
+        } else if (type == Date) {
             value = this.transformWriteDate(value)
+
+        } else if (type == Number) {
+            let num = Number(value)
+            if (isNaN(num)) {
+                throw new Error(`Invalid value "${value}" provided for ${field.name}`)
+            }
+            value = num
+
+        } else if (type == Boolean) {
+            if (value == 'false' || value == 'null' || value == 'undefined') {
+                value = false
+            }
+            value = Boolean(value)
+
+        } else if (type == String) {
+            value = value.toString()
 
         } else if (type == Buffer || type == 'Binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
             }
-        } else if (Array.isArray(value) && (type == Set || type == 'Set')) {
+
+        } else if ((type == Set || type == 'Set') && Array.isArray(value)) {
             value = this.transformWriteSet(type, value)
-        }
-        if (value != null && typeof value == 'object') {
+
+        } else if (type == Object && (value != null && typeof value == 'object')) {
             value = this.transformNestedWriteFields(field, value)
         }
+
         //  Invoke custom transformation before writing data
         if (field.transform) {
             value = field.transform(this, 'write', field.name, value)

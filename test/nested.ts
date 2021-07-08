@@ -20,7 +20,7 @@ const Properties = {
     location: {
         address: '444 Cherry Tree Lane',
         city: 'Seattle',
-        zip: 98011,
+        zip: '98011',
     },
     balance: 0,
     tokens: ['red', 'white', 'blue']
@@ -84,13 +84,13 @@ test('Update top level property', async() => {
 test('Update nested property', async() => {
     //  Test native values in set properties
     user = await User.update({id: user.id}, {set: {
-        'location.zip': 98012,
+        'location.zip': '98012',
         'tokens[1]': 'black',
         balance: 10.55,
         status: 'suspended',
     }})
     expect(user.balance).toBe(10.55)
-    expect(user.location.zip).toBe(98012)
+    expect(user.location.zip).toBe('98012')
     expect(user.tokens).toMatchObject(['red', 'black', 'blue'])
     expect(user.status).toBe('suspended')
 })
@@ -98,7 +98,7 @@ test('Update nested property', async() => {
 test('Update nested property via template', async() => {
     //  Test template values in set properties
     user = await User.update({id: user.id}, {set: {
-        'location.zip': '{98011}',
+        'location.zip': '{"98011"}',
         'tokens[1]': '{white}',
         status: '{active}',
         balance: 0,
@@ -122,8 +122,8 @@ test('Remove nested attributes', async() => {
     })
     expect(user.location.zip).toBeUndefined()
     expect(user.tokens).toMatchObject(['red', 'blue'])
-    user = await User.update({id: user.id}, {set: {'location.zip': 98011}})
-    expect(user.location.zip).toBe(98011)
+    user = await User.update({id: user.id}, {set: {'location.zip': '98011'}})
+    expect(user.location.zip).toBe('98011')
 })
 
 test('Remove item', async() => {

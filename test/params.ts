@@ -23,7 +23,7 @@ const Properties = {
     location: {
         address: '444 Cherry Tree Lane',
         city: 'Seattle',
-        zip: 98011,
+        zip: '98011',
     },
     tokens: ['red', 'white', 'blue'],
 }

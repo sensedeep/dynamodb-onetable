@@ -39,7 +39,7 @@ test('Create valid', async() => {
         email: 'peter@example.com',
         address: '444 Cherry Tree Lane',
         city: 'San Francisco',
-        zip: 98103,
+        zip: '98103',
         phone: '(408) 4847700',
         status: 'active',
     }
