@@ -1161,7 +1161,7 @@ export class Model {
         } else if (type == Number) {
             let num = Number(value)
             if (isNaN(num)) {
-                throw new Error(`Invalid value "${value}" provided for ${field.name}`)
+                throw new Error(`Invalid value "${value}" provided for field "${field.name}"`)
             }
             value = num
 
