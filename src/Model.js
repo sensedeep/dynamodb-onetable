@@ -855,6 +855,7 @@ export class Model {
         this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
+
         this.validateProperties(op, fields, properties)
 
         //  Process nested schema
@@ -1148,7 +1149,9 @@ export class Model {
     transformWriteAttribute(op, field, value) {
         let type = field.type
 
-        if (op == 'find' && value != null && typeof value == 'object') {
+        if (field.nulls === true) {
+            ;
+        } else if (op == 'find' && value != null && typeof value == 'object') {
             //  Find used {begins} and other operators
             value = this.transformNestedWriteFields(field, value)
 
@@ -1169,7 +1172,9 @@ export class Model {
             value = Boolean(value)
 
         } else if (type == String) {
-            value = value.toString()
+            if (value != null) {
+                value = value.toString()
+            }
 
         } else if (type == Buffer || type == 'Binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
@@ -1187,7 +1192,7 @@ export class Model {
         if (field.transform) {
             value = field.transform(this, 'write', field.name, value)
         }
-        if (field.crypt) {
+        if (field.crypt && value != null) {
             value = this.encrypt(value)
         }
         return value
