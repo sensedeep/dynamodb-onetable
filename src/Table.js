@@ -730,7 +730,7 @@ export class Table {
 
     unmarshallv2(item) {
         for (let [key, value] of Object.entries(item)) {
-            if (typeof value == 'object' && value.wrapperName == 'Set' && Array.isArray(value.values)) {
+            if (value != null && typeof value == 'object' && value.wrapperName == 'Set' && Array.isArray(value.values)) {
                 let list = value.values
                 if (value.type == 'Binary') {
                     //  Match AWS SDK V3 behavior
