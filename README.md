@@ -327,7 +327,7 @@ const table = new Table({
 let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true})
 
 //  Group items into arrays by model type
-items = db.groupByType(items)
+items = table.groupByType(items)
 let users = items.Users
 let products = items.Products
 
@@ -802,10 +802,10 @@ The `Table.groupBy` can be used to organize the returned items by model. E.g.
 
 ```javascript
 let transaction = {}
-await db.get('Account', {id: accountId}, {transaction})
-await db.get('User', {id: userId}, {transaction})
-let items = await db.transact('get', transaction, {parse: true})
-items = db.groupByType(items).
+await table.get('Account', {id: accountId}, {transaction})
+await table.get('User', {id: userId}, {transaction})
+let items = await table.transact('get', transaction, {parse: true})
+items = table.groupByType(items).
 let accounts = items.Account
 let users = items.Users
 ```
