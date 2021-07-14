@@ -958,7 +958,7 @@ export class Model {
         for (let field of Object.values(fields)) {
             let value = properties[field.name]
             if (value === undefined && !field.value) {
-                if (field.default) {
+                if (field.default != null) {
                     if (typeof field.default == 'function') {
                         value = field.default(this, field.name, properties)
                     } else {
