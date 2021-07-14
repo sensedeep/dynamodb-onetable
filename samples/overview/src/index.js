@@ -135,11 +135,11 @@ async function test() {
     users = await User.find({accountId: account.id}, {
         where: '${balance} > {100}'
     })
+    
     /*
         Get a collection of items in the account. (See below table.fetch is simpler)
      */
     let collection = await table.fetch(['Account', 'User', 'Invoice'], {pk: `account#${account.id}`})
-
 
     /*
         Create many users via batch

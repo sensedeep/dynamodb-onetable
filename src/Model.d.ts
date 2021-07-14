@@ -194,12 +194,4 @@ export class Model<T> {
     remove(properties: T, params?: OneParams): Promise<void>;
     scan(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     update(properties: T, params?: OneParams): Promise<T>;
-
-    //  These are private internal methods only
-    // deleteItem(properties: T, params?: OneParams): Promise<void>;
-    // getItem(properties: T, params?: OneParams): Promise<T>;
-    // putItem(properties: T, params?: OneParams): Promise<T>;
-    // queryItems(properties: T, params?: OneParams): Promise<Paged<T[]>>;
-    // scanItems(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
-    // updateItem(properties: T, params?: OneParams): Promise<T>;
 }
