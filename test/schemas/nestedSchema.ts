@@ -10,15 +10,12 @@ export default {
             pk:          { type: String, value: 'user#${id}' },
             sk:          { type: String, value: 'user#' },
             id:          { type: String, uuid: true },
+            accountId:   { type: String },
             name:        { type: String },
             email:       { type: String },
             status:      { type: String },
             balance:     { type: Number },
             tokens:      { type: Array },
-
-            //  test value templates with references at top level and other levels
-            //  packing of these attributes (scatter gather)
-            // location:    { type: Object },
 
             location:    { type: Object, schema: {
                 address: { type: String },

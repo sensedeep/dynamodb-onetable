@@ -4,6 +4,10 @@
 
 import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema } from "./Model";
 
+export type EntityGroup = {
+    [key: string]: AnyEntity
+};
+
 type TableConstructorParams = {
     client?: {},                    //  Instance of DocumentClient or Dynamo.
     createdField?: string,          //  Name of "created" timestamp attribute.
@@ -44,14 +48,14 @@ export class Table {
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     describeTable(): Promise<{}>;
-    fetch(models: string[], properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    fetch(models: string[], properties: OneProperties, params?: OneParams): Promise<EntityGroup>;
     find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getModel<T>(name: string): Model<T>;
     getSchema(): {};
-    groupByType(items: AnyEntity[]): {};
+    groupByType(items: AnyEntity[]): EntityGroup;
     listModels(): AnyModel[];
     listTables(): string[];
     makeID(): {};
