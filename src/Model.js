@@ -690,12 +690,18 @@ export class Model {
     /* private */
     async fetch(models, properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-
+        if (models.length == 0) {
+            return {}
+        }
         let where = []
         for (let model of models) {
             where.push(`\${${this.typeField}} = {${model}}`)
         }
-        params.where = where.join(' or ')
+        if (params.where) {
+            params.where = `(${params.where}) and (${where.join(' or ')})`
+        } else {
+            params.where = where.join(' or ')
+        }
         params.parse = true
 
         let items = await this.queryItems(properties, params)
