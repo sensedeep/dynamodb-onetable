@@ -185,7 +185,6 @@ async function test() {
     */
     let from = new Date()
     from.setMonth(from.getMonth() - 1)
-    debugger
     let invoices = await Invoice.find({}, {
         tunnel: { between: {
             gs1sk: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`],

@@ -1,77 +1,43 @@
 /*
-    debug.ts -
+    fallback.ts - Enhanced get/remove via fallback
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
-import {DefaultSchema} from './schemas'
+import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
+import {TenantSchema} from './schemas'
 
 jest.setTimeout(7200 * 1000)
 
 const table = new Table({
-    name: 'DebugTestTable',
+    name: 'DebugTable',
     client: Client,
-    /*
-    logger: (type, message, context) => {
-        console.log(`${new Date().toLocaleString()}: ${type}: ${message}`);
-        console.log(JSON.stringify(context, null, 4) + '\n');
-    }, */
-    schema: {
-        indexes: {
-            primary: { hash: 'pk', sort: 'sk' },
-            gsi1: { hash: 'gsi1pk', sort: 'gsi1sk', project: 'all', follow: true },
-            gsi2: { hash: 'gsi2pk', sort: 'gsi2sk', follow: true },
-            gsi3: { hash: 'gsi3pk', sort: 'gsi3sk', follow: true },
-        },
-        models: {
-            Mailbox: {
-                pk: { type: String, value: 'mail#${id}' },
-                sk: { type: String, value: 'mail#${id}' },
-                read: { type: Boolean },
-                subject: { type: String },
-                desc: { type: String },
-                body: { type: String },
-                userId: { type: String, required: true },
-                id: { type: String, required: true, uuid: 'ulid' },
-                gsi1pk: {
-                    type: String,
-                    value: 'user#${userId}',
-                },
-                gsi1sk: {
-                    type: String,
-                    value: 'mail#${id}',
-                },
-                gsi2pk: {
-                    type: String,
-                    value: 'user#${userId}#unread',
-                },
-                gsi2sk: {
-                    type: String,
-                    value: 'mail#${id}',
-                },
-                _type: { type: String, filter: false, value: 'Mailbox' },
-            },
-        },
-    }
+    schema: TenantSchema,
+    uuid: 'ulid',
 })
-
-let Mailbox = null
-let mailbox: any
-let mailboxes: any[]
+const accountId = table.uuid()
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
-    Mailbox = table.getModel('Mailbox')
 })
 
-test('Test', async() => {
-    mailbox = await Mailbox.create({userId: '44'})
-    mailbox = await Mailbox.get({id: mailbox.id})
-    await Mailbox.remove({
-        userId: '44',
-        id: mailbox.id
-    }, { index: 'gsi1' })
+type UserType = Entity<typeof TenantSchema.models.User>
+let User = table.getModel<UserType>('User')
+let user: UserType = null
+
+type AccountType = Entity<typeof TenantSchema.models.Account>
+let Account = table.getModel<AccountType>('Account')
+let account: AccountType = null
+
+let userData = [
+    {accountId: null, name: 'Peter Smith', email: 'peter@example.com' },
+    {accountId: null, name: 'Patty O\'Furniture', email: 'patty@example.com' },
+    {accountId: null, name: 'Cu Later', email: 'cu@example.com' },
+]
+
+test('Scenario 1', async() => {
+    account = await Account.create({name: 'Acme Rockets'})
+    table.setContext({accountId: account.id})
 })
 
 test('Destroy Table', async() => {
