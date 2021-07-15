@@ -883,7 +883,7 @@ export class Model {
     */
     tunnelProperties(properties, params) {
         if (params.tunnel) {
-            for (let [kind, settings] of Object.values(params.tunnel)) {
+            for (let [kind, settings] of Object.entries(params.tunnel)) {
                 for (let [key, value] of Object.entries(settings)) {
                     properties[key] = {[kind]: value}
                 }
