@@ -19,7 +19,7 @@ test('Create Table', async() => {
 
 let User = table.getModel('User')
 let user: any
-let users: any[]
+let users: any
 
 let data = [
     {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
@@ -45,6 +45,28 @@ test('Find with Projection', async() => {
     let nameOnly = await User.find({name: data[0].name}, {index: 'gs1', fields: ['name']})
     expect(nameOnly.length).toBe(1)
     expect(Object.keys(nameOnly[0])).toEqual(['name'])
+})
+
+test('Find count of items', async() => {
+    users = await User.scan({}, {count: true})
+    expect(users.count).toBe(3)
+})
+
+test('Find count via select', async() => {
+    users = await User.scan({}, {select: 'COUNT'})
+    expect(users.count).toBe(3)
+})
+
+test('Find select with project', async() => {
+    expect(async() => {
+        //  Cannot do select and fields
+        users = await User.scan({}, {select: 'COUNT', fields: ['email']})
+    }).rejects.toThrow()
+
+    expect(async() => {
+        //  Cannot do count and fields
+        users = await User.scan({}, {count: true, fields: ['email']})
+    }).rejects.toThrow()
 })
 
 test('Find with where clause', async() => {

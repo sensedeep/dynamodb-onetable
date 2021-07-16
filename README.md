@@ -1,3 +1,5 @@
+![OneTable](https://www.sensedeep.com/images/ring.png)
+
 # DynamoDB OneTable
 One table to rule them all.
 
@@ -5,8 +7,6 @@ One table to rule them all.
 [![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
-
-![OneTable](https://www.sensedeep.com/images/ring.png)
 
 DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.amazon.com/dynamodb/) applications that use one-table design patterns with NodeJS.
 
@@ -24,7 +24,7 @@ After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.yo
 
 OneTable was used in production by the [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
-A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended. And thanks also to [Jeremy Daly](https://www.jeremydaly.com/about/) for his [Off by None Blog](https://offbynone.io/).
+A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended.
 
 ## OneTable Features
 
@@ -207,6 +207,10 @@ let adminUsers = await User.find({accountId: account.id, role: 'admin'})
 let users = await User.find({accountId: account.id}, {
     where: '${balance} > {100.00}'
 })
+
+//  Get a count of matching users without returning the actual items
+let users = await User.find({accountId: account.id, role: 'admin'}, {count: true})
+let count = users.count
 ```
 
 To update an item:
@@ -323,10 +327,13 @@ const table = new Table({
     schema: Schema,
 })
 
-//  Fetch an item collection for Acme
-let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true})
+//  Fetch an item collection (will return parsed entities in an item collection)
+let items = await table.fetch(['User', 'Product'], {pk: 'account:AcmeCorp'})
+let users = items.Users
+let products = items.Products
 
-//  Group items into arrays by model type
+//  Alternatively, group after a standard query
+let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true})
 items = table.groupByType(items)
 let users = items.Users
 let products = items.Products
@@ -342,6 +349,10 @@ await table.transact('write', transaction)
 
 //  Fetch an Account using the Account model
 let account = await table.find('Account', {id})
+
+//  Get the number of accounts without reading the items
+let accounts = await table.scan('Account')
+let count = accounts.count
 ```
 
 ### Table Constructor
@@ -540,9 +551,11 @@ String templates are similar to JavaScript string templates, The template string
 
 The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(propertyName, properties)` where `properties` is the properties provided to the API after blending with the `context` (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the properties parameters.
 
+If you call `find` or any query API and do not provide all the properties needed to resolve the complete value template. i.e. some of the ${var} references are unresolved, OneTable will take the resolved portion and create a `begins with` key condition for that portion of the value template.
+
 ### Table Contexts
 
-Each `Table` has a `context` of properties that are blended with `Model` properties before executing APIs. The context is used to provide keys and attributes that apply to more than just one API invocation. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user. This is useful for multi-tennant applications.
+Each `Table` has a `context` of properties that are blended with `Model` properties before executing APIs. The context is used to provide keys and attributes that apply to more than just one API invocation. A typical use case is for a central authorization module to add an `accountId` or `userId` to the context which is then used in keys for items belonging to that account or user. This is useful for multi-tenant applications.
 
 When creating items, context properties are written to the database. When updating, context properties are not, only explicit attributes provided in the API `properties` parameter are written.
 
@@ -622,6 +635,20 @@ Delete a DynamoDB table.
 #### async exists()
 
 Test if the table name exists in the database.
+
+#### async fetch(models, properties, params = {})
+
+Fetch an item collection of items that share the same primary key. Models should be a list of model type names to return. The properties should provide the primary key shared by those model types. The return result is a map with items organized by their model type.
+
+For example:
+
+```javascript
+let items = await table.fetch(['User', 'Product'], {pk: 'account:AcmeCorp'})
+let users = items.Users
+let products = items.Products
+users.forEach(user => /* operate on user */)
+products.forEach(user => /* operate on user */)
+```
 
 #### async getItem(properties, params = {})
 
@@ -1088,7 +1115,6 @@ for (let segment = 0; segment < segments; segment++) {
 let results = await Promise.all(promises)
 ```
 
-
 <a name="model-update"></a>
 #### async update(properties, params = {})
 
@@ -1110,8 +1136,9 @@ The `params.remove` parameter may be set to a list of attributes to remove.
 The `params.set` parameter may be set to a hash, where the hash keys are the attributes to modify and the values are expresions.
 
 For example:
+
 ```javascript
-await User.update({id: userId}, {delete: {tokens: ['captain']})
+await User.update({id: userId}, {delete: {tokens: ['captain']}})
 await User.update({id: userId}, {remove: ['special', 'suspended']})
 await User.update({id: userId}, {set: {balance: '${balance} + {100}'}})
 ```

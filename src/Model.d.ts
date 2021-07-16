@@ -127,6 +127,7 @@ export type OneParams = {
     capacity?: string,
     consistent?: boolean,
     context?: object,
+    count?: boolean,
     delete?: object,
     execute?: boolean,
     exists?: boolean,
@@ -138,7 +139,6 @@ export type OneParams = {
     log?: boolean,
     many?: boolean,
     maxPages?: number,
-    metrics?: object,
     parse?: boolean,
     postFormat?: () => {},
     preFormat?: () => {},
@@ -147,8 +147,10 @@ export type OneParams = {
     reverse?: boolean,
     segment?: number,
     segments?: number,
+    select?: string,
     set?: object,
     start?: object,
+    stats?: object,
     throw?: boolean,
     transaction?: object,
     type?: string,
@@ -165,9 +167,10 @@ export type OneProperties = {
 };
 
 export class Paged<T> extends Array {
-    start: string;
+    count?: number;
+    start?: string;
     //  DEPRECATED
-    next: () => Promise<Paged<T>>;
+    next?: () => Promise<Paged<T>>;
 }
 
 export type AnyModel = {

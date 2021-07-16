@@ -456,6 +456,9 @@ export class Model {
                     return await this[op](properties, params)
                 }
             }
+            if (params.count || params.select == 'COUNT') {
+                items.count = result.Count
+            }
             return items
         }
         return items[0]

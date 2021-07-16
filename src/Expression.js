@@ -417,7 +417,20 @@ export class Expression {
                 ProjectionExpression: project.length ? project.join(', ') : undefined,
                 TableName: this.tableName
             }
-            if (params.metrics) {
+            if (params.select) {
+                //  Select: ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
+                if (project.length && params.select != 'SPECIFIC_ATTRIBUTES') {
+                    throw new Error('Select must be SPECIFIC_ATTRIBUTES with projection expressions')
+                }
+                args.Select = params.select
+
+            } else if (params.count) {
+                if (project.length) {
+                    throw new Error('Cannot use select and count together')
+                }
+                args.Select = 'COUNT'
+            }
+            if (params.stats) {
                 args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
                 args.ReturnItemCollectionMetrics || 'SIZE'                  // SIZE | NONE
             }
