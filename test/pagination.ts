@@ -35,9 +35,8 @@ test('Create Users', async() => {
     expect(users.length).toBe(MaxUsers)
 })
 
+//  DEPRECATED - use start instead
 test('Find with next iterator', async() => {
-    let metrics: any = {}
-
     let pages = 0
     let items = await User.find({accountId}, {limit: PerPage})
     expect(items.length).toBe(PerPage)
@@ -55,7 +54,6 @@ test('Find with next iterator', async() => {
         }
     }
     expect(pages).toBe(MaxUsers / PerPage)
-    //params.maxPages`
 })
 
 test('Find with start offset', async() => {

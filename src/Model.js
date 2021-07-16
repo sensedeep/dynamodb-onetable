@@ -323,9 +323,9 @@ export class Model {
             }
         }
         /*
-            Prep the metrics
+            Prep the stats
         */
-        let stats = params.stats || params.metrics
+        let stats = params.stats
         if (stats && typeof params == 'object') {
             stats.count = stats.count || 0
             stats.scanned = stats.capacity || 0

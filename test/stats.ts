@@ -1,5 +1,5 @@
 /*
-    metrics.ts - Get find metrics
+    stats.ts - 
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {TenantSchema} from './schemas'
@@ -34,12 +34,12 @@ test('Create Users', async() => {
     expect(users.length).toBe(MaxUsers)
 })
 
-test('Find with metrics', async() => {
-    let metrics: any = {}
-    users = await User.find({accountId}, {metrics})
-    expect(metrics.count).toBe(MaxUsers)
-    expect(metrics.scanned).toBe(MaxUsers)
-    expect(metrics.capacity).toBeDefined()
+test('Find with stats', async() => {
+    let stats: any = {}
+    users = await User.find({accountId}, {stats})
+    expect(stats.count).toBe(MaxUsers)
+    expect(stats.scanned).toBe(MaxUsers)
+    expect(stats.capacity).toBeDefined()
 })
 
 test('Destroy Table', async() => {
