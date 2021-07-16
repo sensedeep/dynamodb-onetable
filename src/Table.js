@@ -575,10 +575,9 @@ export class Table {
     log(type, message, context, params) {
         if (this.logger) {
             if (params && params.log) {
-                this.logger('info', message, context)
-            } else {
-                this.logger(type, message, context)
+                type = 'info'
             }
+            this.logger(type, message, context)
         }
     }
 

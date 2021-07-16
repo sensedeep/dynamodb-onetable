@@ -1,10 +1,10 @@
 /*
-    fallback.ts - Enhanced get/remove via fallback
+    typescript-tenant.ts -
  */
 import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
 import {TenantSchema} from './schemas'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'TypescriptTenantTestTable',

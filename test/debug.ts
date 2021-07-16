@@ -1,5 +1,5 @@
 /*
-    fallback.ts - Enhanced get/remove via fallback
+    debug.ts - Just for debug
  */
 import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
 import {TenantSchema} from './schemas'
@@ -35,9 +35,21 @@ let userData = [
     {accountId: null, name: 'Cu Later', email: 'cu@example.com' },
 ]
 
-test('Scenario 1', async() => {
+test('Create Account and Users', async() => {
     account = await Account.create({name: 'Acme Rockets'})
     table.setContext({accountId: account.id})
+
+    for (let item of userData) {
+        item.accountId = accountId
+        await User.create(item)
+    }
+    let users = await User.scan()
+    expect(users.length).toBe(userData.length)
+})
+
+test('Scenario', async() => {
+    let items = await User.find({sk: null})
+    expect(items.length).toBe(userData.length)
 })
 
 test('Destroy Table', async() => {

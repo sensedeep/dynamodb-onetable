@@ -425,6 +425,7 @@ export class Model {
                 return results
             }
         }
+
         /*
             Log unless the user provides params.log: false.
             The logger will typically filter data/trace.
@@ -443,10 +444,8 @@ export class Model {
                 /*
                     More results to come. Create a next() iterator.
                  */
-                let params = expression.params
-                let properties = expression.properties
                 items.start = this.table.unmarshall(result.LastEvaluatedKey)
-                //  DEPRECATED - not ideal as the stack depth can get large unless tail-recursion is supported
+                //  DEPRECATED - not ideal as the stack depth can get large
                 items.next = async () => {
                     params = Object.assign({}, params, {start: items.start})
                     if (!params.high) {
@@ -603,8 +602,7 @@ export class Model {
     async removeUnique(properties, params) {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
-        let fields = this.block.fields
-        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
             await this.table.uniqueModel.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
         }
@@ -614,7 +612,6 @@ export class Model {
 
     async scan(properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
-
         properties[this.typeField] = this.name
         return await this.scanItems(properties, params)
     }
