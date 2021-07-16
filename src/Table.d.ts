@@ -2,7 +2,7 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema } from "./Model";
+import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
 
 export type EntityGroup = {
     [key: string]: AnyEntity
@@ -48,8 +48,8 @@ export class Table {
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     describeTable(): Promise<{}>;
-    fetch(models: string[], properties: OneProperties, params?: OneParams): Promise<EntityGroup>;
-    find(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
+    find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
@@ -60,11 +60,11 @@ export class Table {
     listTables(): string[];
     makeID(): {};
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    queryItems(properties: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     removeModel(name: string): void;
-    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
-    scanItems(properties?: OneProperties, params?: OneParams): Promise<AnyEntity[]>;
+    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
