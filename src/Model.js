@@ -995,7 +995,7 @@ export class Model {
             let field = fields[name]
             if (!field) continue
             if (value === null && field.nulls !== true) {
-                if (!Array.isArray(params.remove)) {
+                if (params.remove && !Array.isArray(params.remove)) {
                     params.remove = [params.remove]
                 } else {
                     params.remove = params.remove || []
