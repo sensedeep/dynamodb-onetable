@@ -19,7 +19,7 @@ const Match = {
 export default {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs1sk', 'data'] },
+        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs1sk'] },
     },
     models: {
 

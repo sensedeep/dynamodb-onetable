@@ -14,7 +14,7 @@ const Match = {
 export default {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs1sk', 'data'] },
+        gs1:     { hash: 'gs1pk', sort: 'gs1sk', project: ['gs1pk', 'gs1sk'] },
     },
     models: {
 
@@ -39,9 +39,9 @@ export default {
             email:      { type: String, required: true, validate: Match.email, crypt: true },
 
             address:    { type: Object, default: {}, schema: {
-                street: { type: String, /* map: 'data.street' */ },
-                city:   { type: String, /* map: 'data.city' */ },
-                zip:    { type: String, /* map: 'data.zip' */ },
+                street: { type: String },
+                city:   { type: String },
+                zip:    { type: String },
             } },
 
             status:     { type: String, required: true, default: 'active', enum: ['active', 'inactive'] },
