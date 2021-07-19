@@ -552,7 +552,7 @@ export class Model {
             //  Fallback via find when using non-primary indexes
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                this.log('info', `Get fallback with more than one result`, {model: this.name, properties, params})
+                this.log('error', `Get fallback with more than one result`, {model: this.name, properties, params})
             }
             return items[0]
         }
@@ -748,7 +748,7 @@ export class Model {
 
             } else if (value === undefined) {
                 if (field.required) {
-                    this.log('info', `Required field "${name}" in model "${this.name}" not defined in table item`, {
+                    this.log('error', `Required field "${name}" in model "${this.name}" not defined in table item`, {
                         model: this.name, raw, params, field
                     })
                 }
@@ -1103,7 +1103,7 @@ export class Model {
             }
         }
         if (Object.keys(details).length > 0) {
-            this.log('info', `Validation error for "${this.name}"`, {model: this.name, properties, details})
+            this.log('error', `Validation error for "${this.name}"`, {model: this.name, properties, details})
             let err = new Error(`dynamo: Validation Error for "${this.name}"`)
             err.details = details
             throw err
