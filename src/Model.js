@@ -995,7 +995,11 @@ export class Model {
             let field = fields[name]
             if (!field) continue
             if (value === null && field.nulls !== true) {
-                params.remove = params.remove || []
+                if (!Array.isArray(params.remove)) {
+                    params.remove = [params.remove]
+                } else {
+                    params.remove = params.remove || []
+                }
                 params.remove.push(field.pathname)
                 delete properties[name]
 
