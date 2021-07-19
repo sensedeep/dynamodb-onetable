@@ -5,7 +5,7 @@
 import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
 
 export type EntityGroup = {
-    [key: string]: AnyEntity
+    [key: string]: AnyEntity[]
 };
 
 type TableConstructorParams = {
