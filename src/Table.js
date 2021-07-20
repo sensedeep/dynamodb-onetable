@@ -47,6 +47,7 @@ export class Table {
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
             schema,         //  Table models schema.
+            senselogs,      //  Integrate with SenseLogs as the logger instance
             timestamps,     //  Make "created" and "updated" timestamps. Default false.
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
@@ -56,12 +57,8 @@ export class Table {
         if (!name) {
             throw new Error('Missing "name" property')
         }
-        if (logger === true) {
-            this.logger = this.defaultLogger
-        } else if (logger) {
-            this.logger = logger
-        }
-        this.log('trace', `Loading OneTable`)
+        this.log = senselogs ? senselogs : new Log(logger)
+        this.log.trace(`Loading OneTable`)
 
         this.params = params
         if (client) {
@@ -295,7 +292,7 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
-        this.log('trace', `Dynamo createTable for "${this.name}"`, {def})
+        this.log.trace(`Dynamo createTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.createTable(def)
         } else {
@@ -308,7 +305,7 @@ export class Table {
     */
     async deleteTable(confirmation) {
         if (confirmation == ConfirmRemoveTable) {
-            this.log('trace', `Dynamo deleteTable for "${this.name}"`)
+            this.log.trace(`Dynamo deleteTable for "${this.name}"`)
             if (this.V3) {
                 await this.service.deleteTable({TableName: this.name})
             } else {
@@ -443,7 +440,7 @@ export class Table {
     async batchGet(batch, params = {}) {
         let result
         try {
-            this.log('trace', `Dynamo batchGet on "${this.name}"`, {batch}, params)
+            this.log.trace(`Dynamo batchGet on "${this.name}"`, {batch}, params)
             batch.ConsistentRead = params.consistent ? true : false
             if (this.V3) {
                 result = await this.client.batchGet(batch)
@@ -466,7 +463,7 @@ export class Table {
             }
 
         } catch (err) {
-            this.log('error', `BatchGet error`, {message: err.message, batch})
+            this.log.error(`BatchGet error`, {message: err.message, batch})
             throw err
         }
         return result
@@ -475,14 +472,14 @@ export class Table {
     async batchWrite(batch, params = {}) {
         let result
         try {
-            this.log('trace', `Dynamo batchWrite on "${this.name}"`, {batch}, params)
+            this.log.trace(`Dynamo batchWrite on "${this.name}"`, {batch}, params)
             if (this.V3) {
                 result = await this.client.batchWrite(batch)
             } else {
                 result = await this.client.batchWrite(batch).promise()
             }
         } catch (err) {
-            this.log('error', `BatchWrite error`, {message: err.message, batch})
+            this.log.error(`BatchWrite error`, {message: err.message, batch})
             throw err
         }
         return result
@@ -522,7 +519,7 @@ export class Table {
     async transact(op, transaction, params = {}) {
         let result
         try {
-            this.log('trace', `Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
+            this.log.trace(`Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
             let promise
             if (op == 'write') {
                 promise = this.client.transactWrite(transaction)
@@ -552,7 +549,7 @@ export class Table {
             }
         } catch (err) {
             if (params.log !== false) {
-                this.log('error', `Transaction error`, {message: err.message, transaction})
+                this.log.error(`Transaction error`, {message: err.message, transaction})
             }
             throw err
         }
@@ -570,26 +567,6 @@ export class Table {
             list.push(item)
         }
         return result
-    }
-
-    log(type, message, context, params) {
-        if (this.logger) {
-            if (params && params.log) {
-                type = 'info'
-            }
-            this.logger(type, message, context)
-        }
-    }
-
-    /*
-        The default logger (logger == true) will emit all log message types except trace and data.
-        If APIs provide params {log: true}, the log message type is changed from trace/data into info and will be emitted.
-    */
-    defaultLogger(type, message, context) {
-        if (type == 'trace' || type == 'data') {
-            return
-        }
-        console.log(type, message, JSON.stringify(context, null, 4))
     }
 
     /*
@@ -739,5 +716,50 @@ export class Table {
             }
         }
         return item
+    }
+}
+
+/*
+    Emulate SenseLogs API
+*/
+class Log {
+    constructor(logger) {
+        if (logger === true) {
+            this.logger = this.defaultLogger
+        } else if (logger) {
+            this.logger = logger
+        }
+    }
+    data(message, context, params) {
+        this.process('data', message, context, params)
+    }
+
+    error(message, context, params) {
+        this.process('error', message, context, params)
+    }
+
+    info(message, context, params) {
+        this.process('info', message, context, params)
+    }
+
+    trace(message, context, params) {
+        this.process('trace', message, context, params)
+    }
+
+    process(level, message, context, params) {
+        if (this.logger) {
+            if (params && params.log) {
+                level = 'info'
+            }
+            this.logger(level, message, context)
+        }
+    }
+
+    defaultLogger(level, message, context) {
+        if (level == 'trace' || level == 'data') {
+            //  params.log: true will cause the level to be changed to 'info'
+            return
+        }
+        console.log(level, message, JSON.stringify(context, null, 4))
     }
 }

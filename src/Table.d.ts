@@ -24,6 +24,7 @@ type TableConstructorParams = {
     name?: string,                  //  Table name.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
     schema?: OneSchema,             //  Table models schema.
+    senselogs?: {},                 //  SenseLogs instance for logging
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.

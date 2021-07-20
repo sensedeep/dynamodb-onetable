@@ -372,6 +372,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | name | `string` | yes | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
+| senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
@@ -402,26 +403,39 @@ The `crypto` property defines the configuration used to encrypt and decrypt attr
 
 #### Logger
 
-OneTable can log full request parameters and responses to assist you in debugging and understanding how your API requests are being translated to DynamoDB.
+OneTable can log complete request parameters and responses to assist you in debugging and understanding how your API requests are being translated to DynamoDB.
 
-The `logger` parameter may be set to `true` to configure logging to the console. Alternatively, the `logger` may be set to logging callback that will be invoked as required to log data. The logger function has the signature:
+You can set `logger` parameter to `true` for simple logging to the console. Alternatively, the `logger` may be set to logging callback that will be invoked as required to log data. The logger function has the signature:
 
 ```javascript
 const table = new Table({
     ...
-    logger: (type, message, context) => {
-        if (type == 'trace' || type == 'data') return
-        console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
+    logger: (level, message, context) => {
+        if (level == 'trace' || level == 'data') return
+        console.log(`${new Date().toLocaleString()}: ${level}: ${message}`)
         console.log(JSON.stringify(context, null, 4) + '\n')
     }
 })
 ```
 
-Where `type` is set to `info`, `error`, `warn`, `exception`, `trace` or `data`. The `trace` type is for verbose debugging messages. The `data` type logs user data retrieved find and get API calls.
+Where `level` is set to `info`, `error`, `warn`, `exception`, `trace` or `data`. The `trace` level is for verbose debugging messages. The `data` level logs user data retrieved find and get API calls.
 
 The `message` is a simple String containing a descriptive message. The `context` is a hash of contextual properties regarding the request, response or error.
 
-If you use {log: true} in the various OneTable Model API options, the more verbose `trace` and `data` types will be changed to `info` for that call before passing to the logging callback. In this way you can emit `trace` and `data` output on a per API basis.
+If you use {log: true} in the various OneTable Model API options, the more verbose `trace` and `data` levels will be changed to `info` for that call before passing to the logging callback. In this way you can emit `trace` and `data` output on a per API basis.
+
+#### SenseLogs
+
+OneTable also integrates with [SenseLogs](https://www.npmjs.com/package/senselogs) which is a simple, dynamic logger designed for serverless.
+
+```javascript
+import SenseLogs from 'senselogs'
+const senselogs = new SenseLogs()
+const table = new Table({senselogs})
+``
+
+This will log request details in JSON. Use `SenseLogs({destination: 'console'})` for plain text logging to the console.
+
 
 #### Schema
 
