@@ -1,4 +1,4 @@
-![OneTable](https://www.sensedeep.com/images/ring.png)
+![OneTable](https://www.sensedeep.com/images/ring.png?renew)
 
 # DynamoDB OneTable
 One table to rule them all.
