@@ -9,7 +9,7 @@ configure:
 	sls dynamodb install
 
 debug:
-	node --debug ./node_modules/.bin/serverless offline --httpPort 5000 --lambdaPort 5001 -s dev
+	node --inspect ./node_modules/.bin/serverless offline --httpPort 5000 --lambdaPort 5001 -s dev
 
 startdb:
 	sls dynamodb start

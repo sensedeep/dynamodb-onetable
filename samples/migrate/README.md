@@ -68,8 +68,17 @@ onetable migrate up             # To apply the v0.0.1 migration
 
 ```
 make debug
+
+or
+# run vs code from the samples/migrate directory
 ```
 
+### Running the OneTable CLI
+
+```
+cd ./migrations
+onetable migrate list
+```
 
 ### Example Commands
 
