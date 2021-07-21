@@ -990,6 +990,9 @@ let user = await User.find({pk, sk: {begins: 'user:john'}})
 let tickets = await Ticket.find({pk, sk: {between: [1000, 2000]}})
 let invoices = await Invoice.find({pk, sk: {'<=': 1000}})
 let invoices = await Invoice.find({pk}, {where: '${sk} <= {1000}'})
+
+let items = await Invoice.find({pk}, {where: '${sk} <= {1000}'}, {count: true})
+let count = items.count
 ```
 
 The operators include:
@@ -1009,6 +1012,8 @@ let adminUsers = await User.find({}, {
     where: '(${role} = {admin}) and (${status} = {current})'
 })
 ```
+
+Use `params.count` set to true to return the number of matching items instead of returning the items.
 
 See [Where Clause](#where-clauses) for more details.
 
@@ -1172,6 +1177,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | capacity | `string` | Set to `INDEXES`, `TOTAL`  or `NONE` to control the capacity metric. Returned in items.capacity|
 | consistent | `boolean` | Set to true to stipulate that consistent reads are required.|
 | context | `object` | Optional context hash of properties to blend with API properties when creating or updating items. This overrides the Table.context. Setting to `{}` is a useful one-off way to ignore the context for this API. |
+| count | `boolean` | Return a count of matching items instead of the result set for a find/query. The count is returned as a `count` property in the returned items array. Default false. |
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
 | exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update` Set to null to disable checking either way.|
@@ -1187,7 +1193,8 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
-| set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details.
+| select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
+| set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
 | start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
 | stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
