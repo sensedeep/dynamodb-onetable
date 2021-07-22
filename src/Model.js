@@ -988,7 +988,6 @@ export class Model {
 
     /*
         Remove null properties from the table unless Table.nulls == true
-        Also remove empty strings (DynamoDB cannot handle empty strings)
     */
     convertNulls(fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
@@ -1004,7 +1003,7 @@ export class Model {
                 delete properties[name]
 
             } else if (field.type == Object && typeof value == 'object') {
-                properties[name] = this.removeEmptyStrings(field, value)
+                properties[name] = this.removeNulls(field, value)
             }
         }
     }
@@ -1321,20 +1320,19 @@ export class Model {
     }
 
     /*
-        DynamoDB cannot handle empty strings (Ugh!).  Remove here from objects.
         Handle nulls properly according to nulls preference.
     */
-    removeEmptyStrings(field, obj) {
+    removeNulls(field, obj) {
         let result
         if (obj !== null && typeof obj == 'object') {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
                 if (typeof value == 'object') {
-                    result[key] = this.removeEmptyStrings(field, value)
+                    result[key] = this.removeNulls(field, value)
                 } else if (value == null && field.nulls !== true) {
                     //  Match null and undefined
                     continue
-                } else if (value !== '') {
+                } else {
                     result[key] = value
                 }
             }
