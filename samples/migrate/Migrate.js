@@ -36,11 +36,11 @@ const log = new SenseLogs()
     Configuration for Table()
 */
 const Config = {
+    client: client,
+    migrations: Migrations,
     name: 'onetable-migrate',
     senselogs: log,
     schema: Schema,
-    migrations: Migrations,
-    client: client,
 }
 
 /*
