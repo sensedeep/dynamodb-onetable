@@ -2,21 +2,20 @@
     pagination.ts - Test find with pagination
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
-import {TenantSchema} from './schemas'
+import {PagedSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
 
 const MaxUsers = 500
-const PerPage = 50
+const PerPage = 100
 
 const table = new Table({
     name: 'PaginationTestTable',
     client: Client,
-    schema: TenantSchema,
+    schema: PagedSchema,
 })
 let user: any
 let users: any[]
-const accountId = table.uuid()
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -27,9 +26,15 @@ test('Create Table', async() => {
 
 let User = table.getModel('User')
 
+function zpad(n: number, size: number): string {
+    let s = n + ''
+    while (s.length < size) s = '0' + s
+    return s
+}
+
 test('Create Users', async() => {
     for (let i = 0; i < MaxUsers; i++) {
-        await User.create({accountId, name: `User-${i}`, email: `u-${i}@example.com`})
+        await User.create({name: `user-${zpad(i, 6)}`})
     }
     users = await table.scan('User')
     expect(users.length).toBe(MaxUsers)
@@ -38,7 +43,7 @@ test('Create Users', async() => {
 //  DEPRECATED - use start instead
 test('Find with next iterator', async() => {
     let pages = 0
-    let items = await User.find({accountId}, {limit: PerPage})
+    let items = await User.find({}, {limit: PerPage})
     expect(items.length).toBe(PerPage)
     pages++
 
@@ -60,8 +65,26 @@ test('Find with start offset', async() => {
     let pages = 0, total = 0, start
     let items: any
     do {
-        items = await User.find({accountId}, {limit: PerPage, start})
+        items = await User.find({}, {limit: PerPage, start})
         if (items.length) {
+            expect(items[0].name).toBe(`user-${zpad(total, 6)}`)
+            total += items.length
+            pages++
+        }
+        start = items.start
+    } while (start)
+
+    expect(total).toBe(MaxUsers)
+    expect(pages).toBe(MaxUsers / PerPage)
+})
+
+test('Reverse scan', async() => {
+    let pages = 0, total = 0, start
+    let items: any
+    do {
+        items = await User.find({}, {limit: PerPage, start, reverse: true})
+        if (items.length) {
+            expect(items[0].name).toBe(`user-${zpad(MaxUsers - total - 1, 6)}`)
             total += items.length
             pages++
         }

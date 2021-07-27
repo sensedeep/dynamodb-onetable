@@ -2,14 +2,14 @@
     debug.ts - Just for debug
  */
 import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
-import {TenantSchema} from './schemas'
+import {PagedSchema} from './schemas'
 
 jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'DebugTable',
     client: Client,
-    schema: TenantSchema,
+    schema: PagedSchema,
     uuid: 'ulid',
 })
 const accountId = table.uuid()
@@ -21,35 +21,28 @@ test('Create Table', async() => {
     }
 })
 
-type UserType = Entity<typeof TenantSchema.models.User>
+type UserType = Entity<typeof PagedSchema.models.User>
 let User = table.getModel<UserType>('User')
 let user: UserType = null
 
-type AccountType = Entity<typeof TenantSchema.models.Account>
-let Account = table.getModel<AccountType>('Account')
-let account: AccountType = null
+function zpad(n: number, size: number): string {
+    let s = n + ''
+    while (s.length < size) s = '0' + s
+    return s
+}
 
-let userData = [
-    {accountId: null, name: 'Peter Smith', email: 'peter@example.com' },
-    {accountId: null, name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: null, name: 'Cu Later', email: 'cu@example.com' },
-]
-
-test('Create Account and Users', async() => {
-    account = await Account.create({name: 'Acme Rockets'})
-    table.setContext({accountId: account.id})
-
-    for (let item of userData) {
-        item.accountId = accountId
-        await User.create(item)
+test('Create Users', async() => {
+    for (let i = 0; i < 100; i++) {
+        await User.create({name: `user-${zpad(i, 4)}`})
     }
-    let users = await User.scan()
-    expect(users.length).toBe(userData.length)
-})
+    let items = await User.scan()
 
-test('Scenario', async() => {
-    let items = await User.find({sk: null})
-    expect(items.length).toBe(userData.length)
+    //  Scan forwards
+    let start = null
+    do {
+        let items = await User.find({}, {limit: 10, start, reverse: true})
+        start = items.start
+    } while (start)
 })
 
 test('Destroy Table', async() => {
