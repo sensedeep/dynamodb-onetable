@@ -46,7 +46,7 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Support for Batch, Transactions, GSI, LSI indexes.
 * Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.
-* Simple, easy to read source to modify (< 1000 lines).
+* Simple and easy to read source.
 * Integrated statistics.
 * Safety options to prevent "rm -fr *".
 * No module dependencies.
@@ -376,7 +376,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
+| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires and the property is not already defined. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -506,7 +506,6 @@ OneTable will ensure that values are of the correct type before writing to the d
 These JavaScript types map onto the equivalent DynamoDB types. For Binary types, you can supply data values with the types: ArrayBuffer and Buffer.
 
 For Sets, you should set the schema type to Set and supply values as instances of the JavaScript Set type. DynamoDB supports sets with elements that are strings, numbers or binary data.
-
 
 OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish as shown in the example above.
 
@@ -1081,6 +1080,11 @@ If `params.parse` is set to false, the unmodified DynamoDB response will be retu
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
+<a name="model-init"></a>
+#### async init(properties, params = {})
+
+Return a constructed model item without writing to the database.
+
 <a name="model-remove"></a>
 #### async remove(properties, params = {})
 
@@ -1099,6 +1103,8 @@ If `params.execute` is set to false, the command will not be executed and the pr
 If `params.many` is set to true, the API may be used to delete more than one item. Otherwise, for safety, it is assume the API will only remove one item.
 
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
+
+This API does not return a result. To test if the item was actually removed, set `params.exists` to true and the API will throw an exception if the item does not exist.
 
 
 <a name="model-scan"></a>
