@@ -178,11 +178,13 @@ export type AnyModel = {
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    init(properties: OneProperties, params?: OneParams): AnyEntity;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    initItem(properties: OneProperties, params?: OneParams): AnyEntity;
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
@@ -194,6 +196,7 @@ export class Model<T> {
     create(properties: T, params?: OneParams): Promise<T>;
     find(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     get(properties: T, params?: OneParams): Promise<T>;
+    init(properties: T, params?: OneParams): T;
     remove(properties: T, params?: OneParams): Promise<void>;
     scan(properties?: T, params?: OneParams): Promise<Paged<T[]>>;
     update(properties: T, params?: OneParams): Promise<T>;

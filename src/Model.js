@@ -560,6 +560,11 @@ export class Model {
         return await this.run('get', expression)
     }
 
+    init(properties = {}, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+        return this.initItem(properties, params)
+    }
+
     async remove(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {exists: null, high: true}))
 
@@ -637,6 +642,12 @@ export class Model {
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
+    }
+
+    /* private */
+    initItem(properties, params = {}) {
+        ({params, properties} = this.checkArgs(properties, params))
+        return this.setDefaults('init', this.block.fields, properties, params)
     }
 
     /* private */
@@ -943,7 +954,7 @@ export class Model {
     }
 
     /*
-        Add context to properties for key fields and if put, then for all fields.
+        Add context to properties. If 'put', then for all fields, otherwise just key fields.
         Context overrides properties.
      */
     addContext(op, fields, index, properties, params, context) {
@@ -960,9 +971,11 @@ export class Model {
         Set default property values on Put.
     */
     setDefaults(op, fields, properties, params) {
-        if (op != 'put') return
+        if (op != 'put' && op != 'init') return
         for (let field of Object.values(fields)) {
             let value = properties[field.name]
+
+            //  Set defaults and uuid fields
             if (value === undefined && !field.value) {
                 if (field.default != null) {
                     if (typeof field.default == 'function') {
@@ -970,20 +983,30 @@ export class Model {
                     } else {
                         value = field.default
                     }
-                } else if (field.uuid === true) {
-                    value = this.table.makeID()
 
-                } else if (field.uuid == 'uuid') {
-                    value = this.table.uuid()
+                } else if (op == 'init') {
+                    if (!field.uuid) {
+                        //  Set non-default, non-uuid properties to null
+                        value = null
+                    }
 
-                } else if (field.uuid == 'ulid') {
-                    value = this.table.ulid()
+                } else if (field.uuid) {
+                    if (field.uuid === true) {
+                        value = this.table.makeID()
+
+                    } else if (field.uuid == 'uuid') {
+                        value = this.table.uuid()
+
+                    } else if (field.uuid == 'ulid') {
+                        value = this.table.ulid()
+                    }
                 }
                 if (value !== undefined) {
                     properties[field.name] = value
                 }
             }
         }
+        return properties
     }
 
     /*
