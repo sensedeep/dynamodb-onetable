@@ -53,6 +53,7 @@ export class Table {
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};
+    getLog(): any;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getModel<T>(name: string): Model<T>;
     getSchema(): {};
@@ -68,6 +69,7 @@ export class Table {
     scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
+    setLog(log: any): void;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;

@@ -356,6 +356,14 @@ export class Table {
         this.models[name] = new Model(this, name, {indexes: this.indexes, fields})
     }
 
+    getLog() {
+        return this.log
+    }
+
+    setLog(log) {
+        this.log = log
+    }
+
     /*
         Thows exception if model cannot be found
      */
