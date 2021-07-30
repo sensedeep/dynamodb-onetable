@@ -3,7 +3,6 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {UniqueSchema} from './schemas'
-import { DataBrew } from 'aws-sdk'
 
 jest.setTimeout(7200 * 1000)
 
