@@ -609,9 +609,9 @@ export class Model {
         let {hash, sort} = this.indexes.primary
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
         for (let field of fields) {
-            await this.table.uniqueModel.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
+            this.table.uniqueModel.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
         }
-        await this.deleteItem(properties, params)
+        this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
     }
 
@@ -910,6 +910,9 @@ export class Model {
         if (!(project && project != 'all' && Array.isArray(project))) {
             project = null
         }
+        /*
+            Unique valute templates may need other properties when removing unique items
+        */
         for (let [name, field] of Object.entries(block.fields)) {
             if (field.schema) continue
             let attribute = field.attribute[0]
@@ -921,8 +924,8 @@ export class Model {
                     params.fallback = true
                     return properties
                 }
-                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort) {
-                    //  Keys only for get and delete
+                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
+                    //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.
                     //  FUTURE: could have a "strict" mode where we warn for other properties instead of ignoring.
                     continue
                 }

@@ -37,7 +37,7 @@ export default {
             id:         { type: String, uuid: true, validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email, crypt: true },
-            role:       { type: String, default: 'user', enum: ['admin', 'user']}
+            role:       { type: String, default: 'user', enum: ['admin', 'user']},
 
             address:    { type: Object, default: {}, schema: {
                 street: { type: String },

@@ -3,8 +3,9 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {UniqueSchema} from './schemas'
+import { DataBrew } from 'aws-sdk'
 
-// jest.setTimeout(7200 * 1000)
+jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'UniqueTestTable',
@@ -32,6 +33,9 @@ test('Create user 1', async() => {
     }
     user = await User.create(props)
     expect(user).toMatchObject(props)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(2)
 })
 
 test('Create user 2', async() => {
@@ -41,6 +45,9 @@ test('Create user 2', async() => {
     }
     user = await User.create(props)
     expect(user).toMatchObject(props)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(4)
 })
 
 test('Create non-unique user', async() => {
@@ -52,27 +59,33 @@ test('Create non-unique user', async() => {
         user = await User.create(props, {log: false})
     }).rejects.toThrow()
 
-    expect(true).toBe(true)
+    let items = await table.scanItems()
+    expect(items.length).toBe(4)
 })
 
 test('Remove user 1', async() => {
     users = await User.scan()
     expect(users.length).toBe(2)
 
-    await User.remove({id: users[0].id})
+    await User.remove(users[0])
     users = await User.scan()
     expect(users.length).toBe(1)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(2)
 })
 
 test('Remove all users', async() => {
     users = await User.scan({})
     expect(users.length).toBe(1)
-
     for (let user of users) {
-        await User.remove({id: user.id})
+        await User.remove(user)
     }
     users = await User.scan({})
     expect(users.length).toBe(0)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(0)
 })
 
 test('Destroy Table', async() => {
