@@ -6,8 +6,8 @@ import {PagedSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
 
-const MaxUsers = 500
-const PerPage = 100
+const MaxUsers = 250
+const PerPage = 50
 
 const table = new Table({
     name: 'PaginationTestTable',

@@ -12,6 +12,8 @@ export default {
 
             id:          { type: String, uuid: true },
             name:        { type: String },
+            date:        { type: Date },
+            enable:      { type: Boolean },
 
             location:    { type: Object, schema: {
                 address: { type: String },

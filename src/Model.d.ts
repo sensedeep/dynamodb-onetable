@@ -92,7 +92,8 @@ type EntityField<T extends OneTypedField> =
     : T['type'] extends BooleanConstructor ? boolean
     : T['type'] extends NumberConstructor ? number
     : T['type'] extends ObjectConstructor ? object
-    : T['type'] extends SetConstructor ? Date
+    : T['type'] extends DateConstructor ? Date
+    : T['type'] extends SetConstructor ? Set
     : T['type'] extends StringConstructor ? string
     : never;
 

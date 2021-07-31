@@ -53,6 +53,7 @@ test('Validate User model', async() => {
 })
 
 test('Create', async() => {
+    let now = new Date()
     let properties = {
         name: 'Peter Smith',
         email: 'peter@example.com',
@@ -61,6 +62,7 @@ test('Create', async() => {
         },
         status: 'active',
         age: 42,
+        registered: now,
     }
     //  Unknown properties must not be written to the table. Note: the profile object is schemaless.
     let params = Object.assign({unknown: 99}, properties)
@@ -73,6 +75,7 @@ test('Create', async() => {
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
     expect(user.age).toBe(42)
+    expect(user.registered.toString()).toBe(now.toString())
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
 })

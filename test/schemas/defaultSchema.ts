@@ -23,6 +23,7 @@ export default {
             },
             age:        { type: Number },
             profile:    { type: Object },
+            registered: { type: Date },
 
             //  Find by name
             gs1pk:      { type: String, value: 'user#${name}' },
