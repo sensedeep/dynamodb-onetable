@@ -1048,9 +1048,13 @@ export class Model {
                 properties[name] = properties[name](field.pathname, properties)
             }
             if (properties[name] === undefined && field.value) {
-                let value = this.runTemplate(op, index, field, properties, params, field.value)
-                if (value != null) {
-                    properties[name] = value
+                if (typeof field.value == 'function') {
+                    properties[name] = field.value(field.pathname, properties)
+                } else {
+                    let value = this.runTemplate(op, index, field, properties, params, field.value)
+                    if (value != null) {
+                        properties[name] = value
+                    }
                 }
             }
         }
