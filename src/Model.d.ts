@@ -13,8 +13,8 @@ type OneType =
     DateConstructor |
     NumberConstructor |
     ObjectConstructor |
-    SetConstructor |
     StringConstructor |
+    SetConstructor |
     Buffer |
     string;
 
@@ -93,8 +93,8 @@ type EntityField<T extends OneTypedField> =
     : T['type'] extends NumberConstructor ? number
     : T['type'] extends ObjectConstructor ? object
     : T['type'] extends DateConstructor ? Date
-    : T['type'] extends SetConstructor ? Set
     : T['type'] extends StringConstructor ? string
+    : T['type'] extends SetConstructor ? Set<T>
     : never;
 
 /*
