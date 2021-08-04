@@ -46,32 +46,35 @@ export class Table {
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
     exists(): Promise<Boolean>;
-    create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     describeTable(): Promise<{}>;
-    fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
-    find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
-    get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getContext(): {};
     getLog(): any;
-    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     getModel<T>(name: string): Model<T>;
     getSchema(): {};
     groupByType(items: AnyEntity[]): EntityGroup;
     listModels(): AnyModel[];
     listTables(): string[];
     makeID(): {};
-    putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
-    remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     removeModel(name: string): void;
-    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
-    scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
     setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
     setLog(log: any): void;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
-    update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     uuid(): {};
+
+    deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
+    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+
+    create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
+    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity[]>>;
+    update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+
+    fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
 }
