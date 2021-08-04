@@ -82,6 +82,8 @@ This version includes prototype support for the AWS SDK V3.
 
 If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and the OneTable `Dynamo` helper. Then create a `DynamoDBClient` instance and Dynamo wrapper instance. Note: you will need Node v14 or later for this to work.
 
+Note: you can use the Table.setClient API to defer setting the client or replace the client at any time.
+
 ```javascript
 import Dynamo from 'dynamodb-onetable/Dynamo'
 import {Model, Table} from 'dynamodb-onetable'
@@ -822,6 +824,9 @@ for (let segment = 0; segment < segments; segment++) {
 let results = await Promise.all(promises)
 ```
 
+#### setClient(client)
+
+Assign an AWS SDK V2 DocumentClient or AWS SDK V3 Dynamo helper client to be used for communiction with DynamoDB. Note the V3 DocumentClient instance is a native AWS SDK DocumentClient instance. For AWS SDK V3, the client is an instance of the OneTable Dynamo helper.
 
 #### setContext(context = {}, merge = false)
 
