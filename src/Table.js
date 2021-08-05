@@ -756,9 +756,6 @@ class Log {
 
     process(level, message, context, params) {
         if (this.logger) {
-            if (params && params.log) {
-                level = 'info'
-            }
             this.logger(level, message, context)
         }
     }

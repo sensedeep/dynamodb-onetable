@@ -62,11 +62,9 @@ export class Model {
         this.sort = null
 
         //  Cache table properties
-        this.V3 = table.V3
         this.createdField = table.createdField
         this.delimiter = table.delimiter
         this.generic = options.generic
-        this.log = table.log
         this.nested = false
         this.nulls = table.nulls || false
         this.tableName = table.name
@@ -341,8 +339,8 @@ export class Model {
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         do {
             try {
-                this.log.trace(`Dynamo "${op}" "${this.name}"`, {trace}, params)
-                if (this.V3) {
+                this.table.log[params.log ? 'info' : 'trace'](`Dynamo "${op}" "${this.name}"`, {trace}, params)
+                if (this.table.V3) {
                     result = await this.table.client[op](cmd)
                 } else {
                     result = await this.table.client[DocumentClientMethods[op]](cmd).promise()
@@ -353,7 +351,7 @@ export class Model {
                     result = {}
                 } else {
                     trace.err = err
-                    this.log.error(`Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
+                    this.table.log.error(`Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
                     throw err
                 }
             }
@@ -433,7 +431,7 @@ export class Model {
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
-            this.log.data(`Dynamo result for "${op}" "${this.name}"`, {trace}, params)
+            this.table.log[params.log ? 'info' : 'data'](`Dynamo result for "${op}" "${this.name}"`, {trace}, params)
         }
 
         /*
@@ -552,7 +550,7 @@ export class Model {
             //  Fallback via find when using non-primary indexes
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                this.log.error(`Get fallback with more than one result`, {model: this.name, properties, params})
+                this.table.log.error(`Get fallback with more than one result`, {model: this.name, properties, params})
             }
             return items[0]
         }
@@ -759,7 +757,7 @@ export class Model {
 
             } else if (value === undefined) {
                 if (field.required) {
-                    this.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
+                    this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
                         model: this.name, raw, params, field
                     })
                 }
@@ -1132,7 +1130,7 @@ export class Model {
             }
         }
         if (Object.keys(details).length > 0) {
-            this.log.error(`Validation error for "${this.name}"`, {model: this.name, properties, details})
+            this.table.log.error(`Validation error for "${this.name}"`, {model: this.name, properties, details})
             let err = new Error(`dynamo: Validation Error for "${this.name}"`)
             err.details = details
             throw err
