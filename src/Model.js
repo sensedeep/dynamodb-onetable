@@ -1355,11 +1355,11 @@ export class Model {
         if (obj !== null && typeof obj == 'object') {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
-                if (typeof value == 'object') {
-                    result[key] = this.removeNulls(field, value)
-                } else if (value == null && field.nulls !== true) {
+                if (value == null && field.nulls !== true) {
                     //  Match null and undefined
                     continue
+                } else if (typeof value == 'object') {
+                    result[key] = this.removeNulls(field, value)
                 } else {
                     result[key] = value
                 }
