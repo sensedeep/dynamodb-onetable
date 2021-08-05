@@ -385,6 +385,12 @@ export class Model {
             }
         } while (result.LastEvaluatedKey && (maxPages == null || ++pages < maxPages))
 
+        let prev
+        if ((op == 'find' || op == 'scan') && items.length) {
+            let {hash, sort} = this.indexes.primary
+            prev = { [hash]: items[0][hash], [sort]: items[0][sort]}
+        }
+
         /*
             Process the response
         */
@@ -443,7 +449,9 @@ export class Model {
                     More results to come. Create a next() iterator.
                  */
                 items.start = this.table.unmarshall(result.LastEvaluatedKey)
+
                 //  DEPRECATED - not ideal as the stack depth can get large
+                //  Ideally items.next should == items.start. Then we can have next/prev properties.
                 items.next = async () => {
                     params = Object.assign({}, params, {start: items.start})
                     if (!params.high) {
@@ -455,6 +463,9 @@ export class Model {
             }
             if (params.count || params.select == 'COUNT') {
                 items.count = result.Count
+            }
+            if (prev) {
+                items.prev = prev
             }
             return items
         }
