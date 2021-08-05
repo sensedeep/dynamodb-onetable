@@ -169,7 +169,8 @@ export type OneProperties = {
 
 export class Paged<T> extends Array {
     count?: number;
-    start?: string;
+    start?: object;
+    prev?: object;
     //  DEPRECATED
     next?: () => Promise<Paged<T>>;
 }
