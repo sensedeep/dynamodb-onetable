@@ -387,8 +387,11 @@ export class Model {
 
         let prev
         if ((op == 'find' || op == 'scan') && items.length) {
-            let {hash, sort} = this.indexes.primary
+            let {hash, sort} = index
             prev = { [hash]: items[0][hash], [sort]: items[0][sort]}
+            if (prev[hash] == null || prev[sort] == null) {
+                prev = null
+            }
         }
 
         /*
@@ -445,27 +448,17 @@ export class Model {
         */
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
-                /*
-                    More results to come. Create a next() iterator.
-                 */
-                items.start = this.table.unmarshall(result.LastEvaluatedKey)
-
-                //  DEPRECATED - not ideal as the stack depth can get large
-                //  Ideally items.next should == items.start. Then we can have next/prev properties.
-                items.next = async () => {
-                    params = Object.assign({}, params, {start: items.start})
-                    if (!params.high) {
-                        if (op == 'find') op = 'queryItems'
-                        else if (op == 'scan') op = 'scanItems'
-                    }
-                    return await this[op](properties, params)
-                }
+                //  DEPRECATE items.start
+                items.start = items.next = this.table.unmarshall(result.LastEvaluatedKey)
             }
             if (params.count || params.select == 'COUNT') {
                 items.count = result.Count
             }
             if (prev) {
-                items.prev = prev
+                items.prev = this.table.unmarshall(prev)
+            }
+            if (params.prev) {
+                items = items.reverse()
             }
             return items
         }

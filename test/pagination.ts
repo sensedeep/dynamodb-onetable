@@ -40,27 +40,6 @@ test('Create Users', async() => {
     expect(users.length).toBe(MaxUsers)
 })
 
-//  DEPRECATED - use start instead
-test('Find with next iterator', async() => {
-    let pages = 0
-    let items = await User.find({}, {limit: PerPage})
-    expect(items.length).toBe(PerPage)
-    pages++
-
-    while (items.length) {
-        if (items.next) {
-            items = await items.next()
-            if (items.length) {
-                expect(items.length).toBe(PerPage)
-                pages++
-            }
-        } else {
-            break
-        }
-    }
-    expect(pages).toBe(MaxUsers / PerPage)
-})
-
 test('Find with start offset', async() => {
     let pages = 0, total = 0, start
     let items: any
@@ -93,6 +72,25 @@ test('Reverse scan', async() => {
 
     expect(total).toBe(MaxUsers)
     expect(pages).toBe(MaxUsers / PerPage)
+})
+
+test('Page backwards', async() => {
+    let pages = 0, total = 0, start
+    let limit = PerPage
+
+    let firstPage = await User.find({}, {limit})
+    expect(firstPage.length).toBe(PerPage)
+
+    //  Advance to second page to avoid errors where start is simply ignored and we get the first page results
+    let secondPage = await User.find({}, {limit, start: firstPage.start})
+    expect(secondPage.length).toBe(PerPage)
+
+    let thirdPage = await User.find({}, {limit, start: secondPage.start})
+    expect(thirdPage.length).toBe(PerPage)
+
+    let prevPage = await User.find({}, {limit, prev: thirdPage.prev})
+    expect(prevPage.length).toBe(PerPage)
+    expect(prevPage[0].name).toBe(secondPage[0].name)
 })
 
 test('Destroy Table', async() => {

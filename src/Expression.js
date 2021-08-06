@@ -457,9 +457,16 @@ export class Expression {
             }
             if (op == 'find' || op == 'scan') {
                 args.Limit = params.limit ? params.limit : undefined
-                args.ScanIndexForward = params.reverse ? false : true
-                if (params.start) {
-                    args.ExclusiveStartKey = this.table.marshall(params.start)
+                /*
+                    Scan reverse if either reverse or params is true but not both. (XOR)
+                    If both are true, then requesting the previous page of a reverse scan which is
+                    actually forwards.
+                */
+                args.ScanIndexForward = (params.reverse != null ^ params.prev != null) ? false : true
+
+                //  DEPRECATE params.start
+                if (params.next || params.start || params.prev) {
+                    args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev)
                 }
             }
             if (op == 'scan') {

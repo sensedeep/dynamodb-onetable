@@ -1028,18 +1028,29 @@ The `find` method returns an array of items after applying any schema mappings. 
 
 #### Pagination
 
-The `find` method will automatically invoke DynamoDB query to fetch additional items and aggregate the result up to the limit specified by `params.limit`. If the limit is exceeded, the last key fetched is set in the 'result.start' property of the returned array of items. You can provide this as `params.start` to a subsequent API call to continue the query with the next page of results.
+The `find` method will automatically invoke DynamoDB query to fetch additional items and aggregate the result up to the limit specified by `params.limit`. If the limit is exceeded, the last key fetched is set in the 'result.next' property of the returned array of items. You can provide this as `params.next` to a subsequent API call to continue the query with the next page of results.
+
 
 ```typescript
-let start
+let next
 do {
-    let items: any = await User.find({accountId}, {limit: 10, start})
+    let items = await User.find({accountId}, {limit: 10, next})
     //  process items
-    start = items.start
-} while (start)
+    next = items.next
+} while (next)
 ```
 
-Note: the limit is the number of items read by DynamoDB before filtering and is thus not equal to the number of items returned.
+To scan backwards, set Params.reverse to true.
+
+The keys for the first item are returned in `params.prev` which can be used to retrieve the previous page.
+
+```typescript
+let firstPage = await User.find({accountId}, {limit})
+let secondPage = await User.find({accountId}, {limit, next: secondPage.next})
+let previousPage = await User.find({accountId}, {limit, prev: items.prev})
+```
+
+Note: the limit is the number of items read by DynamoDB before filtering and thus may not be equal to the number of items returned if you are using filtering expressions.
 
 To control the number of pages that queryItems will request, set the `params.maxPages` to the desired number.
 
@@ -1051,13 +1062,13 @@ The `params.fields` may be set to a list of properties to return. This defines t
 
 If the `params.follow` is set to true, each item will be re-fetched using the returned results. This is useful for KEYS_ONLY secondary indexes where OneTable will use the retrieved keys to fetch all the attributes of the entire item using the primary index. This incurs an additional request for each item, but for large data sets, it enables the transparent use of a KEYS_ONLY secondary index which may greatly reduce the size (and cost) of the secondary index.
 
-The `params.limit` specifies the maximum number of items for DynamoDB to read. The `params.start` defines the start point for the returned items. It is typically set to the last key returned from previous invocation via the `result.start` property. Note: the limit is the number of items DynamoDB reads before filtering.
+The `params.limit` specifies the maximum number of items for DynamoDB to read. The `params.next` defines the start point for the returned items. It is typically set to the last key returned from previous invocation via the `result.next` property. Note: the limit is the number of items DynamoDB reads before filtering.
 
 The `params.maxPages` specifies the maximum number of DynamoDB query requests that OneTable will perform for a single API request.
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
-If `params.start` is set to a map that contains the primary hash and sort key values for an existing item, the query will commence at that item.
+If `params.next` is set to a map that contains the primary hash and sort key values for an existing item, the query will commence at that item.
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
@@ -1198,6 +1209,8 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
 | log | `boolean` | Set to true to force the API call to be logged at the 'data' level. Requires that a 'logger' be defined via the Table constructor. Defaults to false.|
 | many | `boolean` | Set to true to enable deleting multiple items. Default to false.|
+| next | `object` | Starting key for the result set. This is used to set the ExclusiveStartKey when doing a find/scan. Typically set to the result.next value returned on a previous find/scan. |
+| prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
@@ -1206,7 +1219,6 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
 | set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
-| start | `boolean` | Starting key used with ExclusiveStartKey. Useful to continue find / scan when the specified `limit` is fulfilled.|
 | stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
