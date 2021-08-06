@@ -40,52 +40,52 @@ test('Create Users', async() => {
     expect(users.length).toBe(MaxUsers)
 })
 
-test('Find with start offset', async() => {
-    let pages = 0, total = 0, start
+test('Find with next offset', async() => {
+    let pages = 0, total = 0, next
     let items: any
     do {
-        items = await User.find({}, {limit: PerPage, start})
+        items = await User.find({}, {limit: PerPage, next})
         if (items.length) {
             expect(items[0].name).toBe(`user-${zpad(total, 6)}`)
             total += items.length
             pages++
         }
-        start = items.start
-    } while (start)
+        next = items.next
+    } while (next)
 
     expect(total).toBe(MaxUsers)
     expect(pages).toBe(MaxUsers / PerPage)
 })
 
 test('Reverse scan', async() => {
-    let pages = 0, total = 0, start
+    let pages = 0, total = 0, next
     let items: any
     do {
-        items = await User.find({}, {limit: PerPage, start, reverse: true})
+        items = await User.find({}, {limit: PerPage, next, reverse: true})
         if (items.length) {
             expect(items[0].name).toBe(`user-${zpad(MaxUsers - total - 1, 6)}`)
             total += items.length
             pages++
         }
-        start = items.start
-    } while (start)
+        next = items.next
+    } while (next)
 
     expect(total).toBe(MaxUsers)
     expect(pages).toBe(MaxUsers / PerPage)
 })
 
 test('Page backwards', async() => {
-    let pages = 0, total = 0, start
+    let pages = 0, total = 0, next
     let limit = PerPage
 
     let firstPage = await User.find({}, {limit})
     expect(firstPage.length).toBe(PerPage)
 
-    //  Advance to second page to avoid errors where start is simply ignored and we get the first page results
-    let secondPage = await User.find({}, {limit, start: firstPage.start})
+    //  Advance to second page to avoid errors where next is simply ignored and we get the first page results
+    let secondPage = await User.find({}, {limit, next: firstPage.next})
     expect(secondPage.length).toBe(PerPage)
 
-    let thirdPage = await User.find({}, {limit, start: secondPage.start})
+    let thirdPage = await User.find({}, {limit, next: secondPage.next})
     expect(thirdPage.length).toBe(PerPage)
 
     let prevPage = await User.find({}, {limit, prev: thirdPage.prev})
