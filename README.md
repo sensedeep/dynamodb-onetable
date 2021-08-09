@@ -634,7 +634,7 @@ Additional fields supplied in `properties` may be used to construct a filter exp
 
 The optional params are fully described in [Model API Params](#params). Some relevant params include:
 
-The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
+The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression. The properties must include the key attributes if you wish to use `params.prev` for reverse pagination.
 
 If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
 
@@ -1068,7 +1068,7 @@ The `params.maxPages` specifies the maximum number of DynamoDB query requests th
 
 If `params.parse` is set to false, the unmodified DynamoDB response will be returned. Otherwise the results will be parsed and mapped into a set of Javascript properties.
 
-If `params.next` is set to a map that contains the primary hash and sort key values for an existing item, the query will commence at that item.
+If `params.next` or `params.prev` is set to a map that contains the primary hash and sort key values for an existing item, the query will commence at that item. The `params.next` will be the exclusive start of the query, whereas `params.prev` will define the end of the query. These two properties are mutually exclusive, both of them can't be set at the same time.
 
 The `params.where` clause may be used to augment the filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
