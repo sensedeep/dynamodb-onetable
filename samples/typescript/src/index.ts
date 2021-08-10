@@ -153,11 +153,11 @@ async function test() {
     /*
         Read a page of users in groups of 25 at a time
      */
-    let start: any = null
+    let next: any = null
     do {
-        users = await User.find({}, {start, limit: 25})
-        start = users.start
-    } while (users.start)
+        users = await User.find({}, {next, limit: 25})
+        next = users.next
+    } while (users.next)
 
     /*
         Create a product, not tied to an account.
