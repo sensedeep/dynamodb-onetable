@@ -497,9 +497,9 @@ export class Table {
 
     async batch(op, batch, params = {}) {
         if (op == 'write') {
-            return this.batchWrite(batch, params)
-        } else (op == 'get') {
-            return this.batchGet(batch, params)
+            return await this.batchWrite(batch, params)
+        } else if (op == 'get') {
+            return await this.batchGet(batch, params)
         }
     }
 
