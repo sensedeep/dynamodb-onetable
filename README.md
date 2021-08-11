@@ -574,7 +574,7 @@ Each `Table` has a `context` of properties that are blended with `Model` propert
 
 When creating items, context properties are written to the database. When updating, context properties are not, only explicit attributes provided in the API `properties` parameter are written.
 
-Context properties take precedence over supplied `properties`. This is to prevent accidental updating of context keys. To force an update of context attributes, provide the context properties either by updating the context via `Table.setContext` or supplying an explicit context via `params.context`.
+Context properties take precedence over supplied `properties`. This is to prevent accidental updating of context keys. To force an update of context attributes, provide the context properties either by updating the context via `Table.addContext`, replacing the context via `Table.setContext` or supplying an explicit context via `params.context` to the individual API.
 
 Use the `Table.setContext` method to initialize the context and `Table.clear` to reset.
 
@@ -588,11 +588,11 @@ The Table API provides a utility methods and low-level data API to manage Dynamo
 Add a new model to a table. This invokes the `Model` constructor and then adds the model to the table. The previously defined `Table` indexes are used for the model.
 
 
-#### async batch(op, params = {})
+#### async batch(operation, params = {})
 
 Invoke a prepared batch operation and return the results. Batches are prepared by creating a bare batch object `{}` and passing that via `params.batch` to the various OneTable APIs to build up a batched operation. Invoking `batch` will execute the accumulated API calls in a batch.
 
-The `batch` parameter should initially be set to `{}` and then be passed to API calls via `params.batch`. The `op` parameter should be set to `get` or `write` for read or write operations. You cannot mix reads and writes in a single batch.
+The `batch` parameter should initially be set to `{}` and then be passed to API calls via `params.batch`. The `operation` parameter should be set to `get` or `write` for read or write operations. You cannot mix reads and writes in a single batch.
 
 For example:
 

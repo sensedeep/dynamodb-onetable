@@ -388,9 +388,11 @@ export class Table {
         return this.context
     }
 
-    /*
-        Set or update the context object. Return this for chaining.
-     */
+    addContext(context = {}) {
+        this.context = Object.assign(this.context, context)
+        return this
+    }
+
     setContext(context = {}, merge = false) {
         this.context = merge ? Object.assign(this.context, context) : context
         return this
