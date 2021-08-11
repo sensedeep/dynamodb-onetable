@@ -442,10 +442,10 @@ export class Table {
     }
 
     /*
-        Low level API
-
         The low level API does not use models. It permits the reading / writing of any attribute.
     */
+
+    //  private
     async batchGet(batch, params = {}) {
         let result
         try {
@@ -478,6 +478,7 @@ export class Table {
         return result
     }
 
+    //  private
     async batchWrite(batch, params = {}) {
         let result
         try {
@@ -492,6 +493,14 @@ export class Table {
             throw err
         }
         return result
+    }
+
+    async batch(op, batch, params = {}) {
+        if (op == 'write') {
+            return this.batchWrite(batch, params)
+        } else (op == 'get') {
+            return this.batchGet(batch, params)
+        }
     }
 
     async deleteItem(properties, params) {

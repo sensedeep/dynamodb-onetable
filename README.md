@@ -588,11 +588,11 @@ The Table API provides a utility methods and low-level data API to manage Dynamo
 Add a new model to a table. This invokes the `Model` constructor and then adds the model to the table. The previously defined `Table` indexes are used for the model.
 
 
-#### async batchGet(batch, params = {})
+#### async batch(op, params = {})
 
-Invoke a prepared batch operation and return the results. Batches are prepared by creating a bare batch object `{}` and passing that via `params.batch` to the various OneTable APIs to build up a batched operation. Finally invoking `batchGet` or `batchWrite` will execute the accumulated API calls in a batch.
+Invoke a prepared batch operation and return the results. Batches are prepared by creating a bare batch object `{}` and passing that via `params.batch` to the various OneTable APIs to build up a batched operation. Invoking `batch` will execute the accumulated API calls in a batch.
 
-The `batch` parameter should initially be set to `{}` and then be passed to API calls via `params.batch`.
+The `batch` parameter should initially be set to `{}` and then be passed to API calls via `params.batch`. The `op` parameter should be set to `get` or `write` for read or write operations. You cannot mix reads and writes in a single batch.
 
 For example:
 
@@ -600,15 +600,10 @@ For example:
 let batch = {}
 await Account.get({id: accountId}, {batch})
 await User.get({id: userId}, {batch})
-let results = await table.batchGet(batch)
+let results = await table.batch('get', batch)
 ```
 
 Set batch params.consistent for a consistent read.
-
-#### async batchWrite(batch, params = {})
-
-Same as batchGet but for write operations.
-
 
 #### clearContext()
 
