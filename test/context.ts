@@ -57,6 +57,21 @@ test('Set context', async() => {
     expect(context).toMatchObject({accountId: account.id})
 })
 
+test('Add context', async() => {
+    table.setContext({accountId: account.id})
+    let context: any = table.getContext()
+    expect(context).toMatchObject({accountId: account.id})
+
+    table.addContext({color: 'blue'})
+    context = table.getContext()
+    expect(context).toMatchObject({accountId: account.id, color: 'blue'})
+
+    //  Revert
+    table.setContext({accountId: account.id})
+    context = table.getContext()
+    expect(context).toMatchObject({accountId: account.id})
+})
+
 test('Create users', async() => {
     for (let item of data) {
         //  Account ID comes from context
