@@ -87,8 +87,9 @@ export class Model {
         */
         this.mappings = {}
 
-        if (options.fields) {
-            this.prepModel(options.fields, this.block)
+        let fields = options.fields || (table.schema ? table.schema.models[this.name] : null)
+        if (fields) {
+            this.prepModel(fields, this.block)
         }
     }
 

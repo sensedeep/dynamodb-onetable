@@ -98,6 +98,7 @@ export class Table {
         this.context = {}
 
         if (schema) {
+            this.schema = schema
             this.prepSchema(schema)
         }
 
