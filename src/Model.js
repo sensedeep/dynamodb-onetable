@@ -352,9 +352,14 @@ export class Model {
                 if (params.throw === false) {
                     result = {}
                 } else {
-                    trace.err = err
-                    this.table.log.error(`Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
-                    throw err
+                    if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
+                        this.table.log.info(`Conditional check failed "${op}" on "${this.name}"`, {err, trace})
+                        throw new Error(`Conditional create failed for "${this.name}`)
+                    } else {
+                        trace.err = err
+                        this.table.log.error(`Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
+                        throw err
+                    }
                 }
             }
             if (result.LastEvaluatedKey) {
