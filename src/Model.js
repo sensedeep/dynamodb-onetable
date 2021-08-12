@@ -1195,8 +1195,9 @@ export class Model {
     transformWriteAttribute(op, field, value) {
         let type = field.type
 
-        if (field.nulls === true) {
-            //  Nop
+        if (value == null && field.nulls === true) {
+            //  Keep the null
+
         } else if (op == 'find' && value != null && typeof value == 'object') {
             //  Find used {begins} and other operators
             value = this.transformNestedWriteFields(field, value)
