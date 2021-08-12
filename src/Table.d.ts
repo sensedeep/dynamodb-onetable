@@ -42,7 +42,8 @@ export class Table {
     addContext(context?: {}): Table;
     addModel(name: string, fields: OneModelSchema): void;
 
-    batch(op: string, batch: any, params?: OneParams): Promise<{}[]>;
+    batchGet(batch: any, params?: OneParams): Promise<{}[]>;
+    batchWrite(batch: any, params?: OneParams): Promise<{}>;
     clearContext(): Table;
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
@@ -78,8 +79,4 @@ export class Table {
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
     fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
-
-    //  DEPRECATED
-    batchGet(batch: any, params?: OneParams): Promise<{}[]>;
-    batchWrite(batch: any, params?: OneParams): Promise<{}>;
 }
