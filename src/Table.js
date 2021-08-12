@@ -447,8 +447,10 @@ export class Table {
         The low level API does not use models. It permits the reading / writing of any attribute.
     */
 
-    //  private
     async batchGet(batch, params = {}) {
+        if (Object.getOwnPropertyNames(batch).length == 0) {
+            return []
+        }
         let result
         try {
             this.log.trace(`Dynamo batchGet on "${this.name}"`, {batch}, params)
@@ -480,8 +482,10 @@ export class Table {
         return result
     }
 
-    //  private
     async batchWrite(batch, params = {}) {
+        if (Object.getOwnPropertyNames(batch).length == 0) {
+            return {}
+        }
         let result
         try {
             this.log.trace(`Dynamo batchWrite on "${this.name}"`, {batch}, params)
