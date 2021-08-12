@@ -478,7 +478,7 @@ export class Table {
                         let type = item[this.typeField] || '_unknown'
                         let model = this.models[type]
                         if (model && model != this.uniqueModel) {
-                            result.push(model.transformReadItem('get', item, params))
+                            result.push(model.transformReadItem('get', item, {}, params))
                         }
                     }
                 }
@@ -565,7 +565,7 @@ export class Table {
                             let type = item[this.typeField] || '_unknown'
                             let model = this.models[type]
                             if (model && model != this.uniqueModel) {
-                                items.push(model.transformReadItem('get', item, params))
+                                items.push(model.transformReadItem('get', item, {}, params))
                             }
                         }
                     }
