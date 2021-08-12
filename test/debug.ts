@@ -26,9 +26,11 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 
 test('Test', async() => {
-    let date = new Date()
-    // User.create({pk: 'pk', sk: 'sk', enable: true })
-    // User.create({pk: 'pk', sk: 'sk', date: date })
+    let user = await User.create({name: 'Michael'})
+    dump(user)
+
+    let users = await User.find({name: user.name}, {index: 'gs1', hidden: true})
+    dump(users)
 })
 
 test('Destroy Table', async() => {

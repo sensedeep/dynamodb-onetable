@@ -914,8 +914,13 @@ export class Model {
     */
     selectProperties(op, block, index, properties, params, rec) {
         let project = index.project
-        if (!(project && project != 'all' && Array.isArray(project))) {
-            project = null
+        if (project) {
+            if (project == 'all') {
+                project = null
+            } else if (project == 'keys') {
+                let primary = this.indexes.primary
+                project = [primary.hash, primary.sort, index.hash, index.sort]
+            }
         }
         /*
             Unique valute templates may need other properties when removing unique items
