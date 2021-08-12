@@ -158,7 +158,10 @@ export class Expression {
             if ((op == 'find' || op == 'scan')) {
                 //  schema.filter == false disables a field from being used in a filter
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(att, value)
+                    if (!this.params.batch) {
+                        //  Batch does not support filter expressions
+                        this.addFilter(att, value)
+                    }
                 }
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
@@ -403,6 +406,8 @@ export class Expression {
                 args = { Key: key }
             } else if (op == 'put') {
                 args = { Item: values }
+            } else {
+                throw new Error(`Unsupport batch operation "${op}"`)
             }
             if (filters.length) {
                 throw new Error('Invalid filters with batch operation')
@@ -478,7 +483,10 @@ export class Expression {
                 }
             }
         }
-        args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
+        //  Remove null entries
+        if (args) {
+            args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
+        }
         if (params.postFormat) {
             args = params.postFormat(model, args)
         }
