@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk'
-import Dynamo from '../../src/Dynamo.js'
+import Dynamo from '../../src/Dynamo'
 import { Entity, Model, Table } from '../../src/index.js'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
