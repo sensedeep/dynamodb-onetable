@@ -33,7 +33,7 @@ test('Batch put', async() => {
     for (let item of data) {
         table.create('User', item, {batch})
     }
-    await table.batch('write', batch)
+    await table.batchWrite(batch)
     users = await table.scan('User')
     expect(users.length).toBe(data.length)
 })
@@ -43,7 +43,7 @@ test('Batch get', async() => {
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
     }
-    let items: any = await table.batch('get', batch, {
+    let items: any = await table.batchGet(batch, {
         parse: true,
         hidden: false,
         consistent: true,
@@ -58,7 +58,7 @@ test('Batch get', async() => {
     batch = {}
     let id = users[0].id
     User.remove({id}, {where: `${id} = {${id}}`, batch})
-    await table.batch('write', batch)
+    await table.batchWrite(batch)
 })
 
 test('Batch put and delete combined', async() => {
@@ -69,7 +69,7 @@ test('Batch put and delete combined', async() => {
     table.remove('User', {id: users[2].id}, {batch})
     table.create('User', data[0], {exists: null, batch})
 
-    let items: any = await table.batch('write', batch, {parse: true, hidden: false})
+    let items: any = await table.batchWrite(batch, {parse: true, hidden: false})
 
     users = await table.scan('User')
     expect(users.length).toBe(1)
@@ -81,7 +81,7 @@ test('Batch get without parse', async() => {
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
     }
-    let response: any = await table.batch('get', batch, {hidden: false})
+    let response: any = await table.batchGet(batch, {hidden: false})
     expect(response.Responses).toBeDefined()
     expect(response['$metadata']).toBeDefined()
 })
@@ -93,16 +93,16 @@ test('Batch with error', async() => {
     }
     await expect(async() => {
         //  Corrupt the batch object
-        delete batch.RequestItems
-        await table.batch('get', batch, {parse: true, hidden: false, consistent: true})
+        batch.RequestItems = 42
+        await table.batchGet(batch, {parse: true, hidden: false, consistent: true})
     }).rejects.toThrow()
 
     batch = {}
     table.create('User', {name: 'Buy MoreMilk', email: 'milk@example.com', status: 'inactive'}, {batch})
     await expect(async() => {
         //  Corrupt the batch object
-        delete batch.RequestItems
-        await table.batch('write', batch)
+        batch.RequestItems = 42
+        await table.batchWrite(batch)
     }).rejects.toThrow()
 })
 
