@@ -5,7 +5,7 @@
  */
 
 import Crypto from 'crypto'
-import ULID from './ULID.js'
+import ULID from './ULID'
 import {Model} from './Model.js'
 
 /*
