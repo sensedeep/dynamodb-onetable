@@ -5,7 +5,7 @@
 import Crypto from 'crypto'
 
 //  Repeat Z to make encoding faster for rand == 0xFF
-const Letters = "0123456789ABCDEFGHIJKMNPQRSTVWXYZZ"
+const Letters = '0123456789ABCDEFGHIJKMNPQRSTVWXYZZ'
 const LettersLen = Letters.length - 1
 const RandomLength = 16
 const TimeLen = 10
@@ -26,15 +26,13 @@ export default class ULID {
         }
         let letters = ulid.substr(0, TimeLen).split('').reverse()
         return letters.reduce((accum, c, index) => {
-            return ulid.substr(0, TimeLen).split('').reverse().reduce((accum, c, index) => {
-                var index = Letters.indexOf(c)
-                if (index < 0) {
-                    throw new Error(`Invalid ULID char ${c}`)
-                }
-                accum += index * Math.pow(LettersLen, index)
-                return accum
-            }, 0)
-        })
+            let i = Letters.indexOf(c)
+            if (i < 0) {
+                throw new Error(`Invalid ULID char ${c}`)
+            }
+            accum += index * Math.pow(LettersLen, i)
+            return accum
+        }, 0)
     }
 
     getRandom() {

@@ -47,7 +47,6 @@ export class Expression {
             Find the index for this expression. Then store the attribute names for the index.
          */
         this.index = this.selectIndex(model.indexes, params)
-        let fields = model.block.fields
 
         /*
             Get the request index hash/sort attributes
@@ -181,7 +180,6 @@ export class Expression {
     addConditions(op) {
         let {conditions, params} = this
         let {hash, sort} = this.index
-        let attribute
         if (params.exists === true) {
             conditions.push(`attribute_exists(${hash})`)
             if (sort) {
@@ -284,7 +282,7 @@ export class Expression {
     }
 
     addUpdate(field, value) {
-        let {params, properties, updates} = this
+        let {params, updates} = this
         let att = field.attribute[0]
         if (att == this.hash || att == this.sort) {
             return
@@ -365,7 +363,6 @@ export class Expression {
     }
 
     selectIndex(indexes) {
-        let op = this.op
         let index = indexes.primary
         if (this.params.index) {
             if (this.params.index != 'primary') {
@@ -379,7 +376,7 @@ export class Expression {
         Create the Dynamo command parameters. Called from Model.run
      */
     command() {
-        let {conditions, filters, key, keys, hash, model, names, op, params, project, sort, values} = this
+        let {conditions, filters, key, keys, hash, model, names, op, params, project, values} = this
 
         if (key == null && values[hash] == null && op != 'scan') {
             throw new Error(`dynamo: Cannot find hash key for "${op}"`, {values})
@@ -485,7 +482,7 @@ export class Expression {
         }
         //  Remove null entries
         if (args) {
-            args = Object.fromEntries(Object.entries(args).filter(([_, v]) => v != null))
+            args = Object.fromEntries(Object.entries(args).filter(([, v]) => v != null))
         }
         if (params.postFormat) {
             args = params.postFormat(model, args)

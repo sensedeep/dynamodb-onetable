@@ -472,7 +472,7 @@ export class Table {
             let response = result.Responses
             if (params.parse && response) {
                 result = []
-                for (let [tableName, items] of Object.entries(response)) {
+                for (let items of Object.values(response)) {
                     for (let item of items) {
                         item = this.unmarshall(item)
                         let type = item[this.typeField] || '_unknown'
@@ -771,7 +771,7 @@ class Log {
         this.process('trace', message, context, params)
     }
 
-    process(level, message, context, params) {
+    process(level, message, context) {
         if (this.logger) {
             this.logger(level, message, context)
         }

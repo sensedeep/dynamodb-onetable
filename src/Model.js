@@ -115,7 +115,7 @@ export class Model {
         value           String template, function, array
      */
     prepModel(schemaFields, block, prefix = '') {
-        let {deps, fields} = block
+        let {fields} = block
         schemaFields = Object.assign({}, schemaFields)
         if (!prefix) {
             //  Top level only
@@ -197,9 +197,7 @@ export class Model {
             }
             if (field.value) {
                 //  Value template properties are hidden by default
-                if (field.hidden != null) {
-                    field.hidden = field.hidden
-                } else {
+                if (field.hidden == null) {
                     field.hidden = table.hidden != null ? table.hidden : true
                 }
             }
@@ -496,7 +494,7 @@ export class Model {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
-                items[index] = model.transformReadItem(op, item, params)
+                items[index] = model.transformReadItem(op, item, properties, params)
             }
         }
         return items
@@ -656,7 +654,7 @@ export class Model {
     /* private */
     initItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        return this.setDefaults('init', this.block.fields, properties, params)
+        return this.setDefaults('init', this.block.fields, properties)
     }
 
     /* private */
@@ -731,7 +729,7 @@ export class Model {
     /*
         Map Dynamo types to Javascript types after reading data
      */
-    transformReadItem(op, raw, params) {
+    transformReadItem(op, raw, properties, params) {
         if (!raw) {
             return raw
         }
@@ -878,7 +876,7 @@ export class Model {
         }
         this.tunnelProperties(properties, params)
         this.addContext(op, fields, index, properties, params, context)
-        this.setDefaults(op, fields, properties, params)
+        this.setDefaults(op, fields, properties)
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
 
@@ -952,7 +950,7 @@ export class Model {
         let generic = params.generic != null ? params.generic : this.generic
         if (generic && !KeysOnly[op]) {
             for (let [name, value] of Object.entries(properties)) {
-                if (project && project.indexOf(field.name) < 0) {
+                if (project && project.indexOf(name) < 0) {
                     continue
                 }
                 if (rec[name] === undefined) {
@@ -982,7 +980,7 @@ export class Model {
     /*
         Set default property values on Put.
     */
-    setDefaults(op, fields, properties, params) {
+    setDefaults(op, fields, properties) {
         if (op != 'put' && op != 'init') return
         for (let field of Object.values(fields)) {
             let value = properties[field.name]
@@ -1164,7 +1162,7 @@ export class Model {
                 }
             } else if (validate instanceof RegExp) {
                 if (!validate.exec(value)) {
-                    details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                    details[fieldName] = `Bad value "${value}" for "${fieldName}"`
                 }
             } else {
                 let pattern = validate.toString()
@@ -1174,18 +1172,18 @@ export class Model {
                     let pat = parts.slice(1).join('/')
                     validate = new RegExp(pat, qualifiers)
                     if (!validate.exec(value)) {
-                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                        details[fieldName] = `Bad value "${value}" for "${fieldName}"`
                     }
                 } else {
                     if (!value.match(pattern)) {
-                        details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                        details[fieldName] = `Bad value "${value}" for "${fieldName}"`
                     }
                 }
             }
         }
         if (field.enum) {
             if (field.enum.indexOf(value) < 0) {
-                details[fieldName] = `Bad value \"${value}\" for "${fieldName}"`
+                details[fieldName] = `Bad value "${value}" for "${fieldName}"`
             }
         }
         return value
@@ -1198,7 +1196,7 @@ export class Model {
         let type = field.type
 
         if (field.nulls === true) {
-            ;
+            //  Nop
         } else if (op == 'find' && value != null && typeof value == 'object') {
             //  Find used {begins} and other operators
             value = this.transformNestedWriteFields(field, value)
