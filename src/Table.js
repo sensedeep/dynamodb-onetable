@@ -408,6 +408,15 @@ export class Table {
         return this.clearContext()
     }
 
+    /*  PROTOTYPE
+        Create a clone of the table with the same settings and replace the context
+    */
+    child(context) {
+        let table = Object.clone(this)
+        table.context  = context
+        return table
+    }
+
     /*
         High level model factory API
         The high level API is similar to the Model API except the model name is provided as the first parameter.
@@ -499,14 +508,6 @@ export class Table {
             throw err
         }
         return result
-    }
-
-    async batch(op, batch, params = {}) {
-        if (op == 'write') {
-            return await this.batchWrite(batch, params)
-        } else if (op == 'get') {
-            return await this.batchGet(batch, params)
-        }
     }
 
     async deleteItem(properties, params) {
