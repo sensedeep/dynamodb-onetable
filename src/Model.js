@@ -300,7 +300,8 @@ export class Model {
             if (top) {
                 params.expression = expression
                 let items = t.TransactItems = t.TransactItems || []
-                return items.push({[top]: cmd})
+                items.push({[top]: cmd})
+                return properties
             } else {
                 throw new Error(`Unknown transaction operation ${op}`)
             }
