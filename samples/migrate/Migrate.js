@@ -54,7 +54,7 @@ const migrate = new Migrate(onetable, Config)
 /*
     Lamba entry point
  */
-exports.handler = async (event, context) => {
+exports.handler = async (event) => {
 
     let {action, args} = event
 

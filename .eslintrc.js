@@ -9,11 +9,13 @@ module.exports = {
         "jest": true
     },
     "extends": "eslint:recommended",
+    "ignorePatterns": ["**/dist/"],
     "rules": {
         "linebreak-style": [ "error", "unix" ],
         "quotes": [ "error", "single", { "allowTemplateLiterals": true } ],
         "semi": [ "error", "never" ],
-        "indent": [ "error", 4, { "SwitchCase": 1, "flatTernaryExpressions": true } ]
+        "no-case-declarations": "off",
+        "indent": [ "error", 4, { "SwitchCase": 0, "flatTernaryExpressions": true } ]
     },
     "globals": {
         "expect": true,

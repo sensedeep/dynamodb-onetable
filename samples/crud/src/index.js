@@ -104,7 +104,7 @@ async function test() {
 }
 
 async function delay(time) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function(resolve) {
         setTimeout(() => resolve(true), time)
     })
 }

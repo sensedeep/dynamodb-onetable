@@ -36,7 +36,7 @@
     "license": "MIT",
     "scripts": {
         "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
-        "lint": "eslint .",
+        "lint": "eslint src",
         "prepare": "npm run build",
         "_prepublishOnly": "npm test && npm run lint",
         "test": "jest",
