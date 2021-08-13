@@ -26,11 +26,21 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 
 test('Test', async() => {
-    let user = await User.create({name: 'Michael'})
-    dump(user)
+    await User.create({name: 'Michael'})
+    await User.create({name: 'Peter'})
+    await User.create({name: 'George'})
 
-    let users = await User.find({name: user.name}, {index: 'gs1', hidden: true})
-    dump(users)
+    let users = await User.scan()
+
+    /*
+    let batch = {}
+    table.remove('User', {id: users[0].id}, {batch})
+    table.remove('User', {id: users[1].id}, {batch})
+    table.update('User', { id: users[2].id, name: 'test'}, {batch})
+
+    let items: any = await table.batchWrite(batch, {parse: true, hidden: false})
+    dump(items)
+    */
 })
 
 test('Destroy Table', async() => {
