@@ -460,11 +460,11 @@ export class Expression {
             if (op == 'find' || op == 'scan') {
                 args.Limit = params.limit ? params.limit : undefined
                 /*
-                    Scan reverse if either reverse or params is true but not both. (XOR)
+                    Scan reverse if either reverse or prev is true but not both. (XOR)
                     If both are true, then requesting the previous page of a reverse scan which is
                     actually forwards.
                 */
-                args.ScanIndexForward = (params.reverse != null ^ params.prev != null) ? false : true
+                args.ScanIndexForward = (params.reverse == true ^ params.prev != null) ? false : true
 
                 //  DEPRECATE params.start
                 if (params.next || params.start || params.prev) {
