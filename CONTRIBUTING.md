@@ -9,3 +9,31 @@ Please ensure pull requests adheres to the following guidelines:
 - Make sure your code style matches existing code. Soft tabs=4, no trailing spaces etc.
 - Make an individual pull request for each change. No monolithic pull requests please.
 - Work constructively with project maintainers to refine your pull request if requested.
+
+## Setup
+
+Contributions are encouraged via forked pull requests.
+
+To setup the project locally run:
+
+```
+npm install
+```
+
+You can run the test suite locally with:
+
+```
+npm test
+```
+
+If you do not have Java installed, then you can run via docker with:
+
+```
+DOCKER=true npm test
+```
+
+You can run the linter with:
+
+```
+npm run lint
+```
