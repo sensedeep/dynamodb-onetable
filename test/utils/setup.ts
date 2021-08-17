@@ -5,19 +5,15 @@ import { spawn } from 'child_process'
 const waitPort = require('wait-port')
 import DynamoDbLocal from 'dynamo-db-local'
 
-const PORT = 4567
-const DYNAMODB_DOCKER_PORT = parseInt(process.env.DYNAMODB_DOCKER_PORT)
+const PORT = parseInt(process.env.PORT || '4567')
+const USE_DOCKER = Boolean(process.env.DOCKER)
 
 module.exports = async () => {
     let dynamodb
 
-    if (DYNAMODB_DOCKER_PORT) {
-        const args = [
-            `run`,
-            `-p`,
-            `${DYNAMODB_DOCKER_PORT}:8000`,
-            `amazon/dynamodb-local`,
-        ]
+    // Run docker for any truthy DOCKER value
+    if (USE_DOCKER) {
+        const args = [`run`, `-p`, `${PORT}:8000`, `amazon/dynamodb-local`]
         console.info('\nUsing docker to run dynamoDB', {
             args,
         })
@@ -31,7 +27,7 @@ module.exports = async () => {
 
         await waitPort({
             host: '0.0.0.0',
-            port: DYNAMODB_DOCKER_PORT,
+            port: PORT,
             timeout: 3000,
         })
 
@@ -42,7 +38,7 @@ module.exports = async () => {
     }
 
     process.env.DYNAMODB_PID = String(dynamodb.pid)
-    process.env.DYNAMODB_PORT = String(DYNAMODB_DOCKER_PORT || PORT)
+    process.env.DYNAMODB_PORT = String(PORT)
 
     // When jest throws anything unhandled, ensure we kill the spawned process
     process.on('unhandledRejection', (error) => {
