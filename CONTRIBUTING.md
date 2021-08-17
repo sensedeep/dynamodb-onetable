@@ -16,24 +16,25 @@ Contributions are encouraged via forked pull requests.
 
 To setup the project locally run:
 
-```
+```bash
 npm install
 ```
 
 You can run the test suite locally with:
 
-```
+```bash
 npm test
 ```
 
 If you do not have Java installed, then you can run via docker with:
 
-```
-DOCKER=true npm test
+```bash
+# Specify any port
+DYNAMODB_DOCKER_PORT=12345 npm test
 ```
 
 You can run the linter with:
 
-```
+```bash
 npm run lint
 ```
