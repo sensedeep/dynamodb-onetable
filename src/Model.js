@@ -575,7 +575,7 @@ export class Model {
     async remove(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {exists: null, high: true}))
 
-        properties = this.prepareProperties('get', properties, params)
+        properties = this.prepareProperties('delete', properties, params)
         if (params.fallback) {
             return await this.removeByFind(properties, params)
         }
@@ -932,9 +932,12 @@ export class Model {
             if (block == this.block) {
                 //  Top level only
                 if (value == null && attribute == index.sort && params.high && KeysOnly[op]) {
-                    //  High level API without sort key. Fallback to find to select the items of interest.
-                    params.fallback = true
-                    return properties
+                    if (op == 'delete' && params.many) {
+                        //  High level delete without sort key. Fallback to find to select the items of interest.
+                        params.fallback = true
+                        return properties
+                    }
+                    throw new Error('Missing sort key')
                 }
                 if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
                     //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.

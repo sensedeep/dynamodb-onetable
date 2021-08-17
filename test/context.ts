@@ -92,6 +92,11 @@ test('Get users', async() => {
     //  PK comes from context
     users = await User.find()
     expect(users.length).toBe(data.length)
+
+    expect(async () => {
+        //  Must provide sort key for a get
+        user = await User.get({accountId: account.id})
+    }).rejects.toThrow()
 })
 
 test('Remove many users', async() => {

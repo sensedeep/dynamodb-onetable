@@ -73,7 +73,7 @@ type OneSchema = {
 };
 
 /*
-    Schema field with required "type" property
+    Schema field with "type" property
  */
 type OneTypedField = {
     type: OneType
@@ -98,7 +98,7 @@ type EntityField<T extends OneTypedField> =
     : never;
 
 /*
-    Entities are objects whoes signature is based on the schema model of the same name.
+    Entities are typed objects whoes signature is based on the schema model of the same name.
  */
 export type Entity<T extends OneTypedModel> = {
     [P in keyof T]?: EntityField<T[P]>
