@@ -434,7 +434,7 @@ OneTable also integrates with [SenseLogs](https://www.npmjs.com/package/senselog
 import SenseLogs from 'senselogs'
 const senselogs = new SenseLogs()
 const table = new Table({senselogs})
-``
+```
 
 This will log request details in JSON. Use `SenseLogs({destination: 'console'})` for plain text logging to the console.
 
@@ -606,7 +606,7 @@ let results = await table.batchGet(batch)
 Set batch params.consistent for a consistent read.
 
 #### async batchWrite(batch, params = {})
-    
+
 Same as batchGet but for write operations.
 
 #### clearContext()
