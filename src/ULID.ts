@@ -2,10 +2,10 @@
     ULID.ts -- Universal Unique Lexicographically Sortable Identifier
     https://github.com/ulid/spec
  */
-import Crypto from "crypto"
+import Crypto from 'crypto'
 
 //  Repeat Z to make encoding faster for rand == 0xFF
-const Letters = "0123456789ABCDEFGHIJKMNPQRSTVWXYZZ"
+const Letters = '0123456789ABCDEFGHIJKMNPQRSTVWXYZZ'
 const LettersLen = Letters.length - 1
 const RandomLength = 16
 const TimeLen = 10
@@ -27,9 +27,9 @@ export default class ULID {
     decode(ulid: any) {
         const ulidStr: string = ulid.toString()
         if (ulidStr.length !== TimeLen + RandomLength) {
-            throw new Error("Invalid ULID")
+            throw new Error('Invalid ULID')
         }
-        let letters = ulidStr.substr(0, TimeLen).split("").reverse()
+        let letters = ulidStr.substr(0, TimeLen).split('').reverse()
         return letters.reduce((accum, c, index) => {
             let i = Letters.indexOf(c)
             if (i < 0) {
@@ -47,7 +47,7 @@ export default class ULID {
             //  Letters is one longer than LettersLen
             bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
         }
-        return bytes.join("")
+        return bytes.join('')
     }
 
     getTime(now: any): string {
@@ -57,6 +57,6 @@ export default class ULID {
             bytes[i] = Letters.charAt(mod)
             now = (now - mod) / LettersLen
         }
-        return bytes.join("")
+        return bytes.join('')
     }
 }

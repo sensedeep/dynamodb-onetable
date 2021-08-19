@@ -43,13 +43,13 @@ import {
     TransactWriteItemsCommandInput,
     UpdateItemCommand,
     UpdateItemCommandInput
-} from "@aws-sdk/client-dynamodb"
+} from '@aws-sdk/client-dynamodb'
 import {
     marshall,
     marshallOptions,
     unmarshall,
     unmarshallOptions
-} from "@aws-sdk/util-dynamodb"
+} from '@aws-sdk/util-dynamodb'
 
 interface DynamoParams {
     client?: DynamoDBClient
