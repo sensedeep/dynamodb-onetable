@@ -71,7 +71,7 @@ interface DynamoParams {
 
 export class Dynamo {
     client: DynamoDBClient
-    params: any
+    params: DynamoParams
     V3: boolean
     marshall: <T extends { [K in keyof T]: any }>(
         data: T,
