@@ -12,8 +12,12 @@ const TimeLen = 10
 
 export default class ULID {
     when: Date
-    constructor(when: string | number) {
-        this.when = typeof when === "string" ? new Date() : new Date(when)
+    constructor(when?: Date | undefined) {
+        if (when === undefined) {
+            this.when = new Date()
+        } else {
+            this.when = when
+        }
     }
 
     toString(): string {
