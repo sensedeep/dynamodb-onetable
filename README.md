@@ -1168,6 +1168,8 @@ The property names are those described by the schema. NOTE: these are not the sa
 
 The method returns the all the Javascript properties for the item. Hidden attributes will not be returned.
 
+If the method fails to update, it will throw an exception. If `params.throw` is set to false, an exception will not be thrown and the method will return `undefined`.
+
 The optional params are described in [Model API Params](#params).    
 
 The `params.add` parameter may be set a value to add to an attribute.
