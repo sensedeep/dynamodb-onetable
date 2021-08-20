@@ -36,30 +36,33 @@ test('Create Users', async() => {
     }
     let items = await table.scan('User')
     expect(items.length).toBe(data.length)
+
+    //  Keep users
+    users = await User.scan()
+    expect(users.length).toBe(data.length)
 })
 
 test('Update via where', async() => {
-    let users = await User.scan()
-    expect(users.length).toBe(data.length)
-    let item = await User.update({id: users[0].id, status: 'suspended'}, {
+    let user = users.find(u => u.status == 'active')
+    let item = await User.update({id: user.id, status: 'suspended'}, {
         where: '${status} = {active}',
     })
     expect(item.status).toBe('suspended')
 })
 
 test('Update via where throwing', async() => {
-    let users = await User.scan()
     await expect(async () => {
         //  Should throw due to mismatch of where
-       let item = await User.update({id: users[0].id, status: 'active'}, {
+        let user = users.find(u => u.status == 'active')
+       let item = await User.update({id: user.id, status: 'active'}, {
             where: '${status} = {active}',
         })
     }).rejects.toThrow()
 })
 
 test('Update via where no throw', async() => {
-    let users = await User.scan()
-    let item = await User.update({id: users[0].id, status: 'active'}, {
+    let user = users.find(u => u.status == 'active')
+    let item = await User.update({id: user.id, status: 'active'}, {
         where: '${status} = {active}',
         throw: false,
     })

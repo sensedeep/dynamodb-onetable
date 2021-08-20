@@ -10,8 +10,7 @@
 
         const dynamo = new Dynamo(params)
         const table = new Table({ dynamo, ... })
-
-    */
+*/
 
 import {
     BatchGetItemCommand,
