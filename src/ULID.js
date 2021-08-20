@@ -12,13 +12,20 @@ const TimeLen = 10
 
 export default class ULID {
     constructor(when) {
-        this.when = isNaN(when) ? when = new Date() : new Date(when)
+        if (when instanceof Date) {
+            this.when = new Date(when)
+        } else if (typeof when == 'string' || typeof when == 'number') {
+            this.when = new Date(when)
+        } else {
+            this.when = new Date()
+        }
     }
 
     toString() {
         return this.getTime(this.when) + this.getRandom()
     }
 
+    //  Decode the time portion of the ULID and return a number
     decode(ulid) {
         ulid = ulid.toString()
         if (ulid.length !== (TimeLen + RandomLength)) {
@@ -46,6 +53,7 @@ export default class ULID {
     }
 
     getTime(now) {
+        now = now.getTime()
         let bytes = []
         for (let i = 0; i < TimeLen; i++) {
             let mod = now % LettersLen

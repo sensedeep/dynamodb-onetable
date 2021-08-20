@@ -1,4 +1,9 @@
 
+/*
+export type DynamoParams {
+    client?: DynamoDBClient,
+}; */
+
 export class Dynamo {
     constructor(params?: {});
     client: any;

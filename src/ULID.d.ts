@@ -1,8 +1,8 @@
 export default class ULID {
-    constructor(when?: any);
+    constructor(when?: string | number | Date);
     when: Date;
     toString(): string;
-    decode(ulid: any): any;
+    decode(ulid: ULID): number;
     getRandom(): string;
-    getTime(now: any): string;
+    getTime(now: Date): string;
 }
