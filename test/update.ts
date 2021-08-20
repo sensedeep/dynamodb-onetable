@@ -4,11 +4,12 @@
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
+jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'UpdateTableTest',
     client: Client,
     schema: DefaultSchema,
-    logger: true,
 })
 
 let User
@@ -45,6 +46,20 @@ test('Update via where', async() => {
         where: '${status} = {active}',
     })
     expect(item.status).toBe('suspended')
+
+    await expect(async () => {
+        //  Should throw due to mismatch of where
+        item = await User.update({id: users[0].id, status: 'active'}, {
+            where: '${status} = {active}',
+        })
+        print("AFTER")
+    }).rejects.toThrow()
+
+    item = await User.update({id: users[0].id, status: 'active'}, {
+        where: '${status} = {active}',
+        throw: false,
+    })
+    expect(item).toBeUndefined()
 })
 
 test('Destroy Table', async() => {

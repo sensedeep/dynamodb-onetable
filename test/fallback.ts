@@ -41,9 +41,6 @@ test('Create Users', async() => {
 })
 
 test('Get with fallback', async() => {
-    // user = await User.get({accountId, id: users[0].id})
-    // users = await User.find({accountId})
-
     //  Use gs1 to query via email. This will do a find, then a get.
     user = await User.get({accountId, email: 'patty@example.com'}, {index: 'gs1'})
     expect(user.name).toBe('Patty O\'Furniture')

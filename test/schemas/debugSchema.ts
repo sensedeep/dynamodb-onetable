@@ -13,10 +13,11 @@
                 sk:          { type: String, value: 'user#' },
                 id:          { type: String, uuid: true },
                 name:        { type: String },
-    
+                email:       { type: String },
+                active:      { type: Boolean },
+
                 gs1pk:       { type: String, value: 'user#${name}' },
                 gs1sk:       { type: String, value: 'user#' },
             }
         }
     }
-    

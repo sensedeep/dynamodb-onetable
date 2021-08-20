@@ -339,7 +339,7 @@ export class Model {
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         do {
             try {
-                this.table.log[params.log ? 'info' : 'trace'](`Dynamo "${op}" "${this.name}"`, {trace}, params)
+                this.table.log[params.log ? 'info' : 'trace'](`OneTable "${op}" "${this.name}"`, {trace}, params)
                 if (this.table.V3) {
                     result = await this.table.client[op](cmd)
                 } else {
@@ -347,6 +347,7 @@ export class Model {
                 }
 
             } catch (err) {
+                //  ERROR
                 if (params.throw === false) {
                     result = {}
                 } else {
@@ -355,7 +356,7 @@ export class Model {
                         throw new Error(`Conditional create failed for "${this.name}`)
                     } else {
                         trace.err = err
-                        this.table.log.error(`Dynamo exception in "${op}" on "${this.name}"`, {err, trace})
+                        this.table.log.error(`OneTable exception in "${op}" on "${this.name}"`, {err, trace})
                         throw err
                     }
                 }
@@ -445,7 +446,7 @@ export class Model {
         if (params.log !== false) {
             trace.elapsed = (new Date() - mark) / 1000
             trace.items = items
-            this.table.log[params.log ? 'info' : 'data'](`Dynamo result for "${op}" "${this.name}"`, {trace}, params)
+            this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {trace}, params)
         }
 
         /*

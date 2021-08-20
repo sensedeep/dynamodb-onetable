@@ -11,6 +11,7 @@ const table = new Table({
     client: Client,
     schema: DebugSchema,
     uuid: 'ulid',
+    // logger: true,
 })
 const accountId = table.uuid()
 
@@ -26,11 +27,13 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 
 test('Test', async() => {
-    await User.create({name: 'Michael'})
-    await User.create({name: 'Peter'})
-    await User.create({name: 'George'})
+    user = await User.create({name: 'Michael', email: 'mob@sensedeep.com', active: false})
 
-    let users = await User.scan()
+    user = await User.update({id: user.id, active: false}, {
+        where: '${email} = {mob@sensedeep.com}',
+        log: true,
+        throw: false,
+    })
 
     /*
     let batch = {}
