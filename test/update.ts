@@ -39,23 +39,27 @@ test('Create Users', async() => {
 })
 
 test('Update via where', async() => {
-    //  FUTURE - need a better data set with multiple items on the same PK
     let users = await User.scan()
     expect(users.length).toBe(data.length)
     let item = await User.update({id: users[0].id, status: 'suspended'}, {
         where: '${status} = {active}',
     })
     expect(item.status).toBe('suspended')
+})
 
+test('Update via where throwing', async() => {
+    let users = await User.scan()
     await expect(async () => {
         //  Should throw due to mismatch of where
-        item = await User.update({id: users[0].id, status: 'active'}, {
+       let item = await User.update({id: users[0].id, status: 'active'}, {
             where: '${status} = {active}',
         })
-        print("AFTER")
     }).rejects.toThrow()
+})
 
-    item = await User.update({id: users[0].id, status: 'active'}, {
+test('Update via where no throw', async() => {
+    let users = await User.scan()
+    let item = await User.update({id: users[0].id, status: 'active'}, {
         where: '${status} = {active}',
         throw: false,
     })
