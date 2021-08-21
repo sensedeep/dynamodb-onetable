@@ -1,6 +1,5 @@
 ![OneTable](https://www.sensedeep.com/images/ring.png?renew)
 
-# DynamoDB OneTable
 One table to rule them all.
 
 [![Build Status](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build)](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build)
