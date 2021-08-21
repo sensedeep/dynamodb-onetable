@@ -527,8 +527,13 @@ export class Model {
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+
+        let preparedProperties = this.prepareProperties('put', properties, params);
+        // Is expression necessary here? In my testing it isn't but prepareProperties suggests its necessary
+        let uniqueExpression = new Expression(this, 'put', preparedProperties, params);
         for (let field of fields) {
-            await this.table.uniqueModel.create({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {
+            // TODO: Switch to using the table delimiter
+            await this.table.uniqueModel.create({pk: `${this.name}:${field.attribute}:${uniqueExpression.properties[field.name]}`}, {
                 transaction,
                 exists: false,
                 return: 'NONE',

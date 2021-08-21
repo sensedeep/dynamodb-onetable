@@ -34,7 +34,12 @@ test('Create user 1', async() => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(2)
+    expect(items.length).toBe(3)
+
+    let unique = items.find((item) => {
+        return item.pk.S === 'User:interpolated:Peter Smith:peter@example.com'
+    });
+    expect(unique).toBeDefined();
 })
 
 test('Create user 2', async() => {
@@ -46,7 +51,7 @@ test('Create user 2', async() => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(4)
+    expect(items.length).toBe(6)
 })
 
 test('Create non-unique user', async() => {
@@ -59,7 +64,7 @@ test('Create non-unique user', async() => {
     }).rejects.toThrow()
 
     let items = await table.scanItems()
-    expect(items.length).toBe(4)
+    expect(items.length).toBe(6)
 })
 
 test('Remove user 1', async() => {
@@ -71,7 +76,7 @@ test('Remove user 1', async() => {
     expect(users.length).toBe(1)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(2)
+    expect(items.length).toBe(3)
 })
 
 test('Remove all users', async() => {
