@@ -664,6 +664,9 @@ export class Model {
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
 
+        /*
+            Get the prior item so we know the unique property values so they can be removed
+        */
         let prior = await this.get(properties)
         if (!prior) {
             throw new Error('Cannot find item to update')
@@ -677,6 +680,9 @@ export class Model {
 
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
+        /*
+            Remove prior unique properties and create new unique property
+        */
         for (let field of fields) {
             let pk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
             await this.table.uniqueModel.remove({pk}, {transaction})
@@ -686,6 +692,9 @@ export class Model {
         }
         await this.updateItem(properties, params)
 
+        /*
+            Perform all operations in a transaction so update will only be applied if the unique properties can be created
+        */
         let expression = params.expression
         try {
             await this.table.transact('write', params.transaction, params)
@@ -694,7 +703,6 @@ export class Model {
                 throw new Error(`dynamo: Cannot create "${this.name}", an item of the same name already exists.`)
             }
         }
-        //  MOB - how do we get the full response details
         let items = this.parseResponse('put', expression)
         return items[0]
     }
