@@ -52,6 +52,9 @@ export class Table {
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
+
+            //  LEGACY 1.7.3 - remove in 2.0.0
+            legacyUniqueSep,//  Hard code the unique item separator to be ':'
         } = params
 
         if (!name) {
@@ -60,6 +63,10 @@ export class Table {
         this.log = senselogs ? senselogs : new Log(logger)
         this.log.trace(`Loading OneTable`)
 
+        if (params.legacyUniqueSep == undefined) {
+            //  LEGACY 1.7.3 - Remove in 1.8
+            params.legacyUniqueSep = ':'
+        }
         this.params = params
         if (client) {
             this.V3 = client.V3

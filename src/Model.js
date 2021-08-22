@@ -526,20 +526,20 @@ export class Model {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
+
+        //  LEGACY - remove in 1.9 and just use the delimiter
+        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
+
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
-        let preparedProperties = this.prepareProperties('put', properties, params);
-        // Is expression necessary here? In my testing it isn't but prepareProperties suggests its necessary
-        let uniqueExpression = new Expression(this, 'put', preparedProperties, params);
+        params.prepared = properties = this.prepareProperties('put', properties, params)
+
         for (let field of fields) {
-            // TODO: Switch to using the table delimiter
-            await this.table.uniqueModel.create({pk: `${this.name}:${field.attribute}:${uniqueExpression.properties[field.name]}`}, {
-                transaction,
-                exists: false,
-                return: 'NONE',
-            })
+            let pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
         }
         await this.putItem(properties, params)
+
         let expression = params.expression
         try {
             await this.table.transact('write', params.transaction, params)
@@ -621,8 +621,13 @@ export class Model {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+
+        //  LEGACY - remove in 1.9 and just use the delimiter
+        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
+
         for (let field of fields) {
-            this.table.uniqueModel.remove({pk: `${this.name}:${field.attribute}:${properties[field.name]}`}, {transaction})
+            let pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            this.table.uniqueModel.remove({pk}, {transaction})
         }
         this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
@@ -672,7 +677,10 @@ export class Model {
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
-        properties = this.prepareProperties('put', properties, params)
+        //  createUnique has already run
+        if (!params.prepared) {
+            properties = this.prepareProperties('put', properties, params)
+        }
         let expression = new Expression(this, 'put', properties, params)
         return await this.run('put', expression)
     }

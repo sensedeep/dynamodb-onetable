@@ -38,8 +38,8 @@ test('Create user 1', async() => {
 
     let unique = items.find((item) => {
         return item.pk.S === 'User:interpolated:Peter Smith:peter@example.com'
-    });
-    expect(unique).toBeDefined();
+    })
+    expect(unique).toBeDefined()
 })
 
 test('Create user 2', async() => {
