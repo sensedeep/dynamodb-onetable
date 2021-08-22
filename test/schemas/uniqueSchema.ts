@@ -7,9 +7,8 @@ export default {
     },
     models: {
         User: {
-            pk:           { type: String, value: 'user#${id}' },
+            pk:           { type: String, value: 'user#${name}' },
             sk:           { type: String, value: 'user#' },
-            id:           { type: String, uuid: true },
             name:         { type: String },
             email:        { type: String, unique: true },
             interpolated: { type: String, value: "${name}:${email}", unique: true },

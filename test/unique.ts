@@ -54,13 +54,38 @@ test('Create user 2', async() => {
     expect(items.length).toBe(6)
 })
 
-test('Create non-unique user', async() => {
+test('Update user 2 with unique email', async() => {
+    const props = {
+        name: 'Judy Smith',
+        email: 'judy-a@example.com',
+    }
+    user = await User.update(props, {})
+    expect(user).toMatchObject(props)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(6)
+})
+
+test('Create non-unique email', async() => {
     const props = {
         name: 'Another Peter Smith',
         email: 'peter@example.com',
     }
     await expect(async () => {
         user = await User.create(props, {log: false})
+    }).rejects.toThrow()
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(6)
+})
+
+test('Update non-unique email', async() => {
+    const props = {
+        name: 'Judy Smith',
+        email: 'peter@example.com',
+    }
+    await expect(async () => {
+        user = await User.update(props, {log: false})
     }).rejects.toThrow()
 
     let items = await table.scanItems()

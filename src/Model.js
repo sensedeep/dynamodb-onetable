@@ -625,11 +625,13 @@ export class Model {
         //  LEGACY - remove in 1.9 and just use the delimiter
         let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
 
+        params.prepared = properties = this.prepareProperties('delete', properties, params)
+
         for (let field of fields) {
             let pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            this.table.uniqueModel.remove({pk}, {transaction})
+            await this.table.uniqueModel.remove({pk}, {transaction})
         }
-        this.deleteItem(properties, params)
+        await this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
     }
 
@@ -641,7 +643,60 @@ export class Model {
 
     async update(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
-        return await this.updateItem(properties, params)
+        let result
+        if (this.hasUniqueFields) {
+            result = await this.updateUnique(properties, params)
+        } else {
+            result = await this.updateItem(properties, params)
+        }
+        return result
+    }
+
+    /*
+        Update an item with unique attributes. Use a transaction to update a unique item for each
+        unique attribute.
+     */
+    async updateUnique(properties, params) {
+        if (params.batch) {
+            throw new Error('Cannot use batch with unique properties which require transactions')
+        }
+        let transaction = params.transaction = params.transaction || {}
+        let {hash, sort} = this.indexes.primary
+        let fields = this.block.fields
+
+        let prior = await this.get(properties)
+        if (!prior) {
+            throw new Error('Cannot find item to update')
+        }
+        prior = this.prepareProperties('update', prior)
+
+        params.prepared = properties = this.prepareProperties('update', properties, params)
+
+        //  LEGACY - remove in 1.9 and just use the delimiter
+        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
+
+        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+
+        for (let field of fields) {
+            let pk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
+            await this.table.uniqueModel.remove({pk}, {transaction})
+
+            pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
+        }
+        await this.updateItem(properties, params)
+
+        let expression = params.expression
+        try {
+            await this.table.transact('write', params.transaction, params)
+        } catch (err) {
+            if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
+                throw new Error(`dynamo: Cannot create "${this.name}", an item of the same name already exists.`)
+            }
+        }
+        //  MOB - how do we get the full response details
+        let items = this.parseResponse('put', expression)
+        return items[0]
     }
 
     //  Low level API
@@ -649,7 +704,9 @@ export class Model {
     /* private */
     async deleteItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        properties = this.prepareProperties('delete', properties, params)
+        if (!params.prepared) {
+            properties = this.prepareProperties('delete', properties, params)
+        }
         let expression = new Expression(this, 'delete', properties, params)
         await this.run('delete', expression)
     }
@@ -825,7 +882,7 @@ export class Model {
         Validate properties and map types before writing to the database.
         Note: this does not map names to attributes or evaluate value templates, that happens in Expression.
      */
-    prepareProperties(op, properties, params) {
+    prepareProperties(op, properties, params = {}) {
         let index = this.selectIndex(op, params)
         if (index != this.indexes.primary) {
             if (op != 'find' && op != 'scan') {
