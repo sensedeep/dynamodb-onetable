@@ -565,7 +565,7 @@ export class Model {
             //  Fallback via find when using non-primary indexes
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                this.table.log.error(`Get fallback with more than one result`, {model: this.name, properties, params})
+                throw new Error('Get without sort key returns more than one result')
             }
             return items[0]
         }
@@ -893,12 +893,11 @@ export class Model {
     prepareProperties(op, properties, params = {}) {
         let index = this.selectIndex(op, params)
         if (index != this.indexes.primary) {
+            //  Handle fallback for get/delete as GSIs only support find and scan
             if (op != 'find' && op != 'scan') {
                 if (params.low) {
                     throw new Error('Cannot use non-primary index for "${op}" operation')
                 }
-                //  Fallback for get/delete as GSIs only support find and scan
-                //  FUTURE: could allow fallback for 'get' for primary indexes when using filters or a partial sort key
                 params.fallback = true
                 return properties
             }
@@ -1009,14 +1008,17 @@ export class Model {
             let attribute = field.attribute[0]
             let value = properties[name]
             if (block == this.block) {
-                //  Top level only
+                //  Missing sort key on a high-level API for get/delete
                 if (value == null && attribute == index.sort && params.high && KeysOnly[op]) {
-                    if (op == 'delete' && params.many) {
-                        //  High level delete without sort key. Fallback to find to select the items of interest.
-                        params.fallback = true
-                        return properties
+                    if (op == 'delete' && !params.many) {
+                        throw new Error('Missing sort key')
                     }
-                    throw new Error('Missing sort key')
+                    /*
+                        Missing sort key for high level get, or delete without many. Fallback to find to select the items of interest.
+                        Get will throw if more than one result is returned.
+                    */
+                    params.fallback = true
+                    return properties
                 }
                 if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
                     //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.
