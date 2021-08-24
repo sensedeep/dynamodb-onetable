@@ -53,8 +53,12 @@ export class Table {
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
 
-            //  LEGACY 1.7.3 - remove in 2.0.0
-            legacyUniqueSep,//  Hard code the unique item separator to be ':'
+            /*  LEGACY 1.7.4 - remove in 2.0.0
+                Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
+                Now, use the delimiter with a unique prefix.
+                Defaults to be ':' in 1.7, and false in 1.8.
+            */
+            legacyUnique,
         } = params
 
         if (!name) {
@@ -63,9 +67,9 @@ export class Table {
         this.log = senselogs ? senselogs : new Log(logger)
         this.log.trace(`Loading OneTable`)
 
-        if (params.legacyUniqueSep == undefined) {
-            //  LEGACY 1.7.3 - Remove in 1.8
-            params.legacyUniqueSep = ':'
+        if (params.legacyUnique == undefined || params.legacyUnique == true) {
+            //  LEGACY 1.7.4 - Revert to false in 1.8
+            params.legacyUnique = ':'
         }
         this.params = params
         if (client) {

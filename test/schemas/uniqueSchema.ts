@@ -11,7 +11,7 @@ export default {
             sk:           { type: String, value: 'user#' },
             name:         { type: String },
             email:        { type: String, unique: true },
-            interpolated: { type: String, value: "${name}:${email}", unique: true },
+            interpolated: { type: String, value: '${name}:${email}', unique: true },
         }
     }
 }

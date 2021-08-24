@@ -527,15 +527,20 @@ export class Model {
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
 
-        //  LEGACY - remove in 1.9 and just use the delimiter
-        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
-
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
         for (let field of fields) {
-            let pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            //  LEGACY - remove in 2.0 and just use the delimiter
+            let sep = this.table.params.legacyUnique
+            let pk
+            if (sep) {
+                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            } else {
+                sep = this.delimiter
+                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            }
             await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
         }
         await this.putItem(properties, params)
@@ -622,13 +627,18 @@ export class Model {
         let {hash, sort} = this.indexes.primary
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
-        //  LEGACY - remove in 1.9 and just use the delimiter
-        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
-
         params.prepared = properties = this.prepareProperties('delete', properties, params)
 
         for (let field of fields) {
-            let pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            //  LEGACY - remove in 2.0 and just use the delimiter
+            let sep = this.table.params.legacyUnique
+            let pk
+            if (sep) {
+                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            } else {
+                sep = this.delimiter
+                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+            }
             await this.table.uniqueModel.remove({pk}, {transaction})
         }
         await this.deleteItem(properties, params)
@@ -675,20 +685,33 @@ export class Model {
 
         params.prepared = properties = this.prepareProperties('update', properties, params)
 
-        //  LEGACY - remove in 1.9 and just use the delimiter
-        let sep = this.table.params.legacyUniqueSep ? this.table.params.legacyUniqueSep : this.delimiter
-
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         /*
             Remove prior unique properties and create new unique property
         */
         for (let field of fields) {
-            let pk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
-            await this.table.uniqueModel.remove({pk}, {transaction})
-
-            pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
+            if (properties[field.name] == null) {
+                continue
+            }
+            //  LEGACY - remove in 2.0 and just use the delimiter
+            let pk, priorPk
+            let sep = this.table.params.legacyUnique
+            if (sep) {
+                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+                priorPk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
+            } else {
+                sep = this.delimiter
+                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+                priorPk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
+            }
+            if (pk != priorPk) {
+                if (prior[field.name]) {
+                    //  Don't fail if it does not exist
+                    await this.table.uniqueModel.remove({pk: priorPk}, {transaction, __exists: null})
+                }
+                await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
+            }
         }
         await this.updateItem(properties, params)
 

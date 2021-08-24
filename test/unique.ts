@@ -4,13 +4,14 @@
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {UniqueSchema} from './schemas'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'UniqueTestTable',
     client: Client,
     schema: UniqueSchema,
     logger: true,
+    // legacyUnique: false,
 })
 
 let User = null
@@ -36,10 +37,11 @@ test('Create user 1', async() => {
     let items = await table.scanItems()
     expect(items.length).toBe(3)
 
-    let unique = items.find((item) => {
-        return item.pk.S === 'User:interpolated:Peter Smith:peter@example.com'
-    })
-    expect(unique).toBeDefined()
+    let unique = items.filter((item) => item.pk.S.indexOf('interpolated') >= 0)
+    let pk = unique[0].pk.S
+    expect(pk.indexOf('Peter Smith') >= 0).toBe(true)
+    expect(pk.indexOf('peter@example.com') >= 0).toBe(true)
+    expect(pk.indexOf('User') >= 0).toBe(true)
 })
 
 test('Create user 2', async() => {
