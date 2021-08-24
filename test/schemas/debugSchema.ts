@@ -9,8 +9,8 @@
         },
         models: {
             User: {
-                pk:          { type: String, value: 'user#${id}' },
-                sk:          { type: String, value: 'user#' },
+                pk:          { type: String, value: 'user#' },
+                sk:          { type: String, value: '${_type}:user#${id}' },
                 id:          { type: String, uuid: true },
                 name:        { type: String },
                 email:       { type: String },

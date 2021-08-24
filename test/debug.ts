@@ -11,7 +11,7 @@ const table = new Table({
     client: Client,
     schema: DebugSchema,
     uuid: 'ulid',
-    // logger: true,
+    logger: true,
 })
 const accountId = table.uuid()
 
@@ -26,25 +26,14 @@ type UserType = Entity<typeof DebugSchema.models.User>
 let User = table.getModel<UserType>('User')
 let user: UserType = null
 
+/*
 test('Test', async() => {
+
     user = await User.create({name: 'Michael', email: 'mob@sensedeep.com', active: false})
-
-    user = await User.update({id: user.id, active: false}, {
-        where: '${email} = {mob@sensedeep.com}',
-        log: true,
-        throw: false,
-    })
-
-    /*
-    let batch = {}
-    table.remove('User', {id: users[0].id}, {batch})
-    table.remove('User', {id: users[1].id}, {batch})
-    table.update('User', { id: users[2].id, name: 'test'}, {batch})
-
-    let items: any = await table.batchWrite(batch, {parse: true, hidden: false})
-    dump(items)
-    */
+    user = await User.get({id: user.id}, {log: true})
+    dump("UU", user)
 })
+*/
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
