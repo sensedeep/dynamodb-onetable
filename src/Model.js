@@ -539,7 +539,7 @@ export class Model {
                 pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             } else {
                 sep = this.delimiter
-                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             }
             await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
         }
@@ -641,7 +641,7 @@ export class Model {
                 pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             } else {
                 sep = this.delimiter
-                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             }
             await this.table.uniqueModel.remove({pk}, {transaction})
         }
@@ -706,8 +706,8 @@ export class Model {
                 priorPk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
             } else {
                 sep = this.delimiter
-                pk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-                priorPk = `unique${sep}${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
+                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
+                priorPk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
             }
             if (pk != priorPk) {
                 if (prior[field.name]) {
