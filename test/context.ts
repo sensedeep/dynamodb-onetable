@@ -99,6 +99,17 @@ test('Get users', async() => {
     }).rejects.toThrow()
 })
 
+test('Get single user', async() => {
+    //  PK comes from context
+    user = await User.get({email: 'peter@example.com'})
+    expect(user.email).toBe('peter@example.com')
+
+    expect(async () => {
+        //  Should throw due to matching more than one user
+        user = await User.get({})
+    }).rejects.toThrow()
+})
+
 test('Remove many users', async() => {
     //  PK comes from context
     await User.remove({}, {many: true})

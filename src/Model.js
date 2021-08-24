@@ -565,6 +565,9 @@ export class Model {
     async get(properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
 
+        if (!this.generic) {
+            properties[this.typeField] = this.name
+        }
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
             //  Fallback via find when using non-primary indexes
@@ -574,6 +577,7 @@ export class Model {
             }
             return items[0]
         }
+        //  FUTURE refactor to use getItem
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
     }
@@ -745,6 +749,9 @@ export class Model {
     /* private */
     async getItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
+        if (!this.generic) {
+            properties[this.typeField] = this.name
+        }
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
