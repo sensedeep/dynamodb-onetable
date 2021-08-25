@@ -1102,7 +1102,7 @@ export class Model {
     setDefaults(op, fields, properties) {
         if (op != 'put' && op != 'init') {
             // Set typeField for delete operations in order in case it is used in the sort key as a template
-            if ('op' == 'delete') {
+            if (op == 'delete') {
                 properties[this.typeField] = properties[this.typeField] ? properties[this.typeField] : this.name;
             }
             return;
