@@ -1197,7 +1197,10 @@ export class Model {
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
             //  TODO need to handle "." split as well
             let [name, len, pad] = varName.split(':')
-            let v = name == this.typeField ? this.name : properties[name];
+            
+            // If we have the value set V, otherwise check to see if the typefield matches and set the value to model name otherwise undefined
+            let v = properties[name] !== undefined ? properties[name] : (name == this.typeField && this.name) || undefined;
+            
             if (v !== undefined) {
                 if (v instanceof Date) {
                     v = this.transformWriteDate(v)
