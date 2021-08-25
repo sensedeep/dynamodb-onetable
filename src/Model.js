@@ -1100,7 +1100,10 @@ export class Model {
         Set default property values on Put.
     */
     setDefaults(op, fields, properties) {
-        if (op != 'put' && op != 'init') return
+        if (op != 'put' && op != 'init') {
+            properties[this.typeField] = properties[this.typeField] ? properties[this.typeField] : this.name;
+            return;
+        }
         for (let field of Object.values(fields)) {
             let value = properties[field.name]
 
