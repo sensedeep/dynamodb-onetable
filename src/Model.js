@@ -299,7 +299,7 @@ export class Model {
                 params.expression = expression
                 let items = t.TransactItems = t.TransactItems || []
                 items.push({[top]: cmd})
-                return properties
+                return this.transformReadItem(op, properties, properties, params)
             } else {
                 throw new Error(`Unknown transaction operation ${op}`)
             }
