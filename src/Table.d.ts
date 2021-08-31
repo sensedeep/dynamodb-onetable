@@ -21,6 +21,7 @@ type TableConstructorParams = {
 
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
+    metrics?: boolean | object,     //  Enable CloudWatch metrics.
     name?: string,                  //  Table name.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
     schema?: OneSchema,             //  Table models schema.

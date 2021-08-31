@@ -440,7 +440,7 @@ export class Expression {
                 }
                 args.Select = 'COUNT'
             }
-            if (params.stats) {
+            if (params.stats || this.table.metrics) {
                 args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
                 args.ReturnItemCollectionMetrics || 'SIZE'                  // SIZE | NONE
             }

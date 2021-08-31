@@ -33,6 +33,7 @@ const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
+const MetricCollections = ['Table', 'Index', 'Source', 'Model']
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -345,6 +346,9 @@ export class Model {
                 } else {
                     result = await this.table.client[DocumentClientMethods[op]](cmd).promise()
                 }
+                if (this.table.metrics && result) {
+                    this.computeMetrics(op, cmd, expression, result, mark)
+                }
 
             } catch (err) {
                 //  ERROR
@@ -469,6 +473,83 @@ export class Model {
             return items
         }
         return items[0]
+    }
+
+    computeMetrics(op, cmd, expression, result, mark) {
+        let params = expression.params
+        let metrics = this.table.metrics
+        let timestamp = Date.now()
+        let elapsed = timestamp - mark
+
+        let values = {
+            op,
+            count: result.Count || 1,
+            scanned: result.ScannedCount || 1,
+            capacity: result.ConsumedCapacity ? result.ConsumedCapacity.CapacityUnits : 0,
+            source: params.source || metrics.source,
+            elapsed: timestamp - mark,
+        }
+        let indexName = params.index || 'primary'
+
+        this.addMetric(metrics.tree, values, this.table.name, indexName, source, this.name)
+
+        if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
+            this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
+            metrics.count = 0
+            metrics.lastFlushed = timestamp
+        }
+    }
+
+    addMetric(metrics, values, ...keys) {
+        let {op, count, scanned, capacity, elapsed, source} = values
+        let collections = MetricCollections.slice(0)
+        let name = collections.shift()
+        for (let key of keys) {
+            metrics = metrics[name] = metrics[name] || {}
+            let item = metrics[key] = metrics[key] || {counters: {capacity: 0, elapsed: 0, count: 0, requests: 0, scanned: 0}}
+            let counters = item.counters
+            counters.capacity += capacity
+            counters.elapsed += elapsed
+            counters.count += count
+            counters.requests++
+            counters.scanned += scanned
+            name = collections.shift()
+            metrics = metrics[key]
+        }
+    }
+
+    flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
+        for (let [key, collection] of Object.entries(tree)) {
+            if (key == 'counters') {
+                props = Object.assign(props, collection)
+                this.emitMetrics(namespace, timestamp, props, dimensions)
+            } else {
+                dimensions.push(key)
+                for (let [name, tree] of Object.entries(collection)) {
+                    props[key] = name
+                    this.flushMetrics(namespace, timestamp, tree, dimensions, props)
+                }
+            }
+        }
+    }
+
+    emitMetrics(namespace, timestamp, rec, dimensions = []) {
+        let keys = Object.keys(rec).filter(v => dimensions.indexOf(v) < 0)
+        let metrics = keys.map(v => {
+            return (v == 'elapsed') ? {Name: v, Unit: 'Milliseconds'} : {Name: v}
+        })
+        let data = Object.assign({
+            _aws: {
+                Timestamp: timestamp,
+                CloudWatchMetrics: [{
+                    Dimensions: [dimensions],
+                    Namespace: namespace,
+                    Metrics: metrics,
+                }]
+            },
+        }, rec)
+        this.table.log.emit('metrics', `OneTable metrics ` + JSON.stringify(data))
+        rec.requests = rec.count = rec.scanned = rec.capacity = rec.elapsed = 0
     }
 
     /*
@@ -1485,4 +1566,23 @@ export class Model {
         }
         return result
     }
+
+    /*  KEEP
+    
+    captureStack() {
+        let limit = Error.stackTraceLimit
+        Error.stackTraceLimit = 1
+
+        let obj = {}
+        let v8Handler = Error.prepareStackTrace
+        Error.prepareStackTrace = function(obj, stack) { return stack }
+        Error.captureStackTrace(obj, this.captureStack)
+
+        let stack = obj.stack
+        Error.prepareStackTrace = v8Handler
+        Error.stackTraceLimit = limit
+
+        let frame = stack[0]
+        return `${frame.getFunctionName()}:${frame.getFileName()}:${frame.getLineNumber()}`
+    } */
 }

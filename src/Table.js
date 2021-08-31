@@ -28,6 +28,13 @@ const DefaultIndexes = {
     },
 }
 
+const DefaultMetrics = {
+    source: 'Default',                  //  Default source name
+    max: 20,                            //  Buffer metrics for 20 requests
+    period: 10 * 1000,                  //  or buffer for 10 seconds
+    namespace: 'OneTable/test-6'        //  Default custom metric namespace
+}
+
 /*
     Represent a single DynamoDB table
  */
@@ -44,6 +51,7 @@ export class Table {
             intercept,      //  Intercept hook function(model, operation, item, params, raw). Operation: 'create', 'delete', 'put', ...
             isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
             logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
+            metrics,        //  Enable CloudWatch metrics
             name,           //  Table name.
             nulls,          //  Store nulls in database attributes. Default false.
             schema,         //  Table models schema.
@@ -89,6 +97,16 @@ export class Table {
         this.typeField = typeField || '_type'
         this.updatedField = updatedField || 'updated'
 
+        if (params.metrics) {
+            if (params.metrics == true) {
+                this.metrics = DefaultMetrics
+            } else {
+                this.metrics = Object.assign(DefaultMetrics, params.metrics)
+            }
+            this.metrics.count = 0
+            this.metrics.lastFlushed = Date.now()
+            this.metrics.tree = {}
+        }
         this.genericModel = null
         this.uniqueModel = null
 
