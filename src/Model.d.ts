@@ -131,7 +131,7 @@ export type OneParams = {
     count?: boolean,
     delete?: object,
     execute?: boolean,
-    exists?: boolean,
+    exists?: boolean | null,
     fields?: string[],
     follow?: boolean,
     hidden?: boolean,
