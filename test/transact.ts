@@ -5,6 +5,8 @@
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'TransactTest',
     client: Client,
@@ -29,9 +31,12 @@ test('Create', async() => {
 test('Transaction create', async() => {
     let transaction = {}
     for (let item of data) {
-        table.create('User', item, {transaction})
+        user = await table.create('User', item, {transaction})
     }
     await table.transact('write', transaction, {parse: true, hidden: false})
+
+    expect(user.pk).toBeUndefined()
+    expect(user.id).toBeDefined()
 
     users = await table.scan('User')
     expect(users.length).toBe(data.length)
@@ -40,7 +45,7 @@ test('Transaction create', async() => {
 test('Transaction get', async() => {
     let transaction = {}
     for (let user of users) {
-        table.get('User', {id: user.id}, {transaction})
+        await table.get('User', {id: user.id}, {transaction})
     }
     let items:any = await table.transact('get', transaction, {parse: true, hidden: false})
     expect(items.length).toBe(data.length)
@@ -54,7 +59,7 @@ test('Transaction get', async() => {
 test('Transaction get without parse', async() => {
     let transaction = {}
     for (let user of users) {
-        table.get('User', {id: user.id}, {transaction})
+        await table.get('User', {id: user.id}, {transaction})
     }
     let results:any = await table.transact('get', transaction, {parse: false, hidden: true})
     expect(results.Responses.length).toBe(users.length)
@@ -63,7 +68,7 @@ test('Transaction get without parse', async() => {
 test('Transaction update', async() => {
     let transaction = {}
     for (let user of users) {
-        table.update('User', {id: user.id, status: 'offline'}, {transaction})
+        await table.update('User', {id: user.id, status: 'offline'}, {transaction})
     }
     await table.transact('write', transaction, {parse: true, hidden: false})
 
