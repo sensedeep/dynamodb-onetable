@@ -1176,6 +1176,8 @@ The `params.delete` parameter may be set to a hash, where the hash keys are the 
 The `params.remove` parameter may be set to a list of attributes to remove.
 The `params.set` parameter may be set to a hash, where the hash keys are the attributes to modify and the values are expresions.
 
+If a field is specified in properties an in params.set, params.delete, params.remove or params.add, then the params.* value takes precedence.
+
 For example:
 
 ```javascript
