@@ -5,6 +5,7 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {NestedSchema} from './schemas'
+import { UpdateContributorInsightsCommand } from '@aws-sdk/client-dynamodb'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -13,6 +14,7 @@ const table = new Table({
     client: Client,
     schema: NestedSchema,
     logger: true,
+    timestamps: true,
 })
 
 const Properties = {
@@ -40,6 +42,7 @@ test('Create Table', async() => {
     User = table.getModel('User')
 })
 
+
 test('Create', async() => {
     user = await User.create(Properties)
     expect(user).toMatchObject(Properties)
@@ -48,6 +51,14 @@ test('Create', async() => {
     expect(user).toMatchObject(Properties)
     expect(user.balance).toBe(10)
     expect(user.tokens.length).toBe(3)
+})
+
+test('Create via update', async() => {
+    await User.remove(user)
+    users = await User.scan()
+    let props = Object.assign({id: table.uuid()}, Properties)
+    user = await User.update(props, {exists: null})
+    expect(user).toMatchObject(Properties)
 })
 
 test('Add', async() => {
@@ -108,6 +119,16 @@ test('Set list element', async() => {
     user = await User.update({id: user.id}, {set: {'tokens[1]': 'white'} })
 })
 
+test('Set conditional', async() => {
+    user = await User.update({id: user.id}, {remove: ['balance']})
+    expect(user.balance).toBeUndefined()
+
+    user = await User.update({id: user.id}, {set: {
+        balance: `if_not_exists(\${balance}, {42})`,
+    }})
+    expect(user.balance).toBe(42)
+})
+
 test('Remove', async() => {
     user = await User.update({id: user.id}, { remove: ['status', 'location.zip'] })
     expect(user.status).toBeUndefined()
@@ -121,7 +142,7 @@ test('No Execute', async() => {
     expect(cmd.Key.pk).toBeDefined()
     expect(cmd.Key.sk).toBeDefined()
     expect(cmd.ConsistentRead).toBeFalsy()
-}) 
+})
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
