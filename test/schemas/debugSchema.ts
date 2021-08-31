@@ -9,15 +9,16 @@
         },
         models: {
             User: {
-                pk:          { type: String, value: 'user#' },
-                sk:          { type: String, value: '${_type}:user#${id}' },
+                pk:          { type: String, value: '${_type}#' },
+                sk:          { type: String, value: '${_type}#${id}' },
                 id:          { type: String, uuid: true },
                 name:        { type: String },
                 email:       { type: String },
                 active:      { type: Boolean },
+                counter:     { type: Number, default: 0 },
 
-                gs1pk:       { type: String, value: 'user#${name}' },
-                gs1sk:       { type: String, value: 'user#' },
+                gs1pk:       { type: String, value: '${_type}#${name}' },
+                gs1sk:       { type: String, value: '${_type}#' },
             }
         }
     }

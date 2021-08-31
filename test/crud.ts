@@ -4,6 +4,8 @@
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'CrudTestTable',
     client: Client,
@@ -98,14 +100,14 @@ test('Get including hidden', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
-        gs1pk: 'user#Peter Smith',
-        gs1sk: 'user#',
+        sk: 'User#',
+        gs1pk: 'User#Peter Smith',
+        gs1sk: 'User#',
     })
     expect(user.created).toEqual(expect.any(Date))
     expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
-    expect(user.pk).toMatch(/^user#/)
+    expect(user.pk).toMatch(/^User#/)
 })
 
 test('Find by ID', async() => {
@@ -157,7 +159,7 @@ test('Remove attribute 2', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
+        sk: 'User#',
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()

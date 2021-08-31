@@ -29,13 +29,12 @@ test('Create User', async() => {
         zip: 98011,
         address: '444 Cherry Tree Lane',
         city: 'Seattle',
-    }, { log: true })                  //  Emit console trace for the command and result
-
+    })
     expect(user.name).toBe('Peter Smith')
 })
 
 test('Get User', async() => {
-    user = await User.get({id: user.id}, {log: true})
+    user = await User.get({id: user.id})
     expect(user.name).toBe('Peter Smith')
 })
 

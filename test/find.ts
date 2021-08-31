@@ -74,7 +74,6 @@ test('Find select with project', async() => {
 test('Find with where clause', async() => {
     let items = await User.find({}, {
         where: '(${status} = {active}) and (${email} = {peter@example.com} and ${name} <> {Unknown})',
-        log: true,
         index: 'gs2',
     })
     expect(items.length).toBe(1)

@@ -8,24 +8,24 @@ export default {
     },
     models: {
         Account: {
-            pk:         { type: String, value: 'account#${id}' },
-            sk:         { type: String, value: 'account#' },
+            pk:         { type: String, value: '${_type}#${id}' },
+            sk:         { type: String, value: '${_type}#' },
             id:         { type: String, uuid: true },
             name:       { type: String, required: true, unique: true },
 
-            gs1pk:      { type: String, value: 'account#${name}' },
-            gs1sk:      { type: String, value: 'account#' },
+            gs1pk:      { type: String, value: '${_type}#${name}' },
+            gs1sk:      { type: String, value: '${_type}#' },
         },
         User: {
-            pk:         { type: String, value: 'account#${accountId}' },
-            sk:         { type: String, value: 'user#${id}' },
+            pk:         { type: String, value: 'Account#${accountId}' },
+            sk:         { type: String, value: '${_type}#${id}' },
             accountId:  { type: String, required: true },
             id:         { type: String, uuid: true },
             name:       { type: String, required: true },
             email:      { type: String, required: true },
 
-            gs1pk:      { type: String, value: 'user#${email}' },
-            gs1sk:      { type: String, value: 'user#${accountId}' },
+            gs1pk:      { type: String, value: '${_type}#${email}' },
+            gs1sk:      { type: String, value: '${_type}#${accountId}' },
         }
     }
 }

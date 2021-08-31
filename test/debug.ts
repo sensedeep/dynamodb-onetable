@@ -28,8 +28,11 @@ let user: UserType = null
 
 /*
 test('Test', async() => {
-
-    user = await User.create({name: 'Michael', email: 'mob@sensedeep.com', active: false})
+    user = await User.update({id: '23', name: 'Michael', email: 'mob@sensedeep.com', active: false}, {
+        exists: null,
+        add: {counter: 1},
+        log: true,
+    })
     user = await User.get({id: user.id}, {log: true})
     dump("UU", user)
 })

@@ -7,7 +7,7 @@ export default {
     },
     models: {
         User: {
-            pk:         { type: String, value: 'user#${id}', map: 'pkey' },
+            pk:         { type: String, value: '${_type}#${id}', map: 'pkey' },
             id:         { type: String, uuid: true },
             name:       { type: String },
             email:      { type: String },

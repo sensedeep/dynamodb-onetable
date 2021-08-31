@@ -52,7 +52,7 @@ test('Get', async() => {
 
 test('Get raw ', async() => {
     user = await User.get({id: user.id}, {hidden: true, parse: false})
-    expect(user.pk.S).toMatch(/^user#/)
+    expect(user.pk.S).toMatch(/^User#/)
     expect(user.email.S).toBeDefined()
     expect(user.email.S).not.toMatch('peter@example.com')
     expect(user.email.S).toMatch(/^primary/)

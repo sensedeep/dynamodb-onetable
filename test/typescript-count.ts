@@ -65,7 +65,7 @@ test('FindCount', async() => {
     num = (await table.scanItems({}, {count})).count
     expect(num).toBe(userData.length + 2)
 
-    num = (await table.queryItems({pk: `account#${account.id}`}, {count})).count
+    num = (await table.queryItems({pk: `Account#${account.id}`}, {count})).count
     expect(num).toBe(userData.length + 1)
 })
 

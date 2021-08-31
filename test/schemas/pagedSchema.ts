@@ -7,8 +7,8 @@ export default {
     },
     models: {
         User: {
-            pk:         { type: String, value: 'user#' },
-            sk:         { type: String, value: 'user#${name}' },
+            pk:         { type: String, value: '${_type}#' },
+            sk:         { type: String, value: '${_type}#${name}' },
             id:         { type: String, uuid: true },
             name:       { type: String, required: true },
         }

@@ -49,12 +49,12 @@ test('Get including hidden', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
-        gs1pk: 'user#Peter Smith',
-        gs1sk: 'user#',
+        sk: 'User#',
+        gs1pk: 'User#Peter Smith',
+        gs1sk: 'User#',
     })
     expect(user.id).toMatch(Match.uuid)
-    expect(user.pk).toMatch(/^user#/)
+    expect(user.pk).toMatch(/^User#/)
 })
 
 test('Find by ID', async() => {
@@ -102,7 +102,7 @@ test('Remove attribute 2', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
+        sk: 'User#',
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()

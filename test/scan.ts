@@ -47,10 +47,10 @@ test('Scan revealing hidden', async() => {
             status: item.status,
         })
         expect(user.id).toMatch(Match.ulid)
-        expect(user.pk).toBe(`user#${user.id}`)
-        expect(user.sk).toBe('user#')
-        expect(user.gs1pk).toBe(`user#${item.name}`)
-        expect(user.gs1sk).toBe('user#')
+        expect(user.pk).toBe(`User#${user.id}`)
+        expect(user.sk).toBe('User#')
+        expect(user.gs1pk).toBe(`User#${item.name}`)
+        expect(user.gs1sk).toBe('User#')
     }
 })
 

@@ -9,8 +9,8 @@ export default {
     },
     models: {
         User: {
-            pk:         { type: String, value: 'user#${id}' },
-            sk:         { type: String, value: 'user#' },
+            pk:         { type: String, value: '${_type}#${id}' },
+            sk:         { type: String, value: '${_type}#' },
             id:         { type: String, uuid: true },
             name:       { type: String },
             email:      { type: String },
@@ -26,12 +26,12 @@ export default {
             registered: { type: Date },
 
             //  Find by name
-            gs1pk:      { type: String, value: 'user#${name}' },
-            gs1sk:      { type: String, value: 'user#' },
+            gs1pk:      { type: String, value: '${_type}#${name}' },
+            gs1sk:      { type: String, value: '${_type}#' },
 
             //  Find by type
-            gs2pk:      { type: String, value: 'type:User' },
-            gs2sk:      { type: String, value: 'user#${id}' },
+            gs2pk:      { type: String, value: 'type:${_type}' },
+            gs2sk:      { type: String, value: '${_type}#${id}' },
         }
     }
 }

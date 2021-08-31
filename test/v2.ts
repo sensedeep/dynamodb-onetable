@@ -106,12 +106,12 @@ test('Get including hidden', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
-        gs1pk: 'user#Peter Smith',
-        gs1sk: 'user#',
+        sk: 'User#',
+        gs1pk: 'User#Peter Smith',
+        gs1sk: 'User#',
     })
     expect(user.id).toMatch(Match.ulid)
-    expect(user.pk).toMatch(/^user#/)
+    expect(user.pk).toMatch(/^User#/)
 })
 
 test('Get raw', async() => {
@@ -166,7 +166,7 @@ test('Remove attribute 2', async() => {
         _type: 'User',
         name: 'Peter Smith',
         status: 'active',
-        sk: 'user#',
+        sk: 'User#',
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()
@@ -234,7 +234,7 @@ test('Batch get', async() => {
 test('Transaction create', async() => {
     let transaction = {}
     for (let item of data) {
-        table.create('User', item, {transaction})
+        await table.create('User', item, {transaction})
     }
     await table.transact('write', transaction, {parse: true, hidden: false})
 
@@ -245,7 +245,7 @@ test('Transaction create', async() => {
 test('Transaction get', async() => {
     let transaction = {}
     for (let user of users) {
-        table.get('User', {id: user.id}, {transaction})
+        await table.get('User', {id: user.id}, {transaction})
     }
     let items:any = await table.transact('get', transaction, {parse: true, hidden: false})
     expect(items.length).toBe(data.length)

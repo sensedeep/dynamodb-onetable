@@ -8,8 +8,8 @@ export default {
     },
     models: {
         User: {
-            pk:          { type: String, value: 'user#${id}' },
-            sk:          { type: String, value: 'user#' },
+            pk:          { type: String, value: '${_type}#${id}' },
+            sk:          { type: String, value: '${_type}#' },
             id:          { type: String, uuid: true },
             name:        { type: String },
 
@@ -18,8 +18,8 @@ export default {
             city:        { type: String, map: 'data.city' },
             zip:         { type: String, map: 'data.zip' },
 
-            gs1pk:       { type: String, value: 'user#${name}' },
-            gs1sk:       { type: String, value: 'user#' },
+            gs1pk:       { type: String, value: '${_type}#${name}' },
+            gs1sk:       { type: String, value: '${_type}#' },
         }
     }
 }

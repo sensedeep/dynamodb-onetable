@@ -83,7 +83,7 @@ test('Create users', async() => {
     users = await User.scan()
     expect(users.length).toBe(data.length)
 
-    let collection: any = await table.fetch(['Account', 'User'], {pk: `account#${account.id}`})
+    let collection: any = await table.fetch(['Account', 'User'], {pk: `Account#${account.id}`})
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(data.length)
 })

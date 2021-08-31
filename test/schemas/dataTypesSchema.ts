@@ -7,8 +7,8 @@ export default {
     },
     models: {
         Item: {
-            pk:             { type: String, value: 'item#${id}' },
-            sk:             { type: String, value: 'item#' },
+            pk:             { type: String, value: '${_type}#${id}' },
+            sk:             { type: String, value: '${_type}#' },
             id:             { type: String, uuid: true },
 
             stringSet:      { type: Set },

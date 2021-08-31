@@ -53,14 +53,14 @@ test('Create Users', async() => {
 })
 
 test('Fetch', async() => {
-    let items = await table.queryItems({pk: `account#${account.id}`}, {parse: true})
+    let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true})
     let collection = table.groupByType(items)
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(userData.length)
 })
 
 test('Fetch', async() => {
-    let collection = await table.fetch(['Account', 'User'], {pk: `account#${account.id}`})
+    let collection = await table.fetch(['Account', 'User'], {pk: `Account#${account.id}`})
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(userData.length)
 })

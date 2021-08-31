@@ -81,10 +81,10 @@ test('Get by LS1 - by name', async() => {
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
-        pk: 'user#',
-        sk: `user#${user.id}`,
-        ls1sk: `user#${user.name}`,
-        ls2sk: `user#User`,
+        pk: 'User#',
+        sk: `User#${user.id}`,
+        ls1sk: `User#${user.name}`,
+        ls2sk: `User#User`,
     })
 })
 
@@ -94,10 +94,10 @@ test('Get by LS2 - by type', async() => {
     expect(user).toMatchObject({
         _type: 'User',
         name: 'Peter Smith',
-        pk: 'user#',
-        sk: `user#${user.id}`,
-        ls1sk: `user#${user.name}`,
-        ls2sk: `user#User`,
+        pk: 'User#',
+        sk: `User#${user.id}`,
+        ls1sk: `User#${user.name}`,
+        ls2sk: `User#User`,
     })
 })
 

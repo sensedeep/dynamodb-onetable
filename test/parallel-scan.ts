@@ -39,7 +39,6 @@ test('Stub', async() => {
             segments: MaxSegments,
             parse: true,
             hidden: false,
-            log: true
         }))
     }
     let items = await Promise.all(promises)

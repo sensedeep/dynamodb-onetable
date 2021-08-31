@@ -10,14 +10,14 @@ export default {
     models: {
         User: {
             //  Yes, this is a bad PK and puts all users in the same partition
-            pk:         { type: String, value: 'user#' },
-            sk:         { type: String, value: 'user#${id}' },
+            pk:         { type: String, value: '${_type}#' },
+            sk:         { type: String, value: '${_type}#${id}' },
             id:         { type: String, uuid: true },
             name:       { type: String },
             email:      { type: String },
 
-            ls1sk:      { type: String, value: 'user#${name}' },
-            ls2sk:      { type: String, value: 'user#${_type}' },
+            ls1sk:      { type: String, value: '${_type}#${name}' },
+            ls2sk:      { type: String, value: '${_type}#${_type}' },
         }
     }
 }
