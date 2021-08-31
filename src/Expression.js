@@ -21,6 +21,7 @@ export class Expression {
         this.params = params
 
         this.table = model.table
+        this.already = {}           //  Fields already processed
         this.conditions = []        //  Condition expressions
         this.filters = []           //  Filter expressions
         this.key = {}               //  Primary key attribute
@@ -62,10 +63,32 @@ export class Expression {
     prepare() {
         let {op, properties} = this
         let fields = this.model.block.fields
+        if (op == 'find') {
+            this.addFilters()
+
+        } else if (op == 'delete' || op == 'put' || op == 'update') {
+            this.addConditions(op)
+
+        } else if (op == 'scan') {
+            this.addFilters()
+            /*
+                Setup scan filters for properties outside the model.
+                Use the property name here as there can't be a mapping.
+            */
+            for (let [name, value] of Object.entries(this.properties)) {
+                if (fields[name] == null && value != null) {
+                    this.addFilter(name, value)
+                }
+            }
+        }
+        
         /*
             Parse the API properties. Only accept properties defined in the schema unless generic.
         */
         for (let [name, value] of Object.entries(properties)) {
+            if (this.already[name]) {
+                continue
+            }
             if (fields[name]) {
                 this.add(fields[name], value)
             } else if (this.model.generic) {
@@ -84,24 +107,6 @@ export class Expression {
             }
             for (let [k,v] of Object.entries(this.mapped)) {
                 this.add({attribute: [k], name: k, filter: false}, v, properties)
-            }
-        }
-        if (op == 'find') {
-            this.addFilters()
-
-        } else if (op == 'delete' || op == 'put' || op == 'update') {
-            this.addConditions(op)
-
-        } else if (op == 'scan') {
-            this.addFilters()
-            /*
-                Setup scan filters for properties outside the model.
-                Use the property name here as there can't be a mapping.
-            */
-            for (let [name, value] of Object.entries(this.properties)) {
-                if (fields[name] == null && value != null) {
-                    this.addFilter(name, value)
-                }
             }
         }
         if (this.params.fields) {
@@ -210,8 +215,7 @@ export class Expression {
         let fields = this.model.block.fields
         //  Expand attribute references and make attribute name
         where = where.toString().replace(/\${(.*?)}/g, (match, varName) => {
-            let ref = this.makeTarget(fields, varName)
-            return ref
+            return this.makeTarget(fields, varName)
         })
         //  Expand value references and make attribute values
         where = where.replace(/{(.*?)}/g, (match, value) => {
@@ -305,12 +309,14 @@ export class Expression {
         let fields = this.model.block.fields
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
+                this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.add.push(`${target} :_${this.addValue(value)}`)
             }
 
         } else if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
+                this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.delete.push(`${target} :_${this.addValue(value)}`)
             }
@@ -320,12 +326,14 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let key of params.remove) {
+                this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.remove.push(`${target}`)
             }
 
         } else if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
+                this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 //  If value is number of simple string then don't expand
                 if (value.toString().match(/\${.*?}|{.*?}/)) {
