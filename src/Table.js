@@ -784,20 +784,24 @@ class Log {
             this.logger = logger
         }
     }
-    data(message, context, params) {
-        this.process('data', message, context, params)
+    data(message, context) {
+        this.process('data', message, context)
     }
 
-    error(message, context, params) {
-        this.process('error', message, context, params)
+    emit(chan, message, context) {
+        this.process(chan, message, context)
     }
 
-    info(message, context, params) {
-        this.process('info', message, context, params)
+    error(message, context) {
+        this.process('error', message, context)
     }
 
-    trace(message, context, params) {
-        this.process('trace', message, context, params)
+    info(message, context) {
+        this.process('info', message, context)
+    }
+
+    trace(message, context) {
+        this.process('trace', message, context)
     }
 
     process(level, message, context) {
@@ -811,6 +815,10 @@ class Log {
             //  params.log: true will cause the level to be changed to 'info'
             return
         }
-        console.log(level, message, JSON.stringify(context, null, 4))
+        if (context) {
+            console.log(level, message, JSON.stringify(context, null, 4))
+        } else {
+            console.log(level, message)
+        }
     }
 }
