@@ -564,13 +564,10 @@ export class Model {
 
     async get(properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
-
-        if (!this.generic) {
-            properties[this.typeField] = this.name
-        }
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
             //  Fallback via find when using non-primary indexes
+            params.limit = 2
             let items = await this.find(properties, params)
             if (items.length > 1) {
                 throw new Error('Get without sort key returns more than one result')
@@ -651,7 +648,6 @@ export class Model {
 
     async scan(properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
-        properties[this.typeField] = this.name
         return await this.scanItems(properties, params)
     }
 
@@ -749,9 +745,6 @@ export class Model {
     /* private */
     async getItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        if (!this.generic) {
-            properties[this.typeField] = this.name
-        }
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
@@ -766,9 +759,6 @@ export class Model {
     /* private */
     async putItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        if (!this.generic) {
-            properties[this.typeField] = this.name
-        }
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
@@ -783,9 +773,6 @@ export class Model {
     /* private */
     async queryItems(properties = {}, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        if (!this.generic) {
-            properties[this.typeField] = this.name
-        }
         properties = this.prepareProperties('find', properties, params)
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
@@ -803,9 +790,6 @@ export class Model {
     /* private */
     async updateItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        if (!this.generic) {
-            properties[this.typeField] = this.name
-        }
         if (this.timestamps) {
             properties[this.updatedField] = new Date()
         }
@@ -1093,6 +1077,9 @@ export class Model {
                     properties[field.name] = context[field.name]
                 }
             }
+        }
+        if (!this.generic) {
+            properties[this.typeField] = this.name
         }
     }
 
