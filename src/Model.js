@@ -486,10 +486,10 @@ export class Model {
             count: result.Count || 1,
             scanned: result.ScannedCount || 1,
             capacity: result.ConsumedCapacity ? result.ConsumedCapacity.CapacityUnits : 0,
-            source: params.source || metrics.source,
             elapsed: timestamp - mark,
         }
         let indexName = params.index || 'primary'
+        let source = params.source || metrics.source
 
         this.addMetric(metrics.tree, values, this.table.name, indexName, source, this.name)
 
@@ -501,7 +501,7 @@ export class Model {
     }
 
     addMetric(metrics, values, ...keys) {
-        let {op, count, scanned, capacity, elapsed, source} = values
+        let {op, count, scanned, capacity, elapsed} = values
         let collections = MetricCollections.slice(0)
         let name = collections.shift()
         for (let key of keys) {
@@ -527,7 +527,7 @@ export class Model {
                 dimensions.push(key)
                 for (let [name, tree] of Object.entries(collection)) {
                     props[key] = name
-                    this.flushMetrics(namespace, timestamp, tree, dimensions, props)
+                    this.flushMetrics(namespace, timestamp, tree, dimensions.slice(0), props)
                 }
             }
         }
@@ -548,7 +548,8 @@ export class Model {
                 }]
             },
         }, rec)
-        this.table.log.emit('metrics', `OneTable metrics ` + JSON.stringify(data))
+        // this.table.log.emit('metrics', 'OneTable metrics', data)
+        console.log(`OneTable metrics ${dimensions} ` + JSON.stringify(data))
         rec.requests = rec.count = rec.scanned = rec.capacity = rec.elapsed = 0
     }
 
@@ -1568,7 +1569,7 @@ export class Model {
     }
 
     /*  KEEP
-    
+
     captureStack() {
         let limit = Error.stackTraceLimit
         Error.stackTraceLimit = 1
