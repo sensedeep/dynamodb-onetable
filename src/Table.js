@@ -5,8 +5,9 @@
  */
 
 import Crypto from 'crypto'
-import ULID from './ULID.js'
 import {Model} from './Model.js'
+import UUID from './UUID.js'
+import ULID from './ULID.js'
 
 /*
     Safety string required on API to delete a table
@@ -627,10 +628,7 @@ export class Table {
         Consider ULIDs which are crypto sortable.
     */
     uuid() {
-        return 'xxxxxxxxxxxxxxxxyxxxxxxxxxyxxxxx'.replace(/[xy]/g, function(c) {
-            let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
-            return v.toString(16)
-        })
+        return UUID()
     }
 
     // Simple time-based, sortable unique ID.
