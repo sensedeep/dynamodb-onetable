@@ -307,8 +307,12 @@ export class Expression {
     addUpdates() {
         let {params, updates} = this
         let fields = this.model.block.fields
+
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
+                if (key == this.hash || key == this.sort) {
+                    throw new Error('Cannot add to hash or sort')
+                }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.add.push(`${target} :_${this.addValue(value)}`)
@@ -316,6 +320,9 @@ export class Expression {
         }
         if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
+                if (key == this.hash || key == this.sort) {
+                    throw new Error('Cannot delete hash or sort')
+                }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.delete.push(`${target} :_${this.addValue(value)}`)
@@ -326,6 +333,9 @@ export class Expression {
                 params.remove = [params.remove]
             }
             for (let key of params.remove) {
+                if (key == this.hash || key == this.sort) {
+                    throw new Error('Cannot remove hash or sort')
+                }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.remove.push(`${target}`)
@@ -333,6 +343,9 @@ export class Expression {
         }
         if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
+                if (key == this.hash || key == this.sort) {
+                    throw new Error('Cannot set hash or sort')
+                }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 //  If value is number of simple string then don't expand
