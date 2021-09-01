@@ -32,7 +32,7 @@ const DefaultMetrics = {
     source: 'Default',                  //  Default source name
     max: 20,                            //  Buffer metrics for 20 requests
     period: 10 * 1000,                  //  or buffer for 10 seconds
-    namespace: 'OneTable/test-6'        //  Default custom metric namespace
+    namespace: 'OneTable/test-7'        //  Default custom metric namespace
 }
 
 /*
@@ -484,7 +484,6 @@ export class Table {
     /*
         The low level API does not use models. It permits the reading / writing of any attribute.
     */
-
     async batchGet(batch, params = {}) {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return []

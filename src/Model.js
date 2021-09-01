@@ -20,7 +20,7 @@ const DocumentClientMethods = {
 /*
     Ready / write tags for interceptions
  */
-const InterceptTags = {
+const ReadWrite = {
     delete: 'write',
     get: 'read',
     find: 'read',
@@ -33,7 +33,7 @@ const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
-const MetricCollections = ['Table', 'Index', 'Source', 'Model']
+const MetricCollections = ['Table', 'Index', 'Source', 'Model', 'Operation']
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -314,11 +314,13 @@ export class Model {
             let items = b.RequestItems = b.RequestItems || {}
             if (op == 'get') {
                 let list = items[this.tableName] = items[this.tableName] || {Keys: []}
-                return list.Keys.push(cmd.Keys)
+                list.Keys.push(cmd.Keys)
+                return this.transformReadItem(op, properties, properties, params)
             } else {
                 let list = items[this.tableName] = items[this.tableName] || []
                 let bop = BatchOps[op]
-                return list.push({[bop]: cmd})
+                list.push({[bop]: cmd})
+                return this.transformReadItem(op, properties, properties, params)
             }
         }
         /*
@@ -491,7 +493,7 @@ export class Model {
         let indexName = params.index || 'primary'
         let source = params.source || metrics.source
 
-        this.addMetric(metrics.tree, values, this.table.name, indexName, source, this.name)
+        this.addMetric(metrics.tree, values, this.table.name, indexName, source, this.name, op)
 
         if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
             this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
@@ -506,13 +508,15 @@ export class Model {
         let name = collections.shift()
         for (let key of keys) {
             metrics = metrics[name] = metrics[name] || {}
-            let item = metrics[key] = metrics[key] || {counters: {capacity: 0, elapsed: 0, count: 0, requests: 0, scanned: 0}}
+            let item = metrics[key] = metrics[key] || {
+                counters: {elapsed: 0, count: 0, read: 0, requests: 0, scanned: 0, write: 0}
+            }
             let counters = item.counters
-            counters.capacity += capacity
-            counters.elapsed += elapsed
-            counters.count += count
-            counters.requests++
-            counters.scanned += scanned
+            counters[ReadWrite[op]] += capacity             //  RCU, WCU
+            counters.elapsed += elapsed                     //  Latency
+            counters.count += count                         //  Item count
+            counters.requests++                             //  Number of requests
+            counters.scanned += scanned                     //  Items scanned
             name = collections.shift()
             metrics = metrics[key]
         }
@@ -536,8 +540,16 @@ export class Model {
     emitMetrics(namespace, timestamp, rec, dimensions = []) {
         let keys = Object.keys(rec).filter(v => dimensions.indexOf(v) < 0)
         let metrics = keys.map(v => {
-            return (v == 'elapsed') ? {Name: v, Unit: 'Milliseconds'} : {Name: v}
+            return {Name: v, Unit: v == ('elaped' ? 'Milliseconds' : 'Count')}
         })
+        let since = (timestamp - this.table.metrics.lastFlushed) || 1
+        rec.elapsed = rec.elapsed / rec.requests
+        rec.count = rec.count / rec.requests
+        rec.scanned = rec.scanned / rec.requests
+        rec.read = rec.read / since
+        rec.write = rec.write / since
+        this.table.log.info('OneTable MMMM', {rec, since})
+
         let data = Object.assign({
             _aws: {
                 Timestamp: timestamp,
@@ -550,7 +562,7 @@ export class Model {
         }, rec)
         // this.table.log.emit('metrics', 'OneTable metrics', data)
         console.log(`OneTable metrics ${dimensions} ` + JSON.stringify(data))
-        rec.requests = rec.count = rec.scanned = rec.capacity = rec.elapsed = 0
+        rec.requests = rec.count = rec.scanned = rec.elapsed = rec.read = rec.write = 0
     }
 
     /*
@@ -962,7 +974,7 @@ export class Model {
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'read', rec, params, raw)
         }
-        if (this.table.intercept && InterceptTags[op] == 'read') {
+        if (this.table.intercept && ReadWrite[op] == 'read') {
             rec = this.table.intercept(this, op, rec, params, raw)
         }
         return rec
@@ -1006,7 +1018,7 @@ export class Model {
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'write', rec, params)
         }
-        if (this.table.intercept && InterceptTags[op] == 'write') {
+        if (this.table.intercept && ReadWrite[op] == 'write') {
             rec = this.table.intercept(this, op, rec, params)
         }
         return rec
