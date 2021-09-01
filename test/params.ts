@@ -5,7 +5,6 @@
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {NestedSchema} from './schemas'
-import { UpdateContributorInsightsCommand } from '@aws-sdk/client-dynamodb'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -120,13 +119,19 @@ test('Set list element', async() => {
 })
 
 test('Set conditional', async() => {
-    user = await User.update({id: user.id}, {remove: ['balance']})
-    expect(user.balance).toBeUndefined()
+    user = await User.update({id: user.id}, {remove: ['status']})
+    expect(user.status).toBeUndefined()
 
-    user = await User.update({id: user.id}, {set: {
-        balance: `if_not_exists(\${balance}, {42})`,
-    }})
-    expect(user.balance).toBe(42)
+    user = await User.update({id: user.id}, {
+        add: {
+            balance: 1
+        },
+        set: {
+            status: `if_not_exists(\${status}, {active})`,
+        },
+    })
+    expect(user.balance).toBe(8)
+    expect(user.status).toBe('active')
 })
 
 test('Remove', async() => {
