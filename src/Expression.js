@@ -81,7 +81,7 @@ export class Expression {
                 }
             }
         }
-        
+
         /*
             Parse the API properties. Only accept properties defined in the schema unless generic.
         */
@@ -313,15 +313,15 @@ export class Expression {
                 let target = this.makeTarget(fields, key)
                 updates.add.push(`${target} :_${this.addValue(value)}`)
             }
-
-        } else if (params.delete) {
+        }
+        if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 updates.delete.push(`${target} :_${this.addValue(value)}`)
             }
-
-        } else if (params.remove) {
+        }
+        if (params.remove) {
             if (!Array.isArray(params.remove)) {
                 params.remove = [params.remove]
             }
@@ -330,8 +330,8 @@ export class Expression {
                 let target = this.makeTarget(fields, key)
                 updates.remove.push(`${target}`)
             }
-
-        } else if (params.set) {
+        }
+        if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
