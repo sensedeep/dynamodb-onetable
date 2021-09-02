@@ -220,7 +220,7 @@ export class Expression {
         //  Expand value references and make attribute values
         where = where.replace(/{(.*?)}/g, (match, value) => {
             let index
-            if (value.match(/^\d+$/)) {
+            if (value.match(/^[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/)) {
                 index = this.addValue(+value)
             } else {
                 let matched = value.match(/^"(.*)"$/)
