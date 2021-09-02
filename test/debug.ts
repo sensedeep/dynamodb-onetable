@@ -26,6 +26,7 @@ type UserType = Entity<typeof DebugSchema.models.User>
 let User = table.getModel<UserType>('User')
 let user: UserType = null
 
+/*
 test('Test', async() => {
     user = await User.create({
         name: 'Joe',
@@ -40,7 +41,7 @@ test('Test', async() => {
     })
     user = await User.get({id: user.id}, {log: true})
     dump("UU", user)
-})
+}) */
 
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')

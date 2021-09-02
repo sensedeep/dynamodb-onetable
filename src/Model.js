@@ -481,14 +481,13 @@ export class Model {
         let params = expression.params
         let metrics = this.table.metrics
         let timestamp = Date.now()
-        let elapsed = timestamp - mark
 
         let values = {
             op,
             count: result.Count || 1,
             scanned: result.ScannedCount || 1,
             capacity: result.ConsumedCapacity ? result.ConsumedCapacity.CapacityUnits : 0,
-            elapsed: timestamp - mark,
+            latency: timestamp - mark,
         }
         let indexName = params.index || 'primary'
         let source = params.source || metrics.source
@@ -503,17 +502,17 @@ export class Model {
     }
 
     addMetric(metrics, values, ...keys) {
-        let {op, count, scanned, capacity, elapsed} = values
+        let {op, capacity, count, latency, scanned} = values
         let collections = MetricCollections.slice(0)
         let name = collections.shift()
         for (let key of keys) {
             metrics = metrics[name] = metrics[name] || {}
             let item = metrics[key] = metrics[key] || {
-                counters: {elapsed: 0, count: 0, read: 0, requests: 0, scanned: 0, write: 0}
+                counters: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0}
             }
             let counters = item.counters
             counters[ReadWrite[op]] += capacity             //  RCU, WCU
-            counters.elapsed += elapsed                     //  Latency
+            counters.latency += latency                     //  Latency
             counters.count += count                         //  Item count
             counters.requests++                             //  Number of requests
             counters.scanned += scanned                     //  Items scanned
@@ -523,13 +522,14 @@ export class Model {
     }
 
     flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
-        for (let [key, collection] of Object.entries(tree)) {
+        for (let [key, rec] of Object.entries(tree)) {
             if (key == 'counters') {
-                props = Object.assign(props, collection)
+                props = Object.assign(props, rec)
                 this.emitMetrics(namespace, timestamp, props, dimensions)
+                rec.requests = rec.count = rec.scanned = rec.latency = rec.read = rec.write = 0
             } else {
                 dimensions.push(key)
-                for (let [name, tree] of Object.entries(collection)) {
+                for (let [name, tree] of Object.entries(rec)) {
                     props[key] = name
                     this.flushMetrics(namespace, timestamp, tree, dimensions.slice(0), props)
                 }
@@ -537,32 +537,38 @@ export class Model {
         }
     }
 
-    emitMetrics(namespace, timestamp, rec, dimensions = []) {
-        let keys = Object.keys(rec).filter(v => dimensions.indexOf(v) < 0)
-        let metrics = keys.map(v => {
-            return {Name: v, Unit: v == ('elaped' ? 'Milliseconds' : 'Count')}
-        })
-        let since = (timestamp - this.table.metrics.lastFlushed) || 1
-        rec.elapsed = rec.elapsed / rec.requests
-        rec.count = rec.count / rec.requests
-        rec.scanned = rec.scanned / rec.requests
-        rec.read = rec.read / since
-        rec.write = rec.write / since
-        this.table.log.info('OneTable MMMM', {rec, since})
+    emitMetrics(namespace, timestamp, values, dimensions = []) {
+        let since = ((timestamp - this.table.metrics.lastFlushed) || 1) / 1000
+        let requests = values.requests
+        values.latency = values.latency / requests
+        values.count = values.count / requests
+        values.scanned = values.scanned / requests
+        values.read = values.read / since
+        values.write = values.write / since
+        values.requests = requests / since
 
-        let data = Object.assign({
-            _aws: {
-                Timestamp: timestamp,
-                CloudWatchMetrics: [{
-                    Dimensions: [dimensions],
-                    Namespace: namespace,
-                    Metrics: metrics,
-                }]
-            },
-        }, rec)
-        // this.table.log.emit('metrics', 'OneTable metrics', data)
-        console.log(`OneTable metrics ${dimensions} ` + JSON.stringify(data))
-        rec.requests = rec.count = rec.scanned = rec.elapsed = rec.read = rec.write = 0
+        if (this.table.log.emit) {
+            //  Senselogs. Preferred as it can be dynamically controled
+            this.table.log.metrics('metrics', 'OneTable Custom Metrics',
+                namespace, values, [dimensions], {latency: 'Milliseconds', default: 'Count'})
+
+        } else {
+            let keys = Object.keys(values).filter(v => dimensions.indexOf(v) < 0)
+            let metrics = keys.map(v => {
+                return {Name: v, Unit: v == ('latency' ? 'Milliseconds' : 'Count')}
+            })
+            let data = Object.assign({
+                _aws: {
+                    Timestamp: timestamp,
+                    CloudWatchMetrics: [{
+                        Dimensions: [dimensions],
+                        Namespace: namespace,
+                        Metrics: metrics,
+                    }]
+                },
+            }, rec)
+            console.log('OneTable Custom Metrics ' + JSON.stringify(data))
+        }
     }
 
     /*

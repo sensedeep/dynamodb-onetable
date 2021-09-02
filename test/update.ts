@@ -25,9 +25,9 @@ test('Create Table', async() => {
 })
 
 let data = [
-    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
-    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
-    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active', age: 20 },
+    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active', age: 30 },
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive', age: 40 },
 ]
 
 test('Create Users', async() => {
@@ -48,6 +48,16 @@ test('Update via where', async() => {
         where: '${status} = {active}',
     })
     expect(item.status).toBe('suspended')
+})
+
+test('Update via where with number', async() => {
+    // let user = users.find(u => u.status == 'active')
+    let item = await User.scan({}, {where: '${age} < {20}', log: true})
+    expect(item.length).toBe(0)
+
+    //  Floating
+    item = await User.scan({}, {where: '${age} < {21.234}', log: true})
+    expect(item.length).toBe(1)
 })
 
 test('Update via where throwing', async() => {

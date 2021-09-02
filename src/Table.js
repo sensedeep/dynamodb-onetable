@@ -33,7 +33,7 @@ const DefaultMetrics = {
     source: 'Default',                  //  Default source name
     max: 20,                            //  Buffer metrics for 20 requests
     period: 10 * 1000,                  //  or buffer for 10 seconds
-    namespace: 'OneTable/test-7'        //  Default custom metric namespace
+    namespace: 'OneTable/test-8'        //  Default custom metric namespace
 }
 
 /*
