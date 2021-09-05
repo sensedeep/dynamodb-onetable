@@ -17,7 +17,8 @@ import {
     Paged
 } from './Model'
 
-import { Table } from './Table'
+import ULID from './ULID.js'
+import UUID from './UUID.js'
 
 export {
     AnyEntity,
@@ -32,5 +33,7 @@ export {
     OneSchema,
     OneType,
     Paged,
-    Table
+    Table,
+    ULID,
+    UUID,
 }
