@@ -65,7 +65,7 @@ export class Table {
             /*  LEGACY 1.7.4 - remove in 2.0.0
                 Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
                 Now, use the delimiter with a unique prefix.
-                Defaults to be ':' in 1.7, and false in 1.8.
+                Defaults to be ':' in 1.7.
             */
             legacyUnique,
         } = params
@@ -76,8 +76,8 @@ export class Table {
         this.log = senselogs ? senselogs : new Log(logger)
         this.log.trace(`Loading OneTable`)
 
-        if (params.legacyUnique == undefined || params.legacyUnique == true) {
-            //  LEGACY 1.7.4 - Revert to false in 1.8
+        //  LEGACY remove in 2.0
+        if (params.legacyUnique == true) {
             params.legacyUnique = ':'
         }
         this.params = params
@@ -323,7 +323,7 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
-        this.log.trace(`Dynamo createTable for "${this.name}"`, {def})
+        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.createTable(def)
         } else {
@@ -336,7 +336,7 @@ export class Table {
     */
     async deleteTable(confirmation) {
         if (confirmation == ConfirmRemoveTable) {
-            this.log.trace(`Dynamo deleteTable for "${this.name}"`)
+            this.log.trace(`OneTable deleteTable for "${this.name}"`)
             if (this.V3) {
                 await this.service.deleteTable({TableName: this.name})
             } else {
