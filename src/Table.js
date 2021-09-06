@@ -10,6 +10,22 @@ import UUID from './UUID.js'
 import ULID from './ULID.js'
 
 /*
+    AWS V2 DocumentClient methods
+ */
+const DocumentClientMethods = {
+    delete: 'delete',
+    get: 'get',
+    find: 'query',
+    put: 'put',
+    scan: 'scan',
+    update: 'update',
+    batchGet: 'batchGet',
+    batchWrite: 'batchWrite',
+    transactGet: 'transactGet',
+    transactWrite: 'transactWrite',
+}
+
+/*
     Safety string required on API to delete a table
 */
 const ConfirmRemoveTable = 'DeleteTableForever'
@@ -31,9 +47,24 @@ const DefaultIndexes = {
 
 const DefaultMetrics = {
     source: 'Default',                  //  Default source name
-    max: 20,                            //  Buffer metrics for 20 requests
-    period: 10 * 1000,                  //  or buffer for 10 seconds
-    namespace: 'OneTable/test-8'        //  Default custom metric namespace
+    max: 100,                           //  Buffer metrics for 100 requests
+    period: 30 * 1000,                  //  or buffer for 30 seconds
+    namespace: 'OneTable/test-11'        //  Default custom metric namespace
+}
+
+const MetricCollections = ['Table', 'Source', 'Index', 'Model', 'Operation']
+
+const ReadWrite = {
+    delete: 'write',
+    get: 'read',
+    find: 'read',
+    put: 'write',
+    scan: 'read',
+    update: 'write',
+    batchGet: 'read',
+    batchWrite: 'write',
+    transactGet: 'read',
+    transactWrite: 'write',
 }
 
 /*
@@ -433,7 +464,7 @@ export class Table {
         return this
     }
 
-    //  DEPRECATE
+    //  DEPRECATE in 2.0
     clear() {
         return this.clearContext()
     }
@@ -482,6 +513,52 @@ export class Table {
         return await model.update(properties, params)
     }
 
+    async execute(model, op, cmd, params = {}, properties = {}) {
+        let mark = new Date()
+        let trace = {model, cmd, op, properties}
+        let result
+        try {
+            if (params.stats || this.metrics) {
+                cmd.ReturnConsumedCapacity = params.capacity || 'INDEXES'
+                cmd.ReturnItemCollectionMetrics = 'SIZE'
+            }
+            this.log[params.log ? 'info' : 'trace'](`OneTable "${op}" "${model}"`, {trace})
+            if (this.V3) {
+                result = await this.client[op](cmd)
+            } else {
+                result = await this.client[DocumentClientMethods[op]](cmd).promise()
+            }
+
+        } catch (err) {
+            if (params.throw === false) {
+                result = {}
+
+            } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
+                //  Not a hard error -- typically part of normal operation
+                this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
+                throw new Error(`Conditional create failed for "${model}`)
+
+            } else {
+                result = result || {}
+                result.Error = 1
+                trace.err = err
+                if (params.log != false) {
+                    this.log.error(`OneTable exception in "${op}" on "${model}"`, {err, trace})
+                }
+                throw err
+            }
+
+        } finally {
+            if (this.metrics) {
+                let chan = this.metrics.chan || 'metrics'
+                if (this.log?.enabled(chan)) {
+                    this.addMetrics(model, op, result, params, mark)
+                }
+            }
+        }
+        return result
+    }
+
     /*
         The low level API does not use models. It permits the reading / writing of any attribute.
     */
@@ -489,33 +566,23 @@ export class Table {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return []
         }
-        let result
-        try {
-            this.log.trace(`Dynamo batchGet on "${this.name}"`, {batch}, params)
-            batch.ConsistentRead = params.consistent ? true : false
-            if (this.V3) {
-                result = await this.client.batchGet(batch)
-            } else {
-                result = await this.client.batchGet(batch).promise()
-            }
-            let response = result.Responses
-            if (params.parse && response) {
-                result = []
-                for (let items of Object.values(response)) {
-                    for (let item of items) {
-                        item = this.unmarshall(item)
-                        let type = item[this.typeField] || '_unknown'
-                        let model = this.models[type]
-                        if (model && model != this.uniqueModel) {
-                            result.push(model.transformReadItem('get', item, {}, params))
-                        }
+        batch.ConsistentRead = params.consistent ? true : false
+
+        let result = await this.execute('_Generic', 'batchGet', batch, {}, params)
+
+        let response = result.Responses
+        if (params.parse && response) {
+            result = []
+            for (let items of Object.values(response)) {
+                for (let item of items) {
+                    item = this.unmarshall(item)
+                    let type = item[this.typeField] || '_unknown'
+                    let model = this.models[type]
+                    if (model && model != this.uniqueModel) {
+                        result.push(model.transformReadItem('get', item, {}, params))
                     }
                 }
             }
-
-        } catch (err) {
-            this.log.error(`BatchGet error`, {message: err.message, batch})
-            throw err
         }
         return result
     }
@@ -524,19 +591,7 @@ export class Table {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return {}
         }
-        let result
-        try {
-            this.log.trace(`Dynamo batchWrite on "${this.name}"`, {batch}, params)
-            if (this.V3) {
-                result = await this.client.batchWrite(batch)
-            } else {
-                result = await this.client.batchWrite(batch).promise()
-            }
-        } catch (err) {
-            this.log.error(`BatchWrite error`, {message: err.message, batch})
-            throw err
-        }
-        return result
+        return await this.execute('_Generic', 'batchWrite', batch, params)
     }
 
     async deleteItem(properties, params) {
@@ -571,41 +626,22 @@ export class Table {
         Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
     async transact(op, transaction, params = {}) {
-        let result
-        try {
-            this.log.trace(`Dynamo "${op}" transaction on "${this.name}"`, {transaction, op}, params)
-            let promise
-            if (op == 'write') {
-                promise = this.client.transactWrite(transaction)
-            } else {
-                promise = this.client.transactGet(transaction)
-            }
-            if (this.V3) {
-                result = await promise
-            } else {
-                result = await promise.promise()
-            }
-            if (op == 'get') {
-                if (params.parse) {
-                    let items = []
-                    for (let r of result.Responses) {
-                        if (r.Item) {
-                            let item = this.unmarshall(r.Item)
-                            let type = item[this.typeField] || '_unknown'
-                            let model = this.models[type]
-                            if (model && model != this.uniqueModel) {
-                                items.push(model.transformReadItem('get', item, {}, params))
-                            }
+        let result = await this.execute('_Generic', op == 'write' ? 'transactWrite' : 'transactGet', transaction, params)
+        if (op == 'get') {
+            if (params.parse) {
+                let items = []
+                for (let r of result.Responses) {
+                    if (r.Item) {
+                        let item = this.unmarshall(r.Item)
+                        let type = item[this.typeField] || '_unknown'
+                        let model = this.models[type]
+                        if (model && model != this.uniqueModel) {
+                            items.push(model.transformReadItem('get', item, {}, params))
                         }
                     }
-                    result = items
                 }
+                result = items
             }
-        } catch (err) {
-            if (params.log !== false) {
-                this.log.error(`Transaction error`, {message: err.message, transaction})
-            }
-            throw err
         }
         return result
     }
@@ -621,6 +657,119 @@ export class Table {
             list.push(item)
         }
         return result
+    }
+
+    addMetrics(model, op, result, params, mark) {
+        let metrics = this.metrics
+        let timestamp = Date.now()
+
+        let capacity = 0
+        let consumed = result.ConsumedCapacity
+        if (consumed) {
+            //  Batch and transaction return array
+            if (Array.isArray(consumed)) {
+                for (let item of consumed) {
+                    if (item.TableName == this.name) {
+                        capacity += item.CapacityUnits
+                    }
+                }
+            } else {
+                capacity = consumed.CapacityUnits
+            }
+        }
+        let values = {
+            op,
+            count: result.Count || 1,
+            scanned: result.ScannedCount || 1,
+            latency: timestamp - mark,
+            capacity,
+        }
+        let indexName = params.index || 'primary'
+        let source = params.source || metrics.source
+
+        this.addMetric(metrics.tree, values, this.name, source, indexName, model, op)
+
+        if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
+            this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
+            metrics.count = 0
+            metrics.lastFlushed = timestamp
+        }
+    }
+
+    addMetric(metrics, values, ...keys) {
+        let {op, capacity, count, latency, scanned} = values
+        let collections = MetricCollections.slice(0)
+        let name = collections.shift()
+        for (let key of keys) {
+            //  name is: Table, Source, Index ...
+            metrics = metrics[name] = metrics[name] || {}
+
+            //  key is the actual instance values
+            let item = metrics[key] = metrics[key] || {
+                counters: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0}
+            }
+            let counters = item.counters
+            counters[ReadWrite[op]] += capacity             //  RCU, WCU
+            counters.latency += latency                     //  Latency in ms
+            counters.count += count                         //  Item count
+            counters.scanned += scanned                     //  Items scanned
+            counters.requests++                             //  Number of requests
+            metrics = metrics[key]
+            name = collections.shift()
+        }
+    }
+
+    flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
+        for (let [key, rec] of Object.entries(tree)) {
+            if (key == 'counters') {
+                if (rec.requests) {
+                    Object.keys(rec).forEach(key => rec[key] === 0 && delete rec[key])
+                    let rprops = Object.assign(props, rec)
+                    this.emitMetrics(namespace, timestamp, rprops, dimensions)
+                    rec.requests = rec.count = rec.scanned = rec.latency = rec.read = rec.write = 0
+                }
+            } else {
+                dimensions.push(key)
+                for (let [name, tree] of Object.entries(rec)) {
+                    let rprops = Object.assign({}, props)
+                    rprops[key] = name
+                    this.flushMetrics(namespace, timestamp, tree, dimensions.slice(0), rprops)
+                }
+            }
+        }
+    }
+
+    emitMetrics(namespace, timestamp, values, dimensions = []) {
+        let since = ((timestamp - this.metrics.lastFlushed) || 1) / 1000
+        let requests = values.requests
+
+        values.latency = values.latency / requests
+        values.count = values.count / requests
+        values.scanned = values.scanned / requests
+
+        if (this.log.emit) {
+            //  Senselogs. Preferred as it can be dynamically controled.
+            let chan = this.metrics.chan || 'metrics'
+            this.log.metrics(chan, `OneTable Custom Metrics ${dimensions} ${requests}`,
+                namespace, values, [dimensions], {latency: 'Milliseconds', default: 'Count'})
+
+        } else {
+            let keys = Object.keys(values).filter(v => dimensions.indexOf(v) < 0)
+            let metrics = keys.map(v => {
+                return {Name: v, Unit: v == ('latency' ? 'Milliseconds' : 'Count')}
+            })
+            let data = Object.assign({
+                _aws: {
+                    Timestamp: timestamp,
+                    CloudWatchMetrics: [{
+                        Dimensions: [dimensions],
+                        Namespace: namespace,
+                        Metrics: metrics,
+                    }]
+                },
+            }, values)
+            console.log(`OneTable Custom Metrics ${dimensions} ${requests}` + JSON.stringify(data))
+        }
     }
 
     /*

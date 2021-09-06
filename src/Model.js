@@ -33,7 +33,6 @@ const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
 const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
-const MetricCollections = ['Table', 'Index', 'Source', 'Model', 'Operation']
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -337,36 +336,13 @@ export class Model {
             Run command. Paginate if required.
          */
         let mark = new Date()
-        let trace = {cmd, op, properties, params}
-        let pages = 0, items = [], result
+        // let trace = {cmd, op, properties, params}
+        let pages = 0, items = []
         let maxPages = params.maxPages ? params.maxPages : SanityPages
+        let result
         do {
-            try {
-                this.table.log[params.log ? 'info' : 'trace'](`OneTable "${op}" "${this.name}"`, {trace}, params)
-                if (this.table.V3) {
-                    result = await this.table.client[op](cmd)
-                } else {
-                    result = await this.table.client[DocumentClientMethods[op]](cmd).promise()
-                }
-                if (this.table.metrics && result) {
-                    this.computeMetrics(op, cmd, expression, result, mark)
-                }
+            result = await this.table.execute(this.name, op, cmd, params, properties)
 
-            } catch (err) {
-                //  ERROR
-                if (params.throw === false) {
-                    result = {}
-                } else {
-                    if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
-                        this.table.log.info(`Conditional check failed "${op}" on "${this.name}"`, {err, trace})
-                        throw new Error(`Conditional create failed for "${this.name}`)
-                    } else {
-                        trace.err = err
-                        this.table.log.error(`OneTable exception in "${op}" on "${this.name}"`, {err, trace})
-                        throw err
-                    }
-                }
-            }
             if (result.LastEvaluatedKey) {
                 //  Continue next page
                 cmd.ExclusiveStartKey = result.LastEvaluatedKey
@@ -450,17 +426,17 @@ export class Model {
             The logger will typically filter data/trace.
         */
         if (params.log !== false) {
-            trace.elapsed = (new Date() - mark) / 1000
-            trace.items = items
-            this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {trace}, params)
+            this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {
+                cmd, items, op, properties, params,
+            })
         }
 
         /*
-            Create a pagination iterator
+            Handle pagination next/prev
         */
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
-                //  DEPRECATE items.start
+                //  DEPRECATE items.start in 2.0
                 items.start = items.next = this.table.unmarshall(result.LastEvaluatedKey)
             }
             if (params.count || params.select == 'COUNT') {
@@ -475,100 +451,6 @@ export class Model {
             return items
         }
         return items[0]
-    }
-
-    computeMetrics(op, cmd, expression, result, mark) {
-        let params = expression.params
-        let metrics = this.table.metrics
-        let timestamp = Date.now()
-
-        let values = {
-            op,
-            count: result.Count || 1,
-            scanned: result.ScannedCount || 1,
-            capacity: result.ConsumedCapacity ? result.ConsumedCapacity.CapacityUnits : 0,
-            latency: timestamp - mark,
-        }
-        let indexName = params.index || 'primary'
-        let source = params.source || metrics.source
-
-        this.addMetric(metrics.tree, values, this.table.name, indexName, source, this.name, op)
-
-        if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
-            this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
-            metrics.count = 0
-            metrics.lastFlushed = timestamp
-        }
-    }
-
-    addMetric(metrics, values, ...keys) {
-        let {op, capacity, count, latency, scanned} = values
-        let collections = MetricCollections.slice(0)
-        let name = collections.shift()
-        for (let key of keys) {
-            metrics = metrics[name] = metrics[name] || {}
-            let item = metrics[key] = metrics[key] || {
-                counters: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0}
-            }
-            let counters = item.counters
-            counters[ReadWrite[op]] += capacity             //  RCU, WCU
-            counters.latency += latency                     //  Latency
-            counters.count += count                         //  Item count
-            counters.requests++                             //  Number of requests
-            counters.scanned += scanned                     //  Items scanned
-            name = collections.shift()
-            metrics = metrics[key]
-        }
-    }
-
-    flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
-        for (let [key, rec] of Object.entries(tree)) {
-            if (key == 'counters') {
-                props = Object.assign(props, rec)
-                this.emitMetrics(namespace, timestamp, props, dimensions)
-                rec.requests = rec.count = rec.scanned = rec.latency = rec.read = rec.write = 0
-            } else {
-                dimensions.push(key)
-                for (let [name, tree] of Object.entries(rec)) {
-                    props[key] = name
-                    this.flushMetrics(namespace, timestamp, tree, dimensions.slice(0), props)
-                }
-            }
-        }
-    }
-
-    emitMetrics(namespace, timestamp, values, dimensions = []) {
-        let since = ((timestamp - this.table.metrics.lastFlushed) || 1) / 1000
-        let requests = values.requests
-        values.latency = values.latency / requests
-        values.count = values.count / requests
-        values.scanned = values.scanned / requests
-        values.read = values.read / since
-        values.write = values.write / since
-        values.requests = requests / since
-
-        if (this.table.log.emit) {
-            //  Senselogs. Preferred as it can be dynamically controled
-            this.table.log.metrics('metrics', 'OneTable Custom Metrics',
-                namespace, values, [dimensions], {latency: 'Milliseconds', default: 'Count'})
-
-        } else {
-            let keys = Object.keys(values).filter(v => dimensions.indexOf(v) < 0)
-            let metrics = keys.map(v => {
-                return {Name: v, Unit: v == ('latency' ? 'Milliseconds' : 'Count')}
-            })
-            let data = Object.assign({
-                _aws: {
-                    Timestamp: timestamp,
-                    CloudWatchMetrics: [{
-                        Dimensions: [dimensions],
-                        Namespace: namespace,
-                        Metrics: metrics,
-                    }]
-                },
-            }, rec)
-            console.log('OneTable Custom Metrics ' + JSON.stringify(data))
-        }
     }
 
     /*
@@ -1587,7 +1469,6 @@ export class Model {
     }
 
     /*  KEEP
-
     captureStack() {
         let limit = Error.stackTraceLimit
         Error.stackTraceLimit = 1
