@@ -212,11 +212,26 @@ export class Expression {
         Expand a where/set expression. Replace: ${var} and {value} tokens.
      */
     expand(where) {
+        const expr = where
         let fields = this.model.block.fields
         //  Expand attribute references and make attribute name
         where = where.toString().replace(/\${(.*?)}/g, (match, varName) => {
             return this.makeTarget(fields, varName)
         })
+
+        //  Expand variable substitutions
+        where = where.replace(/@{(.*?)}/g, (match, value) => {
+            let index
+            const { substitutions } = this.params
+
+            if (!substitutions || !substitutions[value]) {
+                throw new Error(`Missing value for attribute value "${value}" in expression "${expr}"`, { substitutions })
+            }
+
+            index = this.addValue(substitutions[value])
+            return `:_${index}`
+        })
+
         //  Expand value references and make attribute values
         where = where.replace(/{(.*?)}/g, (match, value) => {
             let index
@@ -237,6 +252,7 @@ export class Expression {
             }
             return `:_${index}`
         })
+
         return where
     }
 
@@ -349,7 +365,7 @@ export class Expression {
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
                 //  If value is number of simple string then don't expand
-                if (value.toString().match(/\${.*?}|{.*?}/)) {
+                if (value.toString().match(/\${.*?}|@{.*?}|{.*?}/)) {
                     updates.set.push(`${target} = ${this.expand(value)}`)
                 } else {
                     updates.set.push(`${target} = :_${this.addValue(value)}`)

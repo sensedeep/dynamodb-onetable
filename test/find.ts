@@ -73,8 +73,11 @@ test('Find select with project', async() => {
 
 test('Find with where clause', async() => {
     let items = await User.find({}, {
-        where: '(${status} = {active}) and (${email} = {peter@example.com} and ${name} <> {Unknown})',
+        where: '(${status} = {active}) and (${email} = @{email} and ${name} <> {Unknown})',
         index: 'gs2',
+        substitutions: {
+            email: 'peter@example.com'
+        }
     })
     expect(items.length).toBe(1)
 })
