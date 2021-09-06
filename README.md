@@ -1186,7 +1186,7 @@ await User.update({id: userId}, {remove: ['special', 'suspended']})
 await User.update({id: userId}, {set: {balance: '${balance} + {100}'}})
 await User.update({id: userId}, {
     set: {contacts: 'list_append(${contacts} + @{newContacts}'},
-    substitutions: { newContacts: ['+15555555555']}
+    substitutions: {newContacts: ['+15555555555']}
 })
 ```
 

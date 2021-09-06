@@ -100,7 +100,7 @@ test('Set expression', async() => {
     user = await User.update({id: user.id}, {set: {
         'location.zip': '${location.zip} + {20}',
     }})
-    expect(user.location.zip).toBe(98031);
+    expect(user.location.zip).toBe(98031)
 })
 
 test("Set expression with param substitution", async () => {
@@ -115,9 +115,9 @@ test("Set expression with param substitution", async () => {
                 newTokens: ['green']
             }
         }
-    );
-    expect(user.tokens).toEqual(["red", "white", "blue", "green"]);
-});
+    )
+    expect(user.tokens).toEqual(["red", "white", "blue", "green"])
+})
 
 test('Set list', async() => {
     //  More complex expressions

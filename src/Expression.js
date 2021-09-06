@@ -222,12 +222,10 @@ export class Expression {
         //  Expand variable substitutions
         where = where.replace(/@{(.*?)}/g, (match, value) => {
             let index
-            const { substitutions } = this.params
-
+            const {substitutions} = this.params
             if (!substitutions || !substitutions[value]) {
-                throw new Error(`Missing value for attribute value "${value}" in expression "${expr}"`, { substitutions })
+                throw new Error(`Missing value for attribute value "${value}" in expression "${expr}"`, {substitutions})
             }
-
             index = this.addValue(substitutions[value])
             return `:_${index}`
         })
@@ -252,7 +250,6 @@ export class Expression {
             }
             return `:_${index}`
         })
-
         return where
     }
 
