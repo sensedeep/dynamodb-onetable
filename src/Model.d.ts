@@ -153,6 +153,7 @@ export type OneParams = {
     select?: string,
     set?: object,
     stats?: object,
+    substitutions?: object,
     throw?: boolean,
     transaction?: object,
     type?: string,
