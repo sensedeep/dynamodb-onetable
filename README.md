@@ -1184,6 +1184,10 @@ For example:
 await User.update({id: userId}, {delete: {tokens: ['captain']}})
 await User.update({id: userId}, {remove: ['special', 'suspended']})
 await User.update({id: userId}, {set: {balance: '${balance} + {100}'}})
+await User.update({id: userId}, {
+    set: {contacts: 'list_append(${contacts} + @{newContacts}'},
+    substitutions: { newContacts: ['+15555555555']}
+})
 ```
 
 Set update, the params.exists will default to a true value to ensure the item exists. If set to null, an update will be permitted to create an item if it does not already exist.
@@ -1222,11 +1226,12 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
 | set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
 | stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
+| substitutions | `object` | Variables that can be referenced in a where clause. Values will be added to ExpressionAttributeValues when used.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
-| where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
+| where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 If `stats` is defined, find/query/scan operations will return the following statistics in the stats object:
 
@@ -1246,11 +1251,14 @@ For example:
 
 ```javascript
 let adminUsers = await User.find({}, {
-    where: '(${role} = {admin}) and (${status} = {current})'
+    where: '(${role} = {admin}) and (${status} = @{status})',
+    substitutions: {
+        status: 'current'
+    }
 })
 ```
 
-OneTable will extract property names defined inside `${}` braces and values inside `{}` braces and will automatically define your filer or conditional expressions and the required ExpressionAttributeNames and ExpressionAttributeValues.
+OneTable will extract property names defined inside `${}` braces, variable substitutions in `@{}` braces and values inside `{}` braces and will automatically define your filter or conditional expressions and the required ExpressionAttributeNames and ExpressionAttributeValues.
 
 If a value inside `{}` is a number, it will be typed as a number for DynamoDB. To force a value to be treated as a string, wrap it in quotes, for example: `{"42"}`.
 
