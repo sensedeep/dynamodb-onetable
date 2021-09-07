@@ -1245,7 +1245,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | next | `object` | Starting key for the result set. This is used to set the ExclusiveStartKey when doing a find/scan. Typically set to the result.next value returned on a previous find/scan. |
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
-| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
+| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`, expects updated `args` to be returned. Args is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
@@ -1311,6 +1311,21 @@ size
 Where clauses when used with `find` or `scan` on non-key attribugtes can also use the `<>` not equals operator.
 
 See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html) for more details.
+
+#### Using `postFormat` to customize the final API request
+
+In cases where you can't acheive what you need through the OneTable APIs, you can customize the final request to DynamoDB using `postFormat`. For a contrived example, imagine if you needed to add an extra ExpressionAttributeValues, you could do:
+
+```
+await RouteModel.update({ routeId }, {
+    set: { myField: ':myValue' },
+    postFormat: (model, args) => {
+        const extraValues = marshall({ ':myValue': { 'complex': 'Some kind of complex value' } })
+        args.ExpressionAttributeValues = { ...extraValues, ...args.ExpressionAttributeValues }
+        return args
+    }
+})
+```
 
 ### References
 
