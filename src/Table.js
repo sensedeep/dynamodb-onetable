@@ -551,7 +551,7 @@ export class Table {
         } finally {
             if (this.metrics) {
                 let chan = this.metrics.chan || 'metrics'
-                if (this.log?.enabled(chan)) {
+                if (this.log && this.log.enabled(chan)) {
                     this.addMetrics(model, op, result, params, mark)
                 }
             }
