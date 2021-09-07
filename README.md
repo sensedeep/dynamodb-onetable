@@ -370,7 +370,8 @@ The Table constructor takes a parameter of type `object` with the following prop
 | intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
-| name | `string` | yes | The name of your DynamoDB table. |
+| metrics | `object` | Configure metrics capture. |
+| name | `string` | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
@@ -390,6 +391,8 @@ intercept(model, operation, item, apiParams, rawReadData)
 ```
 
 Where `operation` is set to 'read' or 'write'. For read operations, the `raw` parameter has the raw data as read from the table before conversion into Javascript properties in `item`.
+
+The `metrics` property may be set to a map that configures detailed CloudWatch EMF metrics. See Metrics below.
 
 #### Crypto
 
@@ -437,6 +440,30 @@ const table = new Table({senselogs})
 
 This will log request details in JSON. Use `SenseLogs({destination: 'console'})` for plain text logging to the console.
 
+
+#### Metrics
+
+OneTable can emit detailed CloudWatch custom metrics to track DynamoDB performance and usage on a per app/function, index, entity model and operation basis.  
+
+The metrics are emitted using the CloudWatch EMF format with dimensions for: Table, Source, Index, Model and Operation.
+
+SenseDeep and other tools can present and analyze these metrics to gain insights and graph into how your single-table designs are performing.
+
+The properties of metrics are:
+
+| Property | Type | Description |
+| -------- | :--: | ----------- |
+| chan | `string` | Log channel to use to emit metrics. Defaults to 'metrics'. |
+| source | `string` | Name of application or function that is the user of DynamoDB. Default to the Lambda function name. |
+| max | `number` | Number of DynamoDB API calls for which to buffer metrics before flushing. Defaults to 100. |
+| namespace | `string` | CloudWatch metrics namespace for the metrics. Defaults to `SingleTable/metrics`. |
+| period | `number` | Number of seconds to buffer metrics before flushing. Defaults to 30 seconds. |
+
+```javascript
+const table = new Table({
+    metrics: {source: 'acme:launcher'}
+})
+```
 
 #### Schema
 

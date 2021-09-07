@@ -49,7 +49,8 @@ const DefaultMetrics = {
     source: 'Default',                  //  Default source name
     max: 100,                           //  Buffer metrics for 100 requests
     period: 30 * 1000,                  //  or buffer for 30 seconds
-    namespace: 'OneTable/test-11'        //  Default custom metric namespace
+    //  FUTURE - Set to SingleTable/metric
+    namespace: 'OneTable/test-11'       //  PROTOTYPE: default custom metric namespace
 }
 
 const MetricCollections = ['Table', 'Source', 'Index', 'Model', 'Operation']
