@@ -859,6 +859,7 @@ export class Model {
                 }
             }
         }
+        //  This is undocumented
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'read', rec, params, raw)
         }
@@ -903,6 +904,7 @@ export class Model {
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
             throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
         }
+        //  This is undocumented
         if (typeof params.transform == 'function') {
             rec = params.transform(this, 'write', rec, params)
         }
@@ -1283,7 +1285,10 @@ export class Model {
     transformWriteAttribute(op, field, value) {
         let type = field.type
 
-        if (value == null && field.nulls === true) {
+        if (field.transform) {
+            value = field.transform(this, 'write', field.name, value)
+
+        } else if (value == null && field.nulls === true) {
             //  Keep the null
 
         } else if (op == 'find' && value != null && typeof value == 'object') {
@@ -1323,10 +1328,6 @@ export class Model {
             value = this.transformNestedWriteFields(field, value)
         }
 
-        //  Invoke custom transformation before writing data
-        if (field.transform) {
-            value = field.transform(this, 'write', field.name, value)
-        }
         if (field.crypt && value != null) {
             value = this.encrypt(value)
         }
