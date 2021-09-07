@@ -1246,7 +1246,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`. Args is an object with properties for the relevant DynamoDB API.|
-| preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model`. Internal API.|
+| preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|

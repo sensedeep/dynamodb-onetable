@@ -420,9 +420,6 @@ export class Expression {
                 return null
             }
         }
-        if (params.preFormat) {
-            params.preFormat(model)
-        }
         let namesLen = Object.keys(names).length
         let valuesLen = Object.keys(values).length
 

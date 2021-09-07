@@ -279,6 +279,10 @@ export class Model {
     async run(op, expression) {
         let {index, properties, params} = expression
 
+        if (params.preFormat) {
+            params.preFormat(model, expression)
+        }
+
         /*
             Get a string representation of the API request
          */
