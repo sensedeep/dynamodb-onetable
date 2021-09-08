@@ -687,7 +687,7 @@ let items = await table.fetch(['User', 'Product'], {pk: 'account:AcmeCorp'})
 let users = items.Users
 let products = items.Products
 users.forEach(user => /* operate on user */)
-products.forEach(user => /* operate on user */)
+products.forEach(product => /* operate on product */)
 ```
 
 #### async getItem(properties, params = {})
