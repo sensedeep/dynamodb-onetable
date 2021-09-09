@@ -47,7 +47,7 @@ export class Expression {
         /*
             Find the index for this expression. Then store the attribute names for the index.
          */
-        this.index = this.selectIndex(model.indexes, params)
+        this.index = this.selectIndex(model.indexes)
 
         /*
             Get the request index hash/sort attributes
