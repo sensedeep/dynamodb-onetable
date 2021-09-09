@@ -758,7 +758,7 @@ export class Table {
         values.count = values.count / requests
         values.scanned = values.scanned / requests
 
-        if (this.log.emit) {
+        if (this.log.metrics) {
             //  Senselogs. Preferred as it can be dynamically controled.
             let chan = this.metrics.chan || 'metrics'
             this.log.metrics(chan, `OneTable Custom Metrics ${dimensions} ${requests}`,
