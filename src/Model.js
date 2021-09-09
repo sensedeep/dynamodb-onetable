@@ -6,18 +6,6 @@
 import {Expression} from './Expression.js'
 
 /*
-    DynamoDB API methods mapped to dynamo
- */
-const DocumentClientMethods = {
-    delete: 'delete',
-    get: 'get',
-    find: 'query',
-    put: 'put',
-    scan: 'scan',
-    update: 'update'
-}
-
-/*
     Ready / write tags for interceptions
  */
 const ReadWrite = {
@@ -280,7 +268,7 @@ export class Model {
         let {index, properties, params} = expression
 
         if (params.preFormat) {
-            params.preFormat(model, expression)
+            params.preFormat(this, expression)
         }
 
         /*
@@ -339,8 +327,6 @@ export class Model {
         /*
             Run command. Paginate if required.
          */
-        let mark = new Date()
-        // let trace = {cmd, op, properties, params}
         let pages = 0, items = []
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         let result

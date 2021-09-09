@@ -106,13 +106,6 @@ export class Table {
             typeField,      //  Name of model type attribute. Default "_type".
             updatedField,   //  Name of "updated" timestamp attribute.
             uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
-
-            /*  LEGACY 1.7.4 - remove in 2.0.0
-                Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
-                Now, use the delimiter with a unique prefix.
-                Defaults to be ':' in 1.7.
-            */
-            legacyUnique,
         } = params
 
         if (!name) {
@@ -121,7 +114,11 @@ export class Table {
         this.log = senselogs ? senselogs : new Log(logger)
         this.log.trace(`Loading OneTable`)
 
-        //  LEGACY remove in 2.0
+        /*  LEGACY 1.7.4 - remove in 2.0.0
+            Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
+            Now, use the delimiter with a unique prefix.
+            Defaults to be ':' in 1.7.
+        */
         if (params.legacyUnique == true) {
             params.legacyUnique = ':'
         }
@@ -143,11 +140,11 @@ export class Table {
         this.typeField = typeField || '_type'
         this.updatedField = updatedField || 'updated'
 
-        if (params.metrics) {
-            if (params.metrics == true) {
+        if (metrics) {
+            if (metrics == true) {
                 this.metrics = Object.assign({}, DefaultMetrics)
             } else {
-                this.metrics = Object.assign({}, DefaultMetrics, params.metrics)
+                this.metrics = Object.assign({}, DefaultMetrics, metrics)
             }
             this.metrics.period *= 1000
             this.metrics.count = 0
@@ -755,7 +752,6 @@ export class Table {
     }
 
     emitMetrics(namespace, timestamp, values, dimensions = []) {
-        let since = ((timestamp - this.metrics.lastFlushed) || 1) / 1000
         let requests = values.requests
 
         values.latency = values.latency / requests
@@ -771,7 +767,7 @@ export class Table {
         } else {
             let keys = Object.keys(values).filter(v => dimensions.indexOf(v) < 0)
             let metrics = keys.map(v => {
-                return {Name: v, Unit: v == ('latency' ? 'Milliseconds' : 'Count')}
+                return {Name: v, Unit: v == 'latency' ? 'Milliseconds' : 'Count'}
             })
             let data = Object.assign({
                 _aws: {

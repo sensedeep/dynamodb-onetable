@@ -18,3 +18,6 @@ cov:
 
 pubcov: cov
 	coveralls < coverage/lcov.info
+
+lint: 
+	npm run lint
