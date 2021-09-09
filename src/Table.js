@@ -50,7 +50,7 @@ const DefaultMetrics = {
     source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default',      //  Default source name
     max: 100,                                                       //  Buffer metrics for 100 requests
     period: 30,                                                     //  or buffer for 30 seconds
-    namespace: 'OneTable/test-12'                                   //  FUTURE: set to 'SingleTable/Metrics.1'
+    namespace: 'SingleTable/Metrics.1'                              //  CloudWatch metrics namespace
 }
 
 const MetricCollections = ['Table', 'Source', 'Index', 'Model', 'Operation']
