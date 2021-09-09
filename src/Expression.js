@@ -465,7 +465,7 @@ export class Expression {
             }
             if (params.stats || this.table.metrics) {
                 args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
-                args.ReturnItemCollectionMetrics || 'SIZE'                  // SIZE | NONE
+                args.ReturnItemCollectionMetrics = 'SIZE'                   // SIZE | NONE
             }
             if (op == 'put') {
                 args.Item = values

@@ -46,11 +46,11 @@ const DefaultIndexes = {
 }
 
 const DefaultMetrics = {
-    source: 'Default',                  //  Default source name
-    max: 100,                           //  Buffer metrics for 100 requests
-    period: 30 * 1000,                  //  or buffer for 30 seconds
-    //  FUTURE - Set to SingleTable/metric
-    namespace: 'OneTable/test-11'       //  PROTOTYPE: default custom metric namespace
+    chan: 'metrics',                                                //  Default channel
+    source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default',      //  Default source name
+    max: 100,                                                       //  Buffer metrics for 100 requests
+    period: 30,                                                     //  or buffer for 30 seconds
+    namespace: 'OneTable/test-12'                                   //  FUTURE: set to 'SingleTable/Metrics.1'
 }
 
 const MetricCollections = ['Table', 'Source', 'Index', 'Model', 'Operation']
@@ -66,6 +66,19 @@ const ReadWrite = {
     batchWrite: 'write',
     transactGet: 'read',
     transactWrite: 'write',
+}
+
+const DynamoOps = {
+    delete: 'deleteItem',
+    get: 'getItem',
+    find: 'query',
+    put: 'putItem',
+    scan: 'scan',
+    update: 'updateItem',
+    batchGet: 'batchGet',
+    batchWrite: 'batchWrite',
+    transactGet: 'transactGet',
+    transactWrite: 'transactWrite',
 }
 
 /*
@@ -132,10 +145,11 @@ export class Table {
 
         if (params.metrics) {
             if (params.metrics == true) {
-                this.metrics = DefaultMetrics
+                this.metrics = Object.assign({}, DefaultMetrics)
             } else {
-                this.metrics = Object.assign(DefaultMetrics, params.metrics)
+                this.metrics = Object.assign({}, DefaultMetrics, params.metrics)
             }
+            this.metrics.period *= 1000
             this.metrics.count = 0
             this.metrics.lastFlushed = Date.now()
             this.metrics.tree = {}
@@ -551,7 +565,7 @@ export class Table {
 
         } finally {
             if (this.metrics) {
-                let chan = this.metrics.chan || 'metrics'
+                let chan = this.metrics.chan
                 if (this.log && this.log.enabled(chan)) {
                     this.addMetrics(model, op, result, params, mark)
                 }
@@ -688,7 +702,7 @@ export class Table {
         let indexName = params.index || 'primary'
         let source = params.source || metrics.source
 
-        this.addMetric(metrics.tree, values, this.name, source, indexName, model, op)
+        this.addMetric(metrics.tree, values, this.name, source, indexName, model, DynamoOps[op])
 
         if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
             this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
