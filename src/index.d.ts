@@ -19,6 +19,8 @@ import {
 
 import { Table } from './Table'
 
+import { Expression } from './Expression'
+
 import ULID from './ULID.js'
 import UUID from './UUID.js'
 
