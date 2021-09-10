@@ -15,7 +15,8 @@ const table = new Table({
     schema: PagedSchema,
 })
 
-type UserEntity = Entity<typeof PagedSchema.models.User>;
+type UserEntity = Entity<typeof PagedSchema.models.User>
+type UserModel = Model<UserEntity>
 
 let user: UserEntity
 let users: UserEntity[]
@@ -27,7 +28,7 @@ test('Create Table', async() => {
     }
 })
 
-let User = table.getModel('User') as Model<UserEntity>
+let User = table.getModel<ModelUserModel>('User')
 
 function zpad(n: number, size: number): string {
     let s = n + ''
