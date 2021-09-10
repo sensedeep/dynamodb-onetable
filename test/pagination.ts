@@ -1,7 +1,7 @@
 /*
     pagination.ts - Test find with pagination
  */
-import {AWS, Client, Match, Model, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {PagedSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
@@ -14,11 +14,8 @@ const table = new Table({
     client: Client,
     schema: PagedSchema,
 })
-
-type UserEntity = Entity<typeof PagedSchema.models.User>;
-
-let user: UserEntity
-let users: UserEntity[]
+let user: any
+let users: any[]
 
 test('Create Table', async() => {
     if (!(await table.exists())) {

@@ -1,7 +1,7 @@
 /*
     unique.ts - Test unique crud
  */
-import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {UniqueSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
@@ -14,12 +14,9 @@ const table = new Table({
     // legacyUnique: false,
 })
 
-type UserEntity = Entity<typeof UniqueSchema.models.User>;
-type UserModel = Model<UserEntity>
-
-let User: UserModel
-let user: UserEntity
-let users: UserEntity[]
+let User = null
+let user: any
+let users: any[]
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
