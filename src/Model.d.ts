@@ -204,11 +204,11 @@ export type AnyModel = {
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: T, params?: OneParams): Promise<T>;
-    find(properties?: T, params?: OneParams): Promise<Paged<T>>;
-    get(properties: T, params?: OneParams): Promise<T>;
-    init(properties?: T, params?: OneParams): T;
-    remove(properties: T, params?: OneParams): Promise<void>;
-    scan(properties?: T, params?: OneParams): Promise<Paged<T>>;
-    update(properties: T, params?: OneParams): Promise<T>;
+    create(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    find(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
+    get(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    init(properties?: EntityParameters<T>, params?: OneParams): T;
+    remove(properties: EntityParameters<T>, params?: OneParams): Promise<void>;
+    scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
+    update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
 }
