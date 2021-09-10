@@ -28,7 +28,7 @@ test('Create Table', async() => {
     }
 })
 
-let User = table.getModel<ModelUserModel>('User')
+let User = table.getModel<UserModel>('User')
 
 function zpad(n: number, size: number): string {
     let s = n + ''
