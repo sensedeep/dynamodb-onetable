@@ -170,7 +170,7 @@ export type OneProperties = {
     [key: string]: any
 };
 
-export class Paged<T> extends Array {
+export class Paged<T> extends Array<T> {
     count?: number;
     next?: object;
     prev?: object;
