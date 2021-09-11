@@ -4,6 +4,7 @@
     Supports dynamic definition of types based on the Schema.js
 */
 import { Expression } from './Expression'
+import { UndefinedToOptional } from './utils';
 
 /*
     Possible types for a schema field "type" property
@@ -33,7 +34,7 @@ type OneIndexSchema = {
 /*
     Schema.models.Model.Field signature
  */
-type OneFieldSchema = {
+interface OneFieldSchema extends OneTypedField {
     crypt?: boolean,
     default?: (() => any) | string | number | boolean | object,
     enum?: string[],
@@ -52,7 +53,7 @@ type OneFieldSchema = {
     //  Deprecated
     ulid?: boolean,
     ksuid?: boolean,
-};
+    };
 
 /*
     Schema.models signature
@@ -77,7 +78,8 @@ type OneSchema = {
     Schema field with "type" property
  */
 type OneTypedField = {
-    type: OneType
+    type: OneType,
+    required?: boolean
 };
 
 /*
@@ -100,10 +102,23 @@ type EntityField<T extends OneTypedField> =
 
 /*
     Entities are typed objects whoes signature is based on the schema model of the same name.
+
+    in the example below UndefinedToOptional takes properties from an object that can be undefined and makes the property optional
+
+    T[P]['required'] represents the value of a given property and T[P]['required'] extends true is kind of checking if the value is true
+
+    if the value is true then the value must be required and therefore it is not optional and can only be of the expected type
+
+    if the value is false then it can be of the expected type or underfined which will then be taken by UndefinedToOptional and made optional     
  */
-export type Entity<T extends OneTypedModel> = {
-    [P in keyof T]?: EntityField<T[P]>
-};
+export type Entity<T extends OneTypedModel> = UndefinedToOptional<{
+    [P in keyof T]: T[P]['required'] extends true ? EntityField<T[P]> : EntityField<T[P]> | undefined
+}>
+
+/*
+    Entity Parameters are partial Entities.  Useful for search, update parameters.
+ */
+export type EntityParameters<Entity> = Partial<Entity>
 
 /*
     Any entity. Essentially untyped.
@@ -197,11 +212,11 @@ export type AnyModel = {
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: T, params?: OneParams): Promise<T>;
-    find(properties?: T, params?: OneParams): Promise<Paged<T>>;
-    get(properties: T, params?: OneParams): Promise<T>;
-    init(properties?: T, params?: OneParams): T;
-    remove(properties: T, params?: OneParams): Promise<void>;
-    scan(properties?: T, params?: OneParams): Promise<Paged<T>>;
-    update(properties: T, params?: OneParams): Promise<T>;
+    create(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    find(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
+    get(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    init(properties?: EntityParameters<T>, params?: OneParams): T;
+    remove(properties: EntityParameters<T>, params?: OneParams): Promise<void>;
+    scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
+    update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
 }
