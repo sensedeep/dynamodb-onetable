@@ -19,7 +19,6 @@ import {
 } from './Model'
 
 import { Table } from './Table'
-
 import { Expression } from './Expression'
 
 import ULID from './ULID.js'
