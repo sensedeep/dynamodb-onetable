@@ -102,6 +102,14 @@ type EntityField<T extends OneTypedField> =
 
 /*
     Entities are typed objects whoes signature is based on the schema model of the same name.
+
+    in the example below UndefinedToOptional takes properties from an object that can be undefined and makes the property optional
+
+    T[P]['required'] represents the value of a given property and T[P]['required'] extends true is kind of checking if the value is true
+
+    if the value is true then the value must be required and therefore it is not optional and can only be of the expected type
+
+    if the value is false then it can be of the expected type or underfined which will then be taken by UndefinedToOptional and made optional     
  */
 export type Entity<T extends OneTypedModel> = UndefinedToOptional<{
     [P in keyof T]: T[P]['required'] extends true ? EntityField<T[P]> : EntityField<T[P]> | undefined
