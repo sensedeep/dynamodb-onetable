@@ -11,7 +11,8 @@
 
 DynamoDB OneTable (OneTable) transforms single-table design patterns with DynamoDB, providing an elegant, dry syntax while still enabling easy access to the full DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
 
-Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions).
+
+Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions) and learn about the growing set of extentions for migrations, CLI and graphical monitoring tools for your single-table designs.
 
 ## OneTable Features
 
@@ -39,7 +40,8 @@ Join the active community using OneTable on our [GitHub Discussion Hub](https://
 * No module dependencies.
 * Support for the AWS SDK v3.
 * TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
-
+* Migrations via the [Onetable Migration Controller](https://github.com/sensedeep/dynamodb-onetable) controller and the [Onetable CLI](https://github.com/sensedeep/onetable-cli).
+* Graphical monitoring of single-table performance via [SenseDeep](https://www.sensedeep.com).
 
 ## Installation
 
@@ -458,6 +460,11 @@ const table = new Table({
     metrics: {source: 'acme:launcher'}
 })
 ```
+
+The metrics can be viewed in CloudWatch or best via the free [SenseDeep Developer](https://www.sensedeep.com) plan which has detailed graphs for your single-table monitoring for DynamoDB.
+
+![Single Table Monitoring](https://www.sensedeep.com/images/sensedeep/table-single.png).
+
 
 #### Schema
 
