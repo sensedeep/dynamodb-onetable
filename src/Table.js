@@ -442,6 +442,9 @@ export class Table {
         Thows exception if model cannot be found
      */
     getModel(name) {
+        if (!name) {
+            throw new Error('Undefined model name')
+        }
         let model = this.models[name.toString()]
         if (!model) {
             throw new Error(`Cannot find model ${name}`)
