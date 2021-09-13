@@ -7,20 +7,11 @@
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
 
-DynamoDB OneTable (OneTable) transforms single-table design patterns with DynamoDB providing an elegant, dry syntax while still providing easy access to the full DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
+## The most elegant way to create DynamoDB single table designs!
 
+DynamoDB OneTable (OneTable) transforms single-table design patterns with DynamoDB, providing an elegant, dry syntax while still enabling easy access to the full DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
 
-OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping) that abstracts away DynamoDB. Rather it provides a convenience API over the DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium working with the standard, unadorned DynamoDB API.
-
-OneTable can invoke DynamoDB APIs or it can be used as a generator to create DynamoDB API parameters that you can save or execute yourself.
-
-OneTable is not opinionated as much as possible and provides hooks for you to customize requests and responses to suit your exact needs.
-
-## History and Credits
-
-After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless developer studio to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
-
-A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended.
+Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions).
 
 ## OneTable Features
 
@@ -223,30 +214,14 @@ await User.update({id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 ```
 
-## Working Samples
-
-To get you going quickly, try out the working samples in the OneTable repository at:
-
-* [OneTable Overview Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/overview) &mdash; A quick tour through OneTable.
-* [OneTable CRUD Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud) &mdash; Basic CRUD.
-* [OneTable TypeScript Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/typescript)
-* [OneTable Migrate Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/migrate) &mdash; how to use OneTable Migrate.
-* [OneTable Packed Attributes Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/packed) &mdash; How to use packed attributes.
-* [OneTable SenseDeep Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/sensedeep) &mdash; How to access SenseDeep log data.
-* [All OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
-
-## Database Migrations
-
-To manage your database migrations, consider the
-[OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
 
 ## TypeScript
 
-OneTable provides TypeScript type declaration files so that OneTable APIs can be fully type checked.
+OneTable provides TypeScript type declaration files so that OneTable APIs, requests and responses can be fully type checked.
 
-However, OneTable goes further creates type declarations for your table entities and attributes. TypeScript will catch any invalid entity or entity attribute references.
+However, OneTable goes further and creates type declarations for your table entities and attributes. TypeScript will catch any invalid entity or entity attribute references.
 
-Using TypeScript dynamic typing, OneTable automatically converts your OneTable schema into fully typed generic Model APIs.
+Using the magic of TypeScript dynamic typing, OneTable automatically converts your OneTable schema into fully typed generic Model APIs.
 
 For example:
 
@@ -291,6 +266,30 @@ The standard DynamoDB API requires a lot of boiler-plate syntax and expressions.
 Net/Net: it is not easy to write terse, clear, robust Dynamo code for one-table patterns.
 
 Our goal with OneTable for DynamoDB was to keep all the good parts of DynamoDB and to remove the tedium and provide a more natural, "JavaScripty / TypeScripty" way to interact with DynamoDB without obscuring any of the power of DynamoDB itself.
+
+## Working Samples
+
+To get you going quickly, try out the working samples in the OneTable repository at:
+
+* [OneTable Overview Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/overview) &mdash; A quick tour through OneTable.
+* [OneTable CRUD Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud) &mdash; Basic CRUD.
+* [OneTable TypeScript Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/typescript)
+* [OneTable Migrate Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/migrate) &mdash; how to use OneTable Migrate.
+* [OneTable Packed Attributes Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/packed) &mdash; How to use packed attributes.
+* [OneTable SenseDeep Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/sensedeep) &mdash; How to access SenseDeep log data.
+* [All OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
+
+## History and Credits
+
+After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless developer studio to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
+
+A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended.
+
+## Database Migrations
+
+To manage your database migrations, consider the
+[OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
+
 
 ## Dynamo Class
 
