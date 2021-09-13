@@ -1,4 +1,4 @@
-![OneTable](https://www.sensedeep.com/images/ring.png?renew)
+![OneTable](https://www.sensedeep.com/images/ring-short.png?renew)
 
 *One Table to Rule Them All*
 
@@ -7,9 +7,8 @@
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
 
-DynamoDB OneTable (OneTable) is an access library for [DynamoDB](https://aws.amazon.com/dynamodb/) applications that use one-table design patterns with NodeJS.
+DynamoDB OneTable (OneTable) transforms single-table design patterns with DynamoDB providing an elegant, dry syntax while still providing easy access to the full DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
 
-OneTable strives to make dealing with DynamoDB and one-table design patterns dramatically easier while still providing easy access to the full DynamoDB API.
 
 OneTable is not an [ORM](https://en.wikipedia.org/wiki/Object%E2%80%93relational_mapping) that abstracts away DynamoDB. Rather it provides a convenience API over the DynamoDB APIs. It offers a flexible high-level API that supports one-table design patterns and eases the tedium working with the standard, unadorned DynamoDB API.
 
@@ -20,8 +19,6 @@ OneTable is not opinionated as much as possible and provides hooks for you to cu
 ## History and Credits
 
 After watching the famous [Rick Houlihan DynamoDB ReInvent Video](https://www.youtube.com/watch?v=6yqfmXiZTlM), we changed how we used DynamoDB for our [SenseDeep](https://www.sensedeep.com) serverless developer studio to use one-table design patterns. However, we found the going tough and thus this library was created to make our one-table patterns less tedious, more natural and a joy with DynamoDB.
-
-OneTable was used in production by the [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) for all DynamoDB access for a year before it was published as an NPM module.
 
 A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his excellent [DynamoDB Book](https://www.dynamodbbook.com/). Highly recommended.
 
@@ -52,11 +49,6 @@ A big thank you to [Alex DeBrie](https://www.alexdebrie.com/about/) and his exce
 * Support for the AWS SDK v3.
 * TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
 
-
-## Database Migrations
-
-To manage your database migrations, consider the
-[OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
 
 ## Installation
 
@@ -243,7 +235,10 @@ To get you going quickly, try out the working samples in the OneTable repository
 * [OneTable SenseDeep Sample](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/sensedeep) &mdash; How to access SenseDeep log data.
 * [All OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
 
-Checkout the
+## Database Migrations
+
+To manage your database migrations, consider the
+[OneTable CLI](https://www.npmjs.com/package/onetable-cli) which provides command line migration control and the [OneTable Migrate](https://www.npmjs.com/package/onetable-migrate) library for inclusion in your services to manage database migrations.
 
 ## TypeScript
 

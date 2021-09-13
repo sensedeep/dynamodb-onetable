@@ -135,7 +135,7 @@ async function test() {
     users = await User.find({accountId: account.id}, {
         where: '${balance} > {100}'
     })
-    
+
     /*
         Get a collection of items in the account. (See below table.fetch is simpler)
      */
