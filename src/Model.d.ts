@@ -53,7 +53,7 @@ interface OneFieldSchema extends OneTypedField {
     //  Deprecated
     ulid?: boolean,
     ksuid?: boolean,
-};
+}
 
 /*
     Schema.models signature
