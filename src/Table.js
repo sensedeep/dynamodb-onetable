@@ -47,13 +47,18 @@ const DefaultIndexes = {
 
 const DefaultMetrics = {
     chan: 'metrics',                                                //  Default channel
-    source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default',      //  Default source name
+    dimensions: [
+        'Table', 'Tenant', 'Source', 'Index', 'Model', 'Operation'  //  Default dimensions
+    ],
+    enable: true,                                                   //  Enabled
+    hot: false,                                                     //  Hot partition tracking
     max: 100,                                                       //  Buffer metrics for 100 requests
+    namespace: 'SingleTable/Metrics.1',                             //  CloudWatch metrics namespace
     period: 30,                                                     //  or buffer for 30 seconds
-    namespace: 'SingleTable/Metrics.1'                              //  CloudWatch metrics namespace
+    queries: true,                                                  //  Query profiling
+    source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default',      //  Default source name
+    tenant: null,
 }
-
-const MetricCollections = ['Table', 'Source', 'Index', 'Model', 'Operation']
 
 const ReadWrite = {
     delete: 'write',
@@ -146,10 +151,28 @@ export class Table {
             } else {
                 this.metrics = Object.assign({}, DefaultMetrics, metrics)
             }
+            //  LEGACY (was object)
+            if (!Array.isArray(this.metrics.dimensions)) {
+                this.metrics.dimensions = Object.keys(this.metrics.dimensions)
+            }
+            this.metrics.map = {Profile: true}
+            for (let dim of this.metrics.dimensions) {
+                this.metrics.map[dim] = true
+            }
             this.metrics.period *= 1000
             this.metrics.count = 0
             this.metrics.lastFlushed = Date.now()
             this.metrics.tree = {}
+
+            //  perhaps set env to name of env var
+            if (metrics.env && process.env) {
+                let key = params.env != true ? params.env : 'LOG_FILTER'
+                let filter = process.env[key]
+                if (filter.indexOf('dbmetrics') < 0) {
+                    this.enable = false
+                    return
+                }
+            }
         }
         this.genericModel = null
         this.uniqueModel = null
@@ -564,11 +587,8 @@ export class Table {
             }
 
         } finally {
-            if (this.metrics) {
-                let chan = this.metrics.chan
-                if (this.log && this.log.enabled(chan)) {
-                    this.addMetrics(model, op, result, params, mark)
-                }
+            if (this.metrics && this.metrics.enable && this.log.enabled(this.metrics.chan)) {
+                this.addMetrics(model, op, result, params, mark)
             }
         }
         return result
@@ -684,6 +704,7 @@ export class Table {
             //  Batch and transaction return array
             if (Array.isArray(consumed)) {
                 for (let item of consumed) {
+                    //  Only count this table name
                     if (item.TableName == this.name) {
                         capacity += item.CapacityUnits
                     }
@@ -702,8 +723,33 @@ export class Table {
         let indexName = params.index || 'primary'
         let source = params.source || metrics.source
 
-        this.addMetric(metrics.tree, values, this.name, source, indexName, model, DynamoOps[op])
+        let dimensions = {}
+        let map = metrics.map
 
+        if (map.Table) {
+            dimensions.Table = this.name
+        }
+        if (map.Tenant) {
+            dimensions.Tenant = params.tenant
+        }
+        if (map.Source) {
+            dimensions.Source = source
+        }
+        if (map.Index) {
+            dimensions.Index = indexName
+        }
+        if (map.Model) {
+            dimensions.Model = model
+        }
+        if (map.Operation) {
+            dimensions.Operation = DynamoOps[op]
+        }
+        this.addMetricGroup(metrics.tree, values, dimensions)
+
+        if (metrics.queries && params.profile) {
+            metrics.tree.Profile = metrics.tree.Profile || {}
+            this.addMetric(metrics.tree.Profile, values, 'Profile', params.profile)
+        }
         if (++metrics.count >= metrics.max || (metrics.lastFlushed + metrics.period) < timestamp) {
             this.flushMetrics(metrics.namespace, timestamp, metrics.tree)
             metrics.count = 0
@@ -711,27 +757,28 @@ export class Table {
         }
     }
 
-    addMetric(metrics, values, ...keys) {
-        let {op, capacity, count, latency, scanned} = values
-        let collections = MetricCollections.slice(0)
-        let name = collections.shift()
-        for (let key of keys) {
-            //  name is: Table, Source, Index ...
-            metrics = metrics[name] = metrics[name] || {}
-
-            //  key is the actual instance values
-            let item = metrics[key] = metrics[key] || {
-                counters: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0}
+    addMetricGroup(tree, values, dimensions) {
+        for (let name of this.metrics.dimensions) {
+            let dimension = dimensions[name]
+            if (dimension) {
+                tree = tree[name] = tree[name] || {}
+                this.addMetric(tree, values, name, dimension)
+                tree = tree[dimension]
             }
-            let counters = item.counters
-            counters[ReadWrite[op]] += capacity             //  RCU, WCU
-            counters.latency += latency                     //  Latency in ms
-            counters.count += count                         //  Item count
-            counters.scanned += scanned                     //  Items scanned
-            counters.requests++                             //  Number of requests
-            metrics = metrics[key]
-            name = collections.shift()
         }
+    }
+
+    addMetric(tree, values, name, dimension) {
+        let {op, capacity, count, latency, scanned} = values
+        let item = tree[dimension] = tree[dimension] || {
+            counters: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0}
+        }
+        let counters = item.counters
+        counters[ReadWrite[op]] += capacity             //  RCU, WCU
+        counters.latency += latency                     //  Latency in ms
+        counters.count += count                         //  Item count
+        counters.scanned += scanned                     //  Items scanned
+        counters.requests++                             //  Number of requests
     }
 
     flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
@@ -744,11 +791,12 @@ export class Table {
                     rec.requests = rec.count = rec.scanned = rec.latency = rec.read = rec.write = 0
                 }
             } else {
-                dimensions.push(key)
+                let dims = dimensions.slice(0)
+                dims.push(key)
                 for (let [name, tree] of Object.entries(rec)) {
                     let rprops = Object.assign({}, props)
                     rprops[key] = name
-                    this.flushMetrics(namespace, timestamp, tree, dimensions.slice(0), rprops)
+                    this.flushMetrics(namespace, timestamp, tree, dims, rprops)
                 }
             }
         }
@@ -764,7 +812,7 @@ export class Table {
         if (this.log.metrics) {
             //  Senselogs. Preferred as it can be dynamically controled.
             let chan = this.metrics.chan || 'metrics'
-            this.log.metrics(chan, `OneTable Custom Metrics ${dimensions} ${requests}`,
+            this.log.metrics(chan, `OneTable Custom Metrics ${dimensions}`,
                 namespace, values, [dimensions], {latency: 'Milliseconds', default: 'Count'})
 
         } else {
@@ -782,7 +830,7 @@ export class Table {
                     }]
                 },
             }, values)
-            console.log(`OneTable Custom Metrics ${dimensions} ${requests}` + JSON.stringify(data))
+            console.log(`OneTable Custom Metrics ${dimensions}` + JSON.stringify(data))
         }
     }
 
@@ -944,6 +992,11 @@ class Log {
             this.logger = logger
         }
     }
+
+    enabled() {
+        return true
+    }
+
     data(message, context) {
         this.process('data', message, context)
     }
