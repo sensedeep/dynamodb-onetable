@@ -25,6 +25,7 @@ Join the active community using OneTable on our [GitHub Discussion Hub](https://
 * Schema item definitions for attribute types, default values, enums and validations.
 * Powerful field level validations with "required" and "unique" attributes.
 * Easy parameterization of filter and conditional queries.
+* Detailed metrics by Table, Tenant, Source, Index, Model and Operation.
 * Multi-page response aggregation.
 * Compound and templated key management.
 * Attribute mapping and packing.
@@ -130,7 +131,7 @@ Alternatively, you can define models one by one:
 ```javascript
 const Card = new Model(table, 'Card', {
     fields: {
-    /* Model schema field definitions */
+        /* Model schema field definitions */
     }
 })
 ```
@@ -366,7 +367,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
-| metrics | `object` | Configure metrics capture. |
+| metrics | `object` | Configure metrics. Default null.|
 | name | `string` | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
@@ -469,9 +470,7 @@ The properties of metrics are:
 | source | `string` | Name of application or function that is the user of DynamoDB. Default to the Lambda function name.|
 | tenant | `string` | Set to an identifying string for the customer or tenant. Defaults to null.|
 
-<!--
 Metrics can be dynamically controlled by the LOG_FILTER environment variable. If this environment variable contains the string `dbmetrics` and the `env` params is set to true, then Metrics will be enabled. If the `env` parameter is unset, LOG_FILTER will be ignored.
--->
 
 ```javascript
 const table = new Table({
@@ -484,6 +483,8 @@ You can also generate metrics for specially profiled queries and scans via the `
 ```javascript
 await User.find({}, {profile: 'find-all-users'})
 ```
+
+Read more about how to use and configure metrics at [Understanding Your DynamoDB Performance](https://www.sensedeep.com/blog/posts/stories/single-table-dynamodb-monitoring.html).
 
 The metrics can be viewed in CloudWatch or best via the free [SenseDeep Developer](https://www.sensedeep.com) plan which has detailed graphs for your single-table monitoring for DynamoDB.
 
