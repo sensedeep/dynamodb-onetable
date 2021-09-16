@@ -165,11 +165,11 @@ export class Table {
             this.metrics.tree = {}
 
             //  perhaps set env to name of env var
-            if (metrics.env && process.env) {
+            if (this.metrics.env && process.env) {
                 let key = params.env != true ? params.env : 'LOG_FILTER'
                 let filter = process.env[key]
                 if (filter.indexOf('dbmetrics') < 0) {
-                    this.enable = false
+                    this.metrics.enable = false
                     return
                 }
             }
@@ -587,7 +587,7 @@ export class Table {
             }
 
         } finally {
-            if (this.metrics && this.metrics.enable && this.log.enabled(this.metrics.chan)) {
+            if (result && this.metrics && this.metrics.enable && this.log.enabled(this.metrics.chan)) {
                 this.addMetrics(model, op, result, params, mark)
             }
         }
@@ -729,10 +729,10 @@ export class Table {
         if (map.Table) {
             dimensions.Table = this.name
         }
-        if (map.Tenant) {
-            dimensions.Tenant = params.tenant
+        if (map.Tenant && metrics.tenant) {
+            dimensions.Tenant = metrics.tenant
         }
-        if (map.Source) {
+        if (map.Source && source) {
             dimensions.Source = source
         }
         if (map.Index) {
@@ -781,7 +781,9 @@ export class Table {
         counters.requests++                             //  Number of requests
     }
 
-    flushMetrics(namespace, timestamp, tree, dimensions = [], props = {}) {
+    flushMetrics(namespace = this.metrics.namespace, timestamp = Date.now(), tree = this.metrics.tree,
+                 dimensions = [], props = {}) {
+        if (!this.metrics.enable) return
         for (let [key, rec] of Object.entries(tree)) {
             if (key == 'counters') {
                 if (rec.requests) {
