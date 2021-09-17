@@ -625,18 +625,20 @@ export class Model {
 
     async update(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
-        let result
         if (this.hasUniqueFields) {
-            result = await this.updateUnique(properties, params)
-        } else {
-            result = await this.updateItem(properties, params)
+            let hasUniqueProperties = Object.entries(properties).find((pair, index) => {
+                return this.block.fields[pair[0]].unique
+            })
+            if (hasUniqueProperties) {
+                return await this.updateUnique(properties, params)
+            }
         }
-        return result
+        return await this.updateItem(properties, params)
     }
 
     /*
-        Update an item with unique attributes. Use a transaction to update a unique item for each
-        unique attribute.
+        Update an item with unique attributes and actually updating a unique property.
+        Use a transaction to update a unique item for each unique attribute.
      */
     async updateUnique(properties, params) {
         if (params.batch) {
@@ -644,7 +646,6 @@ export class Model {
         }
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
-        let fields = this.block.fields
 
         /*
             Get the prior item so we know the unique property values so they can be removed
@@ -657,7 +658,7 @@ export class Model {
 
         params.prepared = properties = this.prepareProperties('update', properties, params)
 
-        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         /*
             Remove prior unique properties and create new unique property

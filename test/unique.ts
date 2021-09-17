@@ -71,6 +71,18 @@ test('Update user 2 with unique email', async() => {
     expect(items.length).toBe(6)
 })
 
+test('Update non-unique property', async() => {
+    const props = {
+        name: 'Judy Smith',
+        age: 42,
+    }
+    user = await User.update(props, {})
+    expect(user).toMatchObject(props)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(6)
+})
+
 test('Create non-unique email', async() => {
     const props = {
         name: 'Another Peter Smith',
