@@ -466,6 +466,7 @@ The properties of metrics are:
 | max | `number` | Number of DynamoDB API calls for which to buffer metrics before flushing. Defaults to 100.|
 | namespace | `string` | CloudWatch metrics namespace for the metrics. Defaults to `SingleTable/metrics`.|
 | period | `number` | Number of seconds to buffer metrics before flushing. Defaults to 30 seconds.|
+| properties | `map|function` | Set to a map of additional properties to be included in EMF log record. These are not metrics. Set to a function that will be invoked as `properties(operation, params, result)` and should return a map of properties. Defaults to null.|
 | queries | `boolean` | Set to true to enable per-query profile metrics. Defaults to true.|
 | source | `string` | Name of application or function that is the user of DynamoDB. Default to the Lambda function name.|
 | tenant | `string` | Set to an identifying string for the customer or tenant. Defaults to null.|
