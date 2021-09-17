@@ -792,10 +792,10 @@ export class Table {
         totals.scanned = totals.scanned / requests
 
         if (this.log.metrics) {
-            //  Senselogs. Preferred as it can be dynamically controled.
             let chan = metrics.chan || 'metrics'
             this.log.metrics(chan, `OneTable Custom Metrics ${dimensions}`,
-                metrics.namespace, totals, dimensions, {latency: 'Milliseconds', default: 'Count'}, properties)
+                metrics.namespace, totals, dimensions, {latency: 'Milliseconds', default: 'Count'},
+                Object.assign({}, dimensionValues, properties))
 
         } else {
             let metrics = dimensions.map(v => {
