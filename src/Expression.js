@@ -305,8 +305,10 @@ export class Expression {
             return
         }
         if (field.name == this.model.typeField) {
-            //  Don't need to update the type -- users can use low-level API if required
-            return
+            if (!(params.exists === null || params.exists == false)) {
+                //  If not creating, then don't need to update the type as it must already exist
+                return
+            }
         }
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
