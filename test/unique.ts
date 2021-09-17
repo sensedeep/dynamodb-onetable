@@ -134,6 +134,16 @@ test('Remove all users', async() => {
     expect(items.length).toBe(0)
 })
 
+test('Create user via update', async() => {
+    const props = {
+        name: 'Judy Smith',
+        email: 'judy@example.com',
+    }
+    let item: any = await User.update(props, {exists: null})
+    expect(item).toMatchObject(props)
+    expect(item._type).toBe('User')
+})
+
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
