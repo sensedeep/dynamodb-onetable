@@ -66,6 +66,9 @@ export type OneModelSchema = {
     Schema signature
  */
 type OneSchema = {
+    params?: {
+        [key: string]: any
+    },
     models?: {
         [key: string]: OneModelSchema
     },

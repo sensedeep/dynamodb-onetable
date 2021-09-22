@@ -60,10 +60,13 @@ export class Table {
     listModels(): AnyModel[];
     listTables(): string[];
     makeID(): {};
+    readSchema(): OneSchema;
     removeModel(name: string): void;
+    saveSchema(schema?: OneSchema): OneSchema;
     setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
     setLog(log: any): void;
+    setSchema(schema?: OneSchema): void;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     uuid(): {};
 
