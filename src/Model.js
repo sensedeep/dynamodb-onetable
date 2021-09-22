@@ -495,6 +495,7 @@ export class Model {
         if (params.batch) {
             throw new Error('Cannot use batch with unique properties which require transactions')
         }
+        let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
@@ -513,10 +514,13 @@ export class Model {
                 sep = this.delimiter
                 pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             }
-            await this.table.uniqueModel.create({pk}, { transaction, exists: false, return: 'NONE' })
+            await this.table.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
         }
-        await this.putItem(properties, params)
+        let item = await this.putItem(properties, params)
 
+        if (!transactHere) {
+            return item
+        }
         let expression = params.expression
         try {
             await this.table.transact('write', params.transaction, params)
@@ -644,6 +648,7 @@ export class Model {
         if (params.batch) {
             throw new Error('Cannot use batch with unique properties which require transactions')
         }
+        let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
 
@@ -651,6 +656,7 @@ export class Model {
 
         /*
             Get the prior item so we know the previous unique property values so they can be removed.
+            This must be run here, even if part of a transaction.
         */
         let prior = await this.get(properties)
         if (prior) {
@@ -698,7 +704,11 @@ export class Model {
             await this.table.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
         }
 
-        await this.updateItem(properties, params)
+        let item = await this.updateItem(properties, params)
+
+        if (!transactHere) {
+            return item
+        }
 
         /*
             Perform all operations in a transaction so update will only be applied if the unique properties can be created.
