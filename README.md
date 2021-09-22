@@ -102,7 +102,7 @@ const MySchema = {
         Account: {
             pk:          { type: String, value: 'account:${name}' },
             sk:          { type: String, value: 'account:' },
-            id:          { type: String, uuid: true, validate: /^[0-9A-F]{32}$/i },
+            id:          { type: String, uuid: 'uuid', validate: /^[0-9A-F]{32}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
@@ -364,7 +364,6 @@ The Table constructor takes a parameter of type `object` with the following prop
 | createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
 | delimiter | `string` | Composite sort key delimiter (default ':'). |
 | hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
-| intercept | `function` | Callback function to be invoked on reads and writes to intercept and modify data |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
 | metrics | `object` | Configure metrics. Default null.|
@@ -373,6 +372,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
+| transform | `function` | Callback function to be invoked to format and parse the data before reading and writing. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
 | uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires and the property is not already defined. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
@@ -381,15 +381,17 @@ The `client` property must be an initialized [AWS DocumentClient](https://docs.a
 
 By default, OneTable will not write `null` values to the database rather, it will remove the corresponding attribute from the item. If you set the `nulls` property to true, `null` values will be written via `create` or `update`. You can also define `nulls` on a model attribute basis via the schema.
 
-The optional `intercept` function will be invoked on read and write requests to assist with data migrations. The intercept function can modify the item as it sees fit. The invocation signature is:
+The `metrics` property may be set to a map that configures detailed CloudWatch EMF metrics. See Metrics below.
+
+The optional `transform` function will be invoked on read and write requests to assist with data migrations after all other transformations have taken place. The transform function can modify the item as it sees fit. The invocation signature is:
 
 ```javascript
-intercept(model, operation, item, apiParams, rawReadData)
+transform(model, operation, item, apiParams, rawReadData)
 ```
 
 Where `operation` is set to 'read' or 'write'. For read operations, the `raw` parameter has the raw data as read from the table before conversion into Javascript properties in `item`.
 
-The `metrics` property may be set to a map that configures detailed CloudWatch EMF metrics. See Metrics below.
+You can also use a `params.transform` with many Model APIs. See [Model API Params](#model-api-params) for details.
 
 #### Crypto
 
@@ -468,7 +470,7 @@ The properties of metrics are:
 | period | `number` | Number of seconds to buffer metrics before flushing. Defaults to 30 seconds.|
 | properties | `map|function` | Set to a map of additional properties to be included in EMF log record. These are not metrics. Set to a function that will be invoked as `properties(operation, params, result)` and should return a map of properties. Defaults to null.|
 | queries | `boolean` | Set to true to enable per-query profile metrics. Defaults to true.|
-| source | `string` | Name of application or function that is the user of DynamoDB. Default to the Lambda function name.|
+| source | `string` | Name of application or function name that is calling DynamoDB. Default to the Lambda function name.|
 | tenant | `string` | Set to an identifying string for the customer or tenant. Defaults to null.|
 
 Metrics can be dynamically controlled by the LOG_FILTER environment variable. If this environment variable contains the string `dbmetrics` and the `env` params is set to true, then Metrics will be enabled. If the `env` parameter is unset, LOG_FILTER will be ignored.
@@ -582,7 +584,7 @@ The following attribute properties are supported:
 | Property | Type | Description |
 | -------- | :--: | ----------- |
 | crypt | `boolean` | Set to true to encrypt the data before writing. |
-| default | `string or function` | Default value to use when creating model items or when reading items without a value.|
+| default | `string` | Default value to use when creating model items or when reading items without a value.|
 | enum | `array` | List of valid string values for the attribute. |
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
@@ -590,19 +592,14 @@ The following attribute properties are supported:
 | map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
 | nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
-| transform | `function` | Hook function to be invoked to format and parse the data before reading and writing. |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
 | uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
-| value | `string or function` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
+| value | `string` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
 
 
-If the `default` property defines the default value for an attribute. It may be set to a string or a function. If no value is provided for the attribute when creating a new item, the `default` value will be used. The default function signature is:
-
-```javascript
-default(model, fieldName, attributes)
-```
+If the `default` property defines the default value for an attribute. If no value is provided for the attribute when creating a new item, the `default` value will be used.
 
 If the `hidden` property is set to true, the attribute will be defined in the DynamoDB database table, but will be omitted in the returned Javascript results.
 
@@ -610,15 +607,7 @@ The `map` property can be used to set an alternate or shorter attribute name whe
 
 Alternatively, the map value can be a pair of the form: 'obj.name', where the attribute value will be stored in an object attribute named "obj" with the given name `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. This is helpful for the design pattern where GSIs project keys plus a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute. OneTable will automatically pack and unpack attribute values into the mapped attribute. Note: APIs that write to a mapped attribute must provide all the properties that map to that attribute on the API call. Otherwise an incomplete attribute would be written to the table.
 
-The `transform` property is used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
-
-```javascript
-value = transform(model, operation, name, value)
-```
-
-Where `operation` is either `read` or `write`. The `name` argument is set to the field attribute name.
-
-The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or `Binary`) and `Set`. The Object type is mapped to a `map`, the Array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps. Binary data is supplied via `Buffer` types and is stored as base64 strings in DynamoDB.
+The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or Binary) and Set. The object type is mapped to a `map`, the array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps unless the `isoDates` parameter is true, in which case the dates are store as ISO date strings. Binary data is supplied via `buffer` types and is stored as base64 strings in DynamoDB.
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
@@ -693,7 +682,7 @@ The `properties` parameter is a Javascript hash containing the required keys or 
 
 Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to remove. Superfluous property fields will be ignored.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression. The properties must include the key attributes if you wish to use `params.prev` for reverse pagination.
 
@@ -736,7 +725,7 @@ Additional fields supplied in `properties` may be used to construct a filter exp
 
 The `get` method returns Javascript properties for the item after applying any schema mappings. Hidden attributes will not be returned.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -933,7 +922,7 @@ The property names are those described by the schema. NOTE: these are not the sa
 
 The method returns the unmodified DynamoDB response. If `params.parse` is true, the call returns the Javascript properties for the item with hidden attributes removed.
 
-The optional params are described in [Model API Params](#params).   
+The optional params are described in [Model API Params](#model-api-params).   
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -1039,7 +1028,7 @@ For create, the params.exists will default to a false value to ensure an item of
 
 If the schema specifies that an attribute must be unique, OneTable will create a special item in the database to enforce the uniqueness. This item will be an instance of the Unique model with the primary key set to `_unique:Model:Attribute:Value`. The created item and the unique item will be created in a transparent transaction so that the item will be created only if all the unique fields are truly unique.  The `remove` API will similarly remove the special unique item.
 
-The optional params are described in [Model API Params](#params).
+The optional params are described in [Model API Params](#model-api-params).
 
 <a name="model-find"></a>
 #### async find(properties, params = {})
@@ -1115,7 +1104,7 @@ Note: the limit is the number of items read by DynamoDB before filtering and thu
 
 To control the number of pages that queryItems will request, set the `params.maxPages` to the desired number.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 If `params.execute` is set to false, the command will not be executed and the prepared DynamoDB API parameters will be returned.
 
@@ -1145,7 +1134,7 @@ Additional fields supplied in `properties` may be used to construct a filter exp
 
 The `get` method returns Javascript properties for the item after applying any schema mappings. Hidden attributes will not be returned.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -1171,7 +1160,7 @@ The `properties` parameter is a Javascript hash containing the required keys or 
 
 Additional fields supplied in `properties` may be used to construct a filter expression. In this case, a `find` query is first executed to identify the item to remove. Superfluous property fields will be ignored.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -1195,7 +1184,7 @@ The `properties` parameter is a Javascript hash containing fields used to constr
 
 The `scan` method returns an array of items after applying any schema mappings. Hidden attributes in items will not be returned.
 
-The optional params are fully described in [Model API Params](#params). Some relevant params include:
+The optional params are fully described in [Model API Params](#model-api-params). Some relevant params include:
 
 The `params.fields` may be set to a list of properties to return. This defines the ProjectionExpression.
 
@@ -1232,7 +1221,7 @@ The method returns the all the Javascript properties for the item. Hidden attrib
 
 If the method fails to update, it will throw an exception. If `params.throw` is set to false, an exception will not be thrown and the method will return `undefined`.
 
-The optional params are described in [Model API Params](#params).    
+The optional params are described in [Model API Params](#model-api-params).    
 
 The `params.add` parameter may be set a value to add to an attribute.
 The `params.delete` parameter may be set to a hash, where the hash keys are the attribute sets to modify and the values are the items in the sets to remove.
@@ -1254,8 +1243,6 @@ await User.update({id: userId}, {
 ```
 
 Set update, the params.exists will default to a true value to ensure the item exists. If set to null, an update will be permitted to create an item if it does not already exist.
-
-<a name="params"></a>
 
 #### Model API params
 
@@ -1292,6 +1279,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | substitutions | `object` | Variables that can be referenced in a where clause. Values will be added to ExpressionAttributeValues when used.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
+| transform | `function` | Function to be invoked to format and parse the data before reading and writing. Defaults to null.|
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
@@ -1301,6 +1289,14 @@ If `stats` is defined, find/query/scan operations will return the following stat
 * count -- Number of items returned
 * scanned -- Number of items scanned
 * capacity -- DynamoDB consumed capacity units
+
+The `transform` property may be used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
+
+```javascript
+value = transform(model, operation, name, value)
+```
+
+The `operation` parameter is set to `read` or `write`. The `name` argument is set to the field attribute name.
 
 
 <a name="where-clauses"></a>
