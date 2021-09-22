@@ -5,9 +5,9 @@
  */
 
 import Crypto from 'crypto'
-import {Model} from './Model.js'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
+import {Model} from './Model.js'
 
 /*
     AWS V2 DocumentClient methods
@@ -87,39 +87,44 @@ const DynamoOps = {
     transactWrite: 'transactWrite',
 }
 
+const GenericModel = '_Generic'
+const SchemaKey = '_schema'
+
 /*
     Represent a single DynamoDB table
  */
 export class Table {
 
     constructor(params = {}) {
-        let {
-            client,         //  Instance of DocumentClient or Dynamo. Use client.V3 to test for Dynamo V3.
-            createdField,   //  Name of "created" timestamp attribute.
-            crypto,         //  Crypto configuration. {primary: {cipher: 'aes-256-gcm', password}}.
-            delimiter,      //  Composite sort key delimiter (default ':').
-            generic,        //  Don't restrict properties to the schema. Default false.
-            hidden,         //  Hide key attributes in Javascript properties. Default false.
-            intercept,      //  Intercept hook function(model, operation, item, params, raw). Operation: 'create', 'delete', 'put', ...
-            isoDates,       //  Set to true to store dates as Javascript ISO Date strings.
-            logger,         //  Logging function(tag, message, properties). Tag is data.info|error|trace|exception.
-            metrics,        //  Enable CloudWatch metrics
-            name,           //  Table name.
-            nulls,          //  Store nulls in database attributes. Default false.
-            schema,         //  Table models schema.
-            senselogs,      //  Integrate with SenseLogs as the logger instance
-            timestamps,     //  Make "created" and "updated" timestamps. Default false.
-            typeField,      //  Name of model type attribute. Default "_type".
-            updatedField,   //  Name of "updated" timestamp attribute.
-            uuid,           //  Function to create a UUID, ULID, KSUID if field schema requires it.
-        } = params
-
-        if (!name) {
+        if (!params.name) {
             throw new Error('Missing "name" property')
         }
-        this.log = senselogs ? senselogs : new Log(logger)
+        this.context = {}
+        this.models = {}
+        this.indexes = DefaultIndexes
+
+        this.log = params.senselogs ? params.senselogs : new Log(params.logger)
         this.log.trace(`Loading OneTable`)
 
+        if (params.client) {
+            this.V3 = params.client.V3
+            this.client = params.client
+            this.service = this.V3 ? params.client : params.client.service
+        }
+        if (params.crypto) {
+            this.initCrypto(params.crypto)
+            this.crypto = Object.assign(params.crypto)
+            for (let [name, crypto] of Object.entries(this.crypto)) {
+                crypto.secret = Crypto.createHash('sha256').update(crypto.password, 'utf8').digest()
+                this.crypto[name] = crypto
+                this.crypto[name].name = name
+            }
+        }
+        this.setParams(params)
+        this.setSchema(params.schema)
+    }
+
+    setParams(params) {
         /*  LEGACY 1.7.4 - remove in 2.0.0
             Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
             Now, use the delimiter with a unique prefix.
@@ -128,116 +133,33 @@ export class Table {
         if (params.legacyUnique == true) {
             params.legacyUnique = ':'
         }
-        this.params = params
-        if (client) {
-            this.V3 = client.V3
-            this.client = client
-            this.service = this.V3 ? client : client.service
+        this.createdField = params.createdField || 'created'
+        this.delimiter = params.delimiter || '#'
+        this.hidden = params.hidden != null ? params.hidden : true
+        this.isoDates = params.isoDates || false
+        this.nulls = params.nulls || false
+        this.timestamps = params.timestamps != null ? params.timestamps : false
+        this.typeField = params.typeField || '_type'
+        this.updatedField = params.updatedField || 'updated'
+
+        /*
+            Preserve prior values for items that may have callback functions (intercept, metrics.properties, uuid)
+            If a schema loads new params, then need to preserve these callback functions.
+        */
+        this.name = params.name || this.name
+        this.intercept = params.intercept || this.intercept
+        if (params.metrics) {
+            this.setMetrics(params.metrics)
         }
-        this.createdField = createdField || 'created'
-        this.delimiter = delimiter || '#'
-        this.generic = generic != null ? generic : false
-        this.hidden = hidden != null ? hidden : true
-        this.intercept = intercept
-        this.isoDates = isoDates || false
-        this.name = name
-        this.nulls = nulls || false
-        this.timestamps = timestamps != null ? timestamps : false
-        this.typeField = typeField || '_type'
-        this.updatedField = updatedField || 'updated'
-
-        if (metrics) {
-            if (metrics == true) {
-                this.metrics = Object.assign({}, DefaultMetrics)
-            } else {
-                this.metrics = Object.assign({}, DefaultMetrics, metrics)
-            }
-            //  LEGACY (was object)
-            if (!Array.isArray(this.metrics.dimensions)) {
-                this.metrics.dimensions = Object.keys(this.metrics.dimensions)
-            }
-            this.metrics.map = {Profile: true}
-            for (let dim of this.metrics.dimensions) {
-                this.metrics.map[dim] = true
-            }
-            this.metrics.period *= 1000
-            this.metrics.count = 0
-            this.metrics.lastFlushed = Date.now()
-            this.metrics.counters = {}
-
-            //  perhaps set env to name of env var
-            if (this.metrics.env && process.env) {
-                let key = params.env != true ? params.env : 'LOG_FILTER'
-                let filter = process.env[key]
-                if (filter.indexOf('dbmetrics') < 0) {
-                    this.metrics.enable = false
-                    return
-                }
-            }
-        }
-        this.genericModel = null
-        this.uniqueModel = null
-
-        if (uuid == 'uuid') {
+        if (params.uuid == 'uuid') {
             this.makeID = this.uuid
-        } else if (uuid == 'ulid') {
+        } else if (params.uuid == 'ulid') {
             this.makeID = this.ulid
-        } else {
+        } else if (!this.makeID) {
             //  Need to have uuid the default so browsers will resolve without node:crypto
-            this.makeID = uuid || this.uuid
+            this.makeID = params.uuid || this.makeID || this.uuid
         }
-
-        //  Schema models
-        this.models = {}
-        this.indexes = DefaultIndexes
-
-        //  Context properties always applied to create/updates
-        this.context = {}
-
-        if (schema) {
-            this.schema = schema
-            this.prepSchema(schema)
-        }
-
-        /*
-            Model for unique attributes
-         */
-        let primary = this.indexes.primary
-        let fields = {
-            [primary.hash]: { type: String, value: '_unique:${' + primary.hash + '}'},
-        }
-        if (primary.sort) {
-            fields[primary.sort] = { type: String, value: '_unique:'}
-        }
-        this.uniqueModel = new Model(this, '_Unique', {
-            fields: fields,
-            indexes: this.indexes,
-            timestamps: false
-        })
-
-        /*
-            Model for genric low-level API access. Generic models allow reading attributes that are not defined on the schema.
-         */
-        fields = { [primary.hash]: { type: String } }
-        if (primary.sort) {
-            fields[primary.sort] = { type: String }
-        }
-        this.genericModel = new Model(this, '_Generic', {
-            fields: fields,
-            indexes: this.indexes,
-            timestamps: false,
-            generic: true,
-        })
-
-        if (crypto) {
-            this.initCrypto(crypto)
-            this.crypto = Object.assign(crypto)
-            for (let [name, crypto] of Object.entries(this.crypto)) {
-                crypto.secret = Crypto.createHash('sha256').update(crypto.password, 'utf8').digest()
-                this.crypto[name] = crypto
-                this.crypto[name].name = name
-            }
-        }
+        this.params = params
     }
 
     setClient(client) {
@@ -246,56 +168,192 @@ export class Table {
         this.service = this.V3 ? this.client : this.client.service
     }
 
+    setMetrics(params) {
+        let metrics
+        if (params == true) {
+            metrics = Object.assign({}, DefaultMetrics)
+        } else {
+            metrics = Object.assign({}, DefaultMetrics, params)
+        }
+        //  LEGACY remove in 2.0 (was object)
+        if (!Array.isArray(metrics.dimensions)) {
+            metrics.dimensions = Object.keys(metrics.dimensions)
+        }
+        metrics.map = {Profile: true}
+        for (let dim of metrics.dimensions) {
+            metrics.map[dim] = true
+        }
+        metrics.period *= 1000
+        metrics.count = 0
+        metrics.lastFlushed = Date.now()
+        metrics.counters = {}
+
+        if (metrics.env && process.env) {
+            let key = params.env != true ? params.env : 'LOG_FILTER'
+            let filter = process.env[key]
+            if (filter.indexOf('dbmetrics') < 0) {
+                metrics.enable = false
+            }
+        }
+        //  Preserve any prior defined properites functions
+        metrics.properties = metrics.properties || this.metrics.properties
+        this.metrics = metrics
+    }
+
     /*
         Return the current schema. This may include model schema defined at run-time.
     */
     getSchema() {
-        let schema = {name: this.name, models: {}, indexes: this.indexes}
-        for (let [name, model] of Object.entries(this.models)) {
-            let item = {}
-            for (let [field, properties] of Object.entries(model.block.fields)) {
-                item[field] = {
-                    crypt: properties.crypt,
-                    enum: properties.enum,
-                    filter: properties.filter,
-                    foreign: properties.foreign,
-                    hidden: properties.hidden,
-                    map: properties.map,
-                    name: field,
-                    nulls: properties.nulls,
-                    required: properties.required,
-                    size: properties.size,
-                    schema: properties.schema,
-                    type: (typeof properties.type == 'function') ? properties.type.name : properties.type,
-                    unique: properties.unique,
-                    validate: properties.validate ? properties.validate.toString() : null,
-                    value: properties.value,
+        let schema = this.merge({}, this.schema, {params: this.getParams()})
+        return this.mapSchema(schema)
+    }
 
-                    //  Computed state
-                    attribute: properties.attribute,    //  Attribute 'map' name
-                    isIndexed: properties.isIndexed,
+    mapSchema(schema) {
+        //  Get field types (may have been constructors)
+        for (let [name, model] of Object.entries(this.models)) {
+            for (let [fname, field] of Object.entries(model.block.fields)) {
+                if (schema.models[name][fname]) {
+                    schema.models[name][fname].type = field.type
+                    if (field.validate && field.validate instanceof RegExp) {
+                        schema.models[name][fname].validate = `/${field.validate.source}/${field.validate.flags}`
+                    }
                 }
             }
-            schema.models[name] = item
         }
         return schema
     }
 
     /*
-        Prepare the schema by creating models for all the entities
+        Read the schema saved in the table
     */
-    prepSchema(params) {
-        let {models, indexes} = params
-        if (!models) {
-            throw new Error('Schema is missing models')
+    async readSchema() {
+        let indexes = this.indexes
+        let primary = indexes.primary
+
+        if (indexes == DefaultIndexes) {
+            let info = await this.describeTable()
+            let primary = {}
+            for (let key of info.Table.KeySchema) {
+                let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
+                primary[type] = key.AttributeName
+            }
         }
-        if (!indexes) {
-            throw new Error('Schema is missing indexes')
+        let params = {
+            [primary.hash]: SchemaKey
         }
-        this.indexes = indexes
-        for (let [name, fields] of Object.entries(models)) {
-            this.models[name] = new Model(this, name, {fields, indexes})
+        if (primary.sort) {
+            params[primary.sort] = SchemaKey
         }
+        return await this.getItem(params, {hidden: true, parse: true})
+    }
+
+    /*
+        Update the schema model saved in the database _Schema model.
+        NOTE: this does not update the current schema used by the Table instance.
+    */
+    async saveSchema(schema) {
+        if (schema) {
+            schema = this.merge({}, schema)
+            schema = this.mapSchema(schema)
+            schema.params = this.getParams()
+        } else {
+            schema = this.getSchema()
+        }
+        if (!schema) {
+            throw new Error('No schema to save')
+        }
+        let primary = this.indexes.primary
+        schema[primary.hash] = SchemaKey
+        if (primary.sort) {
+            schema[primary.sort] = SchemaKey
+        }
+        await this.putItem(schema)
+        return schema
+    }
+
+    getParams() {
+        return {
+            createdField: this.createdField,
+            delimiter: this.delimiter,
+            hidden: this.hidden,
+            isoDates: this.isoDates,
+            nulls: this.nulls,
+            timestamps: this.timestamps,
+            typeField: this.typeField,
+            updatedField: this.updatedField,
+            uuid: this.uuid,
+        }
+    }
+
+    /*
+        Set the schema and creating models for all the entities.
+        NOTE: does not update the saved schema in the table.
+    */
+    setSchema(schema) {
+        this.models = {}
+        this.indexes = DefaultIndexes
+
+        if (schema) {
+            let {models, indexes} = schema
+            if (!models) {
+                throw new Error('Schema is missing models')
+            }
+            if (!indexes) {
+                throw new Error('Schema is missing indexes')
+            }
+            this.indexes = indexes
+            for (let [name, model] of Object.entries(models)) {
+                this.models[name] = new Model(this, name, {fields: model, indexes})
+            }
+            if (schema.params) {
+                this.setParams(schema.params)
+            }
+            this.schema = schema
+        }
+        this.createUniqueModel()
+        this.createGenericModel()
+    }
+
+    /*
+        Model for unique attributes
+     */
+    createUniqueModel() {
+        let primary = this.indexes.primary
+        /*
+            LEGACY 1.7.4 - remove in 2.0.0
+            Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
+            Now, use the delimiter with a unique prefix.
+            Defaults to be ':' in 1.7.
+        */
+        let sep = this.params.legacyUnique || this.delimiter
+        let fields = {
+            [primary.hash]: { type: String, value: `_unique${sep}\${` + primary.hash + '}'},
+        }
+        if (primary.sort) {
+            fields[primary.sort] = { type: String, value: `_unique${sep}`}
+        }
+        this.uniqueModel = new Model(this, '_Unique', {
+            fields: fields,
+            indexes: this.indexes,
+            timestamps: false
+        })
+    }
+
+    /*
+        Model for genric low-level API access. Generic models allow reading attributes that are not defined on the schema.
+     */
+    createGenericModel() {
+        let primary = this.indexes.primary
+        let fields = {[primary.hash]: {type: String}}
+        if (primary.sort) {
+            fields[primary.sort] = {type: String}
+        }
+        this.genericModel = new Model(this, 'GenericModel', {
+            fields: fields,
+            indexes: this.indexes,
+            timestamps: false,
+            generic: true,
+        })
     }
 
     /*
@@ -512,7 +570,7 @@ export class Table {
         Create a clone of the table with the same settings and replace the context
     */
     child(context) {
-        let table = Object.clone(this)
+        let table = JSON.parse(JSON.stringify(this))
         table.context  = context
         return table
     }
@@ -604,7 +662,7 @@ export class Table {
         }
         batch.ConsistentRead = params.consistent ? true : false
 
-        let result = await this.execute('_Generic', 'batchGet', batch, {}, params)
+        let result = await this.execute('GenericModel', 'batchGet', batch, {}, params)
 
         let response = result.Responses
         if (params.parse && response) {
@@ -627,7 +685,7 @@ export class Table {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return {}
         }
-        return await this.execute('_Generic', 'batchWrite', batch, params)
+        return await this.execute('GenericModel', 'batchWrite', batch, params)
     }
 
     async deleteItem(properties, params) {
@@ -662,7 +720,7 @@ export class Table {
         Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
     async transact(op, transaction, params = {}) {
-        let result = await this.execute('_Generic', op == 'write' ? 'transactWrite' : 'transactGet', transaction, params)
+        let result = await this.execute('GenericModel', op == 'write' ? 'transactWrite' : 'transactGet', transaction, params)
         if (op == 'get') {
             if (params.parse) {
                 let items = []
@@ -828,6 +886,10 @@ export class Table {
         return new ULID().toString()
     }
 
+    setMakeID(fn) {
+        this.makeID = fn
+    }
+
     initCrypto(crypto) {
         this.crypto = Object.assign(crypto)
         for (let [name, crypto] of Object.entries(this.crypto)) {
@@ -959,6 +1021,46 @@ export class Table {
             }
         }
         return item
+    }
+
+    mergeOne(recurse, dest, src) {
+        if (recurse++ > 50) {
+            throw new Error('Recursive clone')
+        }
+        for (let [key, value] of Object.entries(src)) {
+            if (value === undefined) {
+                continue
+
+            } else if (value instanceof Date) {
+                dest[key] = new Date(value)
+
+            } else if (value instanceof RegExp) {
+                dest[key] = new RegExp(value.source, value.flags)
+
+            } else if (Array.isArray(value)) {
+                if (!Array.isArray(dest[key])) {
+                    dest[key] = []
+                }
+                dest[key] = this.mergeOne(recurse, dest[key], value)
+
+            } else if (typeof value == 'object' && !(value instanceof RegExp || value == null)) {
+                if (typeof dest[key] != 'object') {
+                    dest[key] = {}
+                }
+                dest[key] = this.mergeOne(recurse, dest[key], value)
+
+            } else {
+                dest[key] = value
+            }
+        }
+        return dest
+    }
+
+    merge(dest, ...sources) {
+        for (let src of sources) {
+            dest = this.mergeOne(0, dest, src)
+        }
+        return dest
     }
 }
 
