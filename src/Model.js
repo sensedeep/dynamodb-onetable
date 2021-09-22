@@ -846,6 +846,7 @@ export class Model {
                 value = this.decrypt(value)
             }
             if (field.default !== undefined && value === undefined) {
+                //  DEPRECATED
                 if (typeof field.default == 'function') {
                     value = field.default(this, field.name, properties)
                 } else {
@@ -861,7 +862,7 @@ export class Model {
                 continue
 
             } else {
-                rec[name] = this.transformReadAttribute(field, name, value)
+                rec[name] = this.transformReadAttribute(field, name, value, params)
             }
         }
         if (this.generic) {
@@ -872,25 +873,26 @@ export class Model {
                 }
             }
         }
-        //  This is undocumented
-        if (typeof params.transform == 'function') {
-            rec = params.transform(this, 'read', rec, params, raw)
-        }
-        if (this.table.intercept && ReadWrite[op] == 'read') {
-            rec = this.table.intercept(this, op, rec, params, raw)
+        if (this.table.transform && ReadWrite[op] == 'read') {
+            rec = this.table.transform(this, op, rec, params, raw)
         }
         return rec
     }
 
-    transformReadAttribute(field, name, value) {
+    transformReadAttribute(field, name, value, params) {
+        if (typeof params.transform == 'function') {
+            //  Invoke custom data transform after reading
+            return params.transform(this, 'read', name, value)
+        }
+        //  DEPRECATED
         if (typeof field.transform == 'function') {
             //  Invoke custom data transform after reading
             return field.transform(this, 'read', name, value)
         }
-        if (field.type == Date) {
+        if (field.type == 'date') {
             return value ? new Date(value) : null
         }
-        if (field.type == Buffer || field.type == 'Binary') {
+        if (field.type == 'buffer' || field.type == 'binary') {
             return Buffer.from(value, 'base64')
         }
         return value
@@ -915,14 +917,11 @@ export class Model {
         let rec = this.transformProperties(op, this.block, index, properties, params)
 
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
+            this.table.log.error(`Empty hash key`, {properties, params, op})
             throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
         }
-        //  This is undocumented
-        if (typeof params.transform == 'function') {
-            rec = params.transform(this, 'write', rec, params)
-        }
-        if (this.table.intercept && ReadWrite[op] == 'write') {
-            rec = this.table.intercept(this, op, rec, params)
+        if (this.table.transform && ReadWrite[op] == 'write') {
+            rec = this.table.transform(this, op, rec, params)
         }
         return rec
     }
@@ -1042,7 +1041,7 @@ export class Model {
                 }
             }
             if (value !== undefined) {
-                rec[name] = this.transformWriteAttribute(op, field, value)
+                rec[name] = this.transformWriteAttribute(op, field, value, params)
             }
         }
 
@@ -1295,10 +1294,14 @@ export class Model {
     /*
         Transform types before writing data to Dynamo
      */
-    transformWriteAttribute(op, field, value) {
+    transformWriteAttribute(op, field, value, params) {
         let type = field.type
 
-        if (field.transform) {
+        if (typeof params.transform == 'function') {
+            value = params.transform(this, 'write', field.name, value)
+
+        } else if (typeof field.transform == 'function') {
+            //  DEPRECATED
             value = field.transform(this, 'write', field.name, value)
 
         } else if (value == null && field.nulls === true) {
