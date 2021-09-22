@@ -26,6 +26,6 @@ export default {
 
             gs1pk:      { type: String, value: '${_type}#${email}' },
             gs1sk:      { type: String, value: '${_type}#${accountId}' },
-        }
-    }
+        },
+    } as const
 }

@@ -101,6 +101,14 @@ type EntityField<T extends OneTypedField> =
     : T['type'] extends DateConstructor ? Date
     : T['type'] extends StringConstructor ? string
     : T['type'] extends SetConstructor ? Set<T>
+
+    : T['type'] extends 'array' ? any[]
+    : T['type'] extends 'boolean' ? boolean
+    : T['type'] extends 'number' ? number
+    : T['type'] extends 'object' ? object
+    : T['type'] extends 'date' ? Date
+    : T['type'] extends 'string' ? string
+    : T['type'] extends 'set' ? Set<T>
     : never;
 
 /*

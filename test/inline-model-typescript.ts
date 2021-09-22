@@ -13,10 +13,11 @@ const table = new Table({
 })
 
 const CardSchema = {
-    pk:     { type: String, value: 'card:${id}' },
-    id:     { type: Number },
-    issuer: { type: String },
-}
+    pk:     { type: 'string', value: 'card:${id}' },
+    id:     { type: 'number' },
+    issuer: { type: 'string' },
+} as const
+
 type CardType = Entity<typeof CardSchema>
 let Card: Model<CardType> = null
 

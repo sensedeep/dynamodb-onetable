@@ -54,7 +54,7 @@ export class Model {
         this.delimiter = table.delimiter
         this.generic = options.generic
         this.nested = false
-        this.nulls = table.nulls || false
+        this.nulls = table.nulls
         this.tableName = table.name
         this.typeField = table.typeField
         this.timestamps = options.timestamps
@@ -83,28 +83,11 @@ export class Model {
 
     /*
         Prepare a model based on the schema and compute the attribute mapping.
-        Field properties:
-
-        crypt           Boolean
-        default         Default value string or function
-        enum            Array of values
-        filter          Boolean. Prevent a property from being used in a filter
-        foreign         model:key-attribute (not yet supported)
-        hidden          Boolean. Don't return the attributes to API callers.
-        map             String
-        nulls           Boolean
-        required        Boolean
-        size            Number (not implemented)
-        transform       Transform hook function
-        type            See ValidtTpes
-        unique          Boolean
-        uuid            true, 'uuid', 'ulid'
-        validate        RegExp or "/regexp/qualifier"
-        value           String template, function, array
      */
     prepModel(schemaFields, block, prefix = '') {
         let {fields} = block
-        schemaFields = Object.assign({}, schemaFields)
+
+        schemaFields = this.table.merge({}, schemaFields)
         if (!prefix) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
@@ -132,7 +115,7 @@ export class Model {
             field.name = name
             fields[name] = field
 
-            this.checkType(field)
+            field.type = this.checkType(field)
 
             /*
                 Handle mapped attributes. May be packed also (obj.prop)
@@ -192,7 +175,7 @@ export class Model {
             /*
                 Handle nested schema (recursive)
             */
-            if (field.type == Object && field.schema) {
+            if (field.type == 'object' && field.schema) {
                 field.block = {deps: [], fields: {}}
                 this.prepModel(field.schema, field.block, name)
                 this.nested = true
@@ -221,9 +204,11 @@ export class Model {
         if (typeof type == 'function') {
             type = type.name
         }
-        if (ValidTypes.indexOf(type.toLowerCase()) < 0) {
+        type = type.toLowerCase()
+        if (ValidTypes.indexOf(type) < 0) {
             throw new Error(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
         }
+        return type
     }
 
     orderFields(block, field) {
@@ -757,7 +742,6 @@ export class Model {
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
         }
-        //  createUnique has already run
         if (!params.prepared) {
             properties = this.prepareProperties('put', properties, params)
         }
@@ -1090,6 +1074,7 @@ export class Model {
             //  Set defaults and uuid fields
             if (value === undefined && !field.value) {
                 if (field.default != null) {
+                    //  DEPRECATED
                     if (typeof field.default == 'function') {
                         value = field.default(this, field.name, properties)
                     } else {
@@ -1137,7 +1122,7 @@ export class Model {
                 params.remove.push(field.pathname)
                 delete properties[name]
 
-            } else if (field.type == Object && typeof value == 'object') {
+            } else if (field.type == 'object' && typeof value == 'object') {
                 properties[name] = this.removeNulls(field, value)
             }
         }
@@ -1157,6 +1142,7 @@ export class Model {
                 properties[name] = properties[name](field.pathname, properties)
             }
             if (properties[name] === undefined && field.value) {
+                //  DEPRECATED
                 if (typeof field.value == 'function') {
                     properties[name] = field.value(field.pathname, properties)
                 } else {
@@ -1257,6 +1243,7 @@ export class Model {
                     details[fieldName] = `Value not defined for "${fieldName}"`
                 }
             } else if (typeof validate == 'function') {
+                //  DEPRECATE
                 let error
                 ({error, value} = validate(this, field, value))
                 if (error) {
@@ -1311,36 +1298,36 @@ export class Model {
             //  Find used {begins} and other operators
             value = this.transformNestedWriteFields(field, value)
 
-        } else if (type == Date) {
+        } else if (type == 'date') {
             value = this.transformWriteDate(value)
 
-        } else if (type == Number) {
+        } else if (type == 'number') {
             let num = Number(value)
             if (isNaN(num)) {
                 throw new Error(`Invalid value "${value}" provided for field "${field.name}"`)
             }
             value = num
 
-        } else if (type == Boolean) {
+        } else if (type == 'boolean') {
             if (value == 'false' || value == 'null' || value == 'undefined') {
                 value = false
             }
             value = Boolean(value)
 
-        } else if (type == String) {
+        } else if (type == 'string') {
             if (value != null) {
                 value = value.toString()
             }
 
-        } else if (type == Buffer || type == 'Binary') {
+        } else if (type == 'buffer' || type == 'binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
             }
 
-        } else if ((type == Set || type == 'Set') && Array.isArray(value)) {
+        } else if (type == 'set' && Array.isArray(value)) {
             value = this.transformWriteSet(type, value)
 
-        } else if (type == Object && (value != null && typeof value == 'object')) {
+        } else if (type == 'object' && (value != null && typeof value == 'object')) {
             value = this.transformNestedWriteFields(field, value)
         }
 

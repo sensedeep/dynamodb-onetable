@@ -32,6 +32,8 @@ const dump = (...args) => {
 const print = (...args) => {
     console.log(...args)
 }
+globalThis.dump = dump
+globalThis.print = print
 
 const delay = async (time) => {
     return new Promise(function(resolve, reject) {

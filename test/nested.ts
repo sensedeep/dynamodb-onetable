@@ -40,9 +40,9 @@ test('Create Table', async() => {
 
 test('Get Schema', () => {
     let schema:any = table.getSchema()
-    expect(schema.name).toBe('NestedTestTable')
     expect(schema.models).toBeDefined()
     expect(schema.indexes).toBeDefined()
+    expect(schema.params).toBeDefined()
     expect(schema.models.User).toBeDefined()
     expect(schema.models.User.pk).toBeDefined()
 })
