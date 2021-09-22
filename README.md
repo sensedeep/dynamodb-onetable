@@ -837,6 +837,9 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
+#### async readSchema(): OneSchema
+
+Read the schema from the table if it has been stored there via `saveSchema`.
 
 #### async remove(modelName, properties, params = {})
 
@@ -847,6 +850,12 @@ Delete an item in the database of the given model `modelName` as defined in the 
 
 Remove a model from the `Table` schema.
 
+#### async saveSchema(schema?: OneSchema): OneSchema
+
+Save the current schema to the table using the _Schema:_Schema hash/sort key pair.
+
+If the schema parameter is null or not provided, the currently configured schema will be saved.
+If a schema is provided and the schema.params is unset, the saved schema will include the current Table parms.
 
 #### async scanItems(params)
 
@@ -882,6 +891,13 @@ Assign an AWS SDK V2 DocumentClient or AWS SDK V3 Dynamo helper client to be use
 
 Set the table `context` properties. If `merge` is true, the properties are blended with the existing context.
 
+#### async setSchema(schema: OneSchema)
+
+Set the current schema for the table instance. This will reset the current schema. If the schema parameter contains a schema.params, these will be applied and overwrite the current Table params.
+
+If the current table params contained function callbacks for `uuid`, `transform` or `metrics.properties` these will be retained when the new schema is applied.
+
+Note: This will not persist the schema to the table (Use `saveSchema` for that).
 
 #### async transact(operation, transaction, params = {})
 

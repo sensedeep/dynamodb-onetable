@@ -147,7 +147,9 @@ export class Table {
             If a schema loads new params, then need to preserve these callback functions.
         */
         this.name = params.name || this.name
+        //  DEPRECATE
         this.intercept = params.intercept || this.intercept
+        this.transform = params.transform || this.transform
         if (params.metrics) {
             this.setMetrics(params.metrics)
         }
@@ -255,7 +257,9 @@ export class Table {
         if (schema) {
             schema = this.merge({}, schema)
             schema = this.mapSchema(schema)
-            schema.params = this.getParams()
+            if (!schema.params) {
+                schema.params = this.getParams()
+            }
         } else {
             schema = this.getSchema()
         }
