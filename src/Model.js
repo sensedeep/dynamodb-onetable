@@ -1023,6 +1023,9 @@ export class Model {
                     //  Attribute is not projected
                     continue
                 }
+                if (name == this.typeField && op == 'find') {
+                    continue
+                }
             }
             if (value !== undefined) {
                 rec[name] = this.transformWriteAttribute(op, field, value, params)
