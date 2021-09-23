@@ -271,6 +271,7 @@ export class Table {
         if (primary.sort) {
             schema[primary.sort] = SchemaKey
         }
+        schema[this.typeField] = '_Schema'
         await this.putItem(schema)
         return schema
     }
