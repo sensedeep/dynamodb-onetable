@@ -51,12 +51,12 @@ export class Model {
 
         //  Cache table properties
         this.createdField = table.createdField
-        this.delimiter = table.delimiter
+        this.delimiter = options.delimiter || table.delimiter
         this.generic = options.generic
         this.nested = false
         this.nulls = table.nulls
         this.tableName = table.name
-        this.typeField = table.typeField
+        this.typeField = options.typeField || table.typeField
         this.timestamps = options.timestamps
         this.generic = options.generic != null ? options.generic : table.generic
         if (this.timestamps == null) {
