@@ -222,11 +222,19 @@ export class Model {
                 let name = pathname.split('.').shift()
                 let ref = fields[name]
                 if (ref && ref != field && (ref.schema || ref.value)) {
-                    this.orderFields(field.block, ref)
+                    this.orderFields(ref.block, ref)
                 }
             }
         }
         deps.push(field)
+    }
+
+    getPropValue(properties, path) {
+        let v = properties
+        for (let part of path.split('.')) {
+            v = properties[part]
+        }
+        return v
     }
 
     /*
@@ -1169,7 +1177,7 @@ export class Model {
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
             //  TODO need to handle "." split as well
             let [name, len, pad] = varName.split(':')
-            let v = properties[name]
+            let v = this.getPropValue(properties, name)
             if (v !== undefined) {
                 if (v instanceof Date) {
                     v = this.transformWriteDate(v)
