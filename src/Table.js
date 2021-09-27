@@ -935,6 +935,22 @@ export class Table {
         this.makeID = fn
     }
 
+    /*
+        Return the value template variable references in a list
+     */
+    getVars(v) {
+        let list = []
+        if (Array.isArray(v)) {
+            list = v
+        } else if (typeof v != 'function') {
+            //  FUTURE - need 'depends' to handle function dependencies
+            v.replace(/\${(.*?)}/g, (match, varName) => {
+                list.push(varName)
+            })
+        }
+        return list
+    }
+
     initCrypto(crypto) {
         this.crypto = Object.assign(crypto)
         for (let [name, crypto] of Object.entries(this.crypto)) {

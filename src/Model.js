@@ -217,7 +217,7 @@ export class Model {
             return
         }
         if (field.value) {
-            let vars = this.getVars(field.value)
+            let vars = this.table.getVars(field.value)
             for (let pathname of vars) {
                 let name = pathname.split('.').shift()
                 let ref = fields[name]
@@ -235,22 +235,6 @@ export class Model {
             v = properties[part]
         }
         return v
-    }
-
-    /*
-        Return the value template variable references in a list
-     */
-    getVars(v) {
-        let list = []
-        if (Array.isArray(v)) {
-            list = v
-        } else if (typeof v != 'function') {
-            //  FUTURE - need 'depends' to handle function dependencies
-            v.replace(/\${(.*?)}/g, (match, varName) => {
-                list.push(varName)
-            })
-        }
-        return list
     }
 
     /*
