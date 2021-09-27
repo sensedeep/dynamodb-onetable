@@ -215,8 +215,19 @@ export class Table {
         return this.mapSchema(schema)
     }
 
+    //  Prepare for persisting the schema
     mapSchema(schema) {
-        //  Get field types (may have been constructors)
+        for (let [name, model] of Object.entries(schema.models)) {
+            for (let [fname, field] of Object.entries(model)) {
+                if (field.validate && field.validate instanceof RegExp) {
+                    schema.models[name][fname].validate = `/${field.validate.source}/${field.validate.flags}`
+                }
+                let type = (typeof field.type == 'function') ? field.type.name : field.type
+                field.type = type.toLowerCase()
+            }
+        }
+
+        /*
         for (let [name, model] of Object.entries(this.models)) {
             for (let [fname, field] of Object.entries(model.block.fields)) {
                 if (schema.models[name][fname]) {
