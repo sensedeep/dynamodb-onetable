@@ -2,6 +2,7 @@
     Schema with a single primary key
  */
 export default {
+    version: '0.0.1',
     indexes: {
         primary: { hash: 'pkey' },
     },

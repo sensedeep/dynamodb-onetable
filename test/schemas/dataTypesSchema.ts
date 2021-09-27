@@ -2,6 +2,7 @@
     Schema to test various data types
  */
 export default {
+    version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
     },

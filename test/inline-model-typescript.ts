@@ -7,6 +7,7 @@ const table = new Table({
     name: 'InlineModelTypeScriptTestTable',
     client: Client,
     schema: {
+        version: '0.0.1',
         indexes: {primary: {hash: 'pk'}},
         models: {},
     }

@@ -5,6 +5,8 @@
 import {Match} from '../utils/init'
 
 export default {
+    version: '0.0.1',
+    format: 'onetable:1.0.0',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
     },

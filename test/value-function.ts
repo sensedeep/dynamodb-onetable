@@ -1,5 +1,5 @@
 /*
-    value-function.ts - 
+    value-function.ts -
  */
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 
@@ -9,14 +9,15 @@ const table = new Table({
     logger: true,
     timestamps: true,
     schema: {
+        version: '0.0.1',
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
         },
         models: {
             User: {
                 pk: { type: String, value: 'user#${email}' },
-                sk: { 
-                    type: String, 
+                sk: {
+                    type: String,
                     value: (propertyName, properties: any) => {
                         return `user#${properties.email}`
                     },

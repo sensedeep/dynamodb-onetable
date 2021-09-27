@@ -9,6 +9,7 @@ const table = new Table({
     name: "LegacyTestTable",
     client: Client,
     schema: {
+        version: '0.0.1',
         indexes: {
             primary: { hash: 'name' },
         },
@@ -33,7 +34,7 @@ let users: any[]
 
 test('Put item', async() => {
     user = await table.putItem({
-        name: 'Peter Smith', 
+        name: 'Peter Smith',
         email: 'peter@example.com'
     }, {parse: true})
     expect(user.name).toBe('Peter Smith')

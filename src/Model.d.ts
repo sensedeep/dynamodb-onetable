@@ -66,13 +66,16 @@ export type OneModelSchema = {
     Schema signature
  */
 type OneSchema = {
+    name?: string,
+    version?: string,
+    format?: string,
     params?: {
         [key: string]: any
     },
-    models?: {
+    models: {
         [key: string]: OneModelSchema
     },
-    indexes?: {
+    indexes: {
         [key: string]: OneIndexSchema
     },
 };

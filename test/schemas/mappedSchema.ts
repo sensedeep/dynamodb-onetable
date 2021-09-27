@@ -5,6 +5,7 @@
     This makes the raw table harder to read, but uses less RCU/WCU in writing the attribute names.
  */
 export default {
+    version: '0.0.1',
     indexes: {
         primary: {
             hash: 'pk',     //  Attribute names

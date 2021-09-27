@@ -94,6 +94,7 @@ Schemas define how items will be stored in your database and look like this:
 
 ```javascript
 const MySchema = {
+    version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
         gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
@@ -232,6 +233,7 @@ For example:
 import {Entity, Model, Table} from 'dynamodb-onetable'
 
 const MySchema = {
+    ...
     models: {
         Account: {
             pk:    { type: String, value: 'account:${name}' },
@@ -511,8 +513,11 @@ The valid properties of the `schema` object are:
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
-| indexes | `object` | Hash of indexes used by the table |
-| models | `object` | Hash of model entities describing the model keys, indexes and attributes |
+| format | `string` | Reserved. Set to 'onetable:1.0.0' |
+| indexes | `object` | Hash of indexes used by the table. |
+| models | `object` | Hash of model entities describing the model keys, indexes and attributes. |
+| params | `object` | Hash of model entities describing the model keys, indexes and attributes. |
+| version | `string` | A Semver compatible version string. |
 
 #### Indexes
 

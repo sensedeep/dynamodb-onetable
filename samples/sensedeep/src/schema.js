@@ -8,6 +8,7 @@ const Version = '1.1.0'
 const EnumUuid = /^[0-9A-F]{32}$/i
 
 export default {
+    version: '0.0.1',
     indexes: {
         primary: {
             hash: 'pk',

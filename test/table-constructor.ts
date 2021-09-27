@@ -24,6 +24,7 @@ test('Create table args', async() => {
         table = new Table({})
     }).rejects.toThrow()
 
+    /* TS now catches this
     await expect(async () => {
         table = new Table({name: TableName, schema: {}})
     }).rejects.toThrow()
@@ -31,6 +32,7 @@ test('Create table args', async() => {
     await expect(async () => {
         table = new Table({name: TableName, schema: {models: {}}})
     }).rejects.toThrow()
+    */
 })
 
 test('Create table with various params', async() => {
@@ -89,6 +91,7 @@ test('Create table with GSI and project keys', async() => {
         name: TableName,
         client: Client,
         schema: {
+            version: '0.0.1',
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
                 gs1: { hash: 'id', sort: 'email', project: 'keys' },
@@ -115,6 +118,7 @@ test('Create table with LSI and project', async() => {
         name: TableName,
         client: Client,
         schema: {
+            version: '0.0.1',
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
                 //  Should fail -- projects not legal
@@ -141,6 +145,7 @@ test('Create table with LSI', async() => {
         name: TableName,
         client: Client,
         schema: {
+            version: '0.0.1',
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
                 ls1: { sort: 'email' },

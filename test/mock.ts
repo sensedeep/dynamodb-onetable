@@ -11,6 +11,7 @@ const table = new Table({
     client: Client,
     logger: true,
     schema: {
+        version: '0.0.1',
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
             emailIndex: { hash: 'email' },

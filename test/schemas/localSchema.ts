@@ -2,6 +2,7 @@
     Default schema with a test User entity
  */
 export default {
+    version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
         ls1: { hash: 'pk', sort: 'ls1sk' },

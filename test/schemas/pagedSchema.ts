@@ -2,6 +2,7 @@
     Per-tenant schema
  */
 export default {
+    version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
     },
