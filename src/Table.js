@@ -88,7 +88,12 @@ const DynamoOps = {
 }
 
 const GenericModel = '_Generic'
+const MigrationModel = '_Migration'
+const SchemaModel = '_Schema'
+const UniqueModel = '_Unique'
 const SchemaKey = '_schema'
+const UniqueKey = '_unique'
+const SchemaFormat = 'onetable:1.0.0'
 
 /*
     Represent a single DynamoDB table
@@ -359,6 +364,41 @@ export class Table {
             timestamps: false,
             generic: true,
         })
+    }
+
+    createSchemaModel() {
+        let indexes = this.indexes
+        let primary = indexes.primary
+        //  Delimiter here is hard coded because we need to be able to read a schema before we know what the delimiter is.
+        let delimiter = ':'
+        let fields = this.schemaFields = {
+            [primary.hash]: { type: String, required: true, value: `${SchemaKey}${delimiter}` },
+            [primary.sort]: { type: String, required: true, value: `${SchemaKey}${delimiter}\${name}` },
+            format: { type: String, required: true },
+            name: { type: String, required: true },
+            indexes: { type: Array, required: true },
+            models: { type: Array, required: true },
+            params: { type: Object, required: true },
+            queries: { type: Object, required: true },
+            version: { type: String, required: true },
+        }
+        this.models[SchemaModel] = new Model(this, SchemaModel, {fields, indexes, delimiter})
+    }
+
+    createMigrationModel() {
+        let indexes = this.indexes
+        let primary = indexes.primary
+        //  Delimiter here is hard coded because we need to be able to read a migration/schema before we know what the delimiter is.
+        let delimiter = ':'
+        let fields = this.migrationFields = {
+            [info.hash]: { type: String, value: `_migrations${delimiter}` },
+            [info.sort]: { type: String, value: `_migrations${delimiter}\${version}` },
+            description: { type: String, required: true },
+            date:        { type: Date,   required: true },
+            path:        { type: String, required: true },
+            version:     { type: String, required: true },
+        }
+        this.models[MigrationModel] = new Model(this.db, MigrationModel, {fields, indexes, delimiter})
     }
 
     /*

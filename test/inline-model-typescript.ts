@@ -29,13 +29,14 @@ test('Create table', async () => {
 })
 
 test('Create model', async () => {
+    let base = table.listModels()
     //  This model is free-standing not added to the list of table models
     Card = new Model<CardType>(table, 'Card', {
         fields: CardSchema,
         indexes: {primary: {hash: 'pk'}},
     })
     let models = table.listModels()
-    expect(models.length).toBe(0)
+    expect(models.length - base.length).toBe(0)
 })
 
 test('Create item', async () => {
@@ -45,11 +46,12 @@ test('Create item', async () => {
 })
 
 test('Add model', async() =>{
+    let base = table.listModels()
     table.addModel('Card', CardSchema)
 
     let models = table.listModels()
-    expect(models.length).toBe(1)
-    expect(models[0]).toBe('Card')
+    expect(models.length - base.length).toBe(1)
+    expect(models[models.length - 1]).toBe('Card')
 
     let Card = table.getModel<CardType>('Card')
     expect(Card).toBeDefined()
@@ -58,9 +60,11 @@ test('Add model', async() =>{
 })
 
 test('Remove model', async() => {
+    let base = table.listModels()
+
     table.removeModel('Card')
     let models = table.listModels()
-    expect(models.length).toBe(0)
+    expect(base.length - models.length).toBe(1)
 
     await expect(async() => {
         table.removeModel('Unknown')
