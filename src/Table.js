@@ -430,14 +430,14 @@ export class Table {
         //  Delimiter here is hard coded because we need to be able to read a migration/schema before we know what the delimiter is.
         let delimiter = ':'
         let fields = this.migrationFields = {
-            [info.hash]: { type: String, value: `_migrations${delimiter}` },
-            [info.sort]: { type: String, value: `_migrations${delimiter}\${version}` },
+            [primary.hash]: { type: String, value: `_migrations${delimiter}` },
+            [primary.sort]: { type: String, value: `_migrations${delimiter}\${version}` },
             description: { type: String, required: true },
             date:        { type: Date,   required: true },
             path:        { type: String, required: true },
             version:     { type: String, required: true },
         }
-        this.models[MigrationModel] = new Model(this.db, MigrationModel, {fields, indexes, delimiter})
+        this.models[MigrationModel] = new Model(this, MigrationModel, {fields, indexes, delimiter})
     }
 
     /*
