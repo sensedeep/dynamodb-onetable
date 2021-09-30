@@ -91,7 +91,7 @@ export class Model {
         if (!prefix) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
-                schemaFields[this.typeField] = { type: String }
+                schemaFields[this.typeField] = { type: String, hidden: true }
             }
             if (this.timestamps) {
                 schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
@@ -785,6 +785,7 @@ export class Model {
             params.where = where.join(' or ')
         }
         params.parse = true
+        params.hidden = true
 
         let items = await this.queryItems(properties, params)
         return this.table.groupByType(items)
@@ -818,7 +819,7 @@ export class Model {
             if (sub) {
                 value = value[sub]
             }
-            if (field.crypt) {
+            if (field.crypt && params.decrypt !== false) {
                 value = this.decrypt(value)
             }
             if (field.default !== undefined && value === undefined) {
