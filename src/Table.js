@@ -127,6 +127,10 @@ export class Table {
         }
         this.setParams(params)
         this.setSchema(params.schema)
+        this.createUniqueModel()
+        this.createGenericModel()
+        this.createSchemaModel()
+        this.createMigrationModel()
     }
 
     setParams(params) {
@@ -250,12 +254,7 @@ export class Table {
         let primary = indexes.primary
 
         if (indexes == DefaultIndexes) {
-            let info = await this.describeTable()
-            let primary = {}
-            for (let key of info.Table.KeySchema) {
-                let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
-                primary[type] = key.AttributeName
-            }
+            ({primary} = await this.getTableKeys())
         }
         //  FUTURE use await this.schemaModel.update({schema}, {exists: null})
         let params = {
@@ -264,8 +263,32 @@ export class Table {
         if (primary.sort) {
             params[primary.sort] = `${SchemaKey}:Current`
         }
-        let schema = await this.getItem(params, {hidden: true, parse: true})
-        return schema
+        return await this.getItem(params, {hidden: true, parse: true})
+    }
+
+    async getTableKeys(refresh = false) {
+        if (this.described && !refresh) {
+            return this.described
+        }
+        let info = await this.describeTable()
+        let primary = {}
+        for (let key of info.Table.KeySchema) {
+            let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
+            primary[type] = key.AttributeName
+        }
+        let secondary = {}
+        if (info.Table.GlobalSecondaryIndexes) {
+            for (let index of info.Table.GlobalSecondaryIndexes) {
+                let keys = secondary[index.IndexName] = {}
+                for (let key of index.KeySchema) {
+                    let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
+                    keys[type] = key.AttributeName
+                }
+                secondary[index.IndexName] = keys
+            }
+        }
+        this.described = {primary, secondary}
+        return this.described
     }
 
     /*
@@ -306,47 +329,42 @@ export class Table {
         schema.models[MigrationModel] = this.migrationFields
 
         let model = this.getModel(SchemaModel)
-        return await model.update(schema, {exists: null, log: true})
+        return await model.update(schema, {exists: null})
     }
 
     async removeSchema(schema) {
-        await this.schemaModel.remove(schema, {log: true})
+        let model = this.getModel(SchemaModel)
+        await model.remove(schema)
     }
 
     /*
-        Set the schema and creating models for all the entities.
-        If schema is unset, then this clears the prior schema.
+        Set the schema and models. If schema is unset, then this clears the prior schema.
         NOTE: does not update the saved schema in the table.
     */
     setSchema(schema) {
         this.models = {}
         this.indexes = DefaultIndexes
 
-        if (schema) {
-            //  Should this be enforced?
-            if (!schema.version) {
-                throw new Error('Schema is missing a version')
-            }
-            let {models, indexes, params} = schema
-            if (!models) {
-                models = {}
-            }
-            if (!indexes) {
-                indexes = DefaultIndexes
-            }
-            this.indexes = indexes
-            for (let [name, model] of Object.entries(models)) {
-                this.models[name] = new Model(this, name, {fields: model, indexes})
-            }
-            if (params) {
-                this.setParams(params)
-            }
-            this.schema = schema
+        if (!schema) return
+
+        if (!schema.version) {
+            throw new Error('Schema is missing a version')
         }
-        this.createUniqueModel()
-        this.createGenericModel()
-        this.createSchemaModel()
-        this.createMigrationModel()
+        let {models, indexes, params} = schema
+        if (!models) {
+            models = {}
+        }
+        if (!indexes) {
+            indexes = DefaultIndexes
+        }
+        this.indexes = indexes
+        for (let [name, model] of Object.entries(models)) {
+            this.models[name] = new Model(this, name, {fields: model, indexes})
+        }
+        if (params) {
+            this.setParams(params)
+        }
+        this.schema = schema
     }
 
     getParams() {
@@ -411,15 +429,15 @@ export class Table {
         //  Delimiter here is hard coded because we need to be able to read a schema before we know what the delimiter is.
         let delimiter = ':'
         let fields = this.schemaFields = {
-            [primary.hash]: { type: String, required: true, value: `${SchemaKey}${delimiter}` },
-            [primary.sort]: { type: String, required: true, value: `${SchemaKey}${delimiter}\${name}` },
-            format: { type: String, required: true },
-            name: { type: String, required: true },
-            indexes: { type: Array, required: true },
-            models: { type: Array, required: true },
-            params: { type: Object, required: true },
-            queries: { type: Object, required: true },
-            version: { type: String, required: true },
+            [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}${delimiter}` },
+            [primary.sort]: { type: 'string', required: true, value: `${SchemaKey}${delimiter}\${name}` },
+            format:         { type: 'string', required: true },
+            name:           { type: 'string', required: true },
+            indexes:        { type: 'array',  required: true },
+            models:         { type: 'array',  required: true },
+            params:         { type: 'object', required: true },
+            queries:        { type: 'object', required: true },
+            version:        { type: 'string', required: true },
         }
         this.models[SchemaModel] = new Model(this, SchemaModel, {fields, indexes, delimiter})
     }
@@ -430,12 +448,12 @@ export class Table {
         //  Delimiter here is hard coded because we need to be able to read a migration/schema before we know what the delimiter is.
         let delimiter = ':'
         let fields = this.migrationFields = {
-            [primary.hash]: { type: String, value: `_migrations${delimiter}` },
-            [primary.sort]: { type: String, value: `_migrations${delimiter}\${version}` },
-            description: { type: String, required: true },
-            date:        { type: Date,   required: true },
-            path:        { type: String, required: true },
-            version:     { type: String, required: true },
+            [primary.hash]: { type: 'string', value: `_migrations${delimiter}` },
+            [primary.sort]: { type: 'string', value: `_migrations${delimiter}\${version}` },
+            description:    { type: 'string', required: true },
+            date:           { type: 'date',   required: true },
+            path:           { type: 'string', required: true },
+            version:        { type: 'string', required: true },
         }
         this.models[MigrationModel] = new Model(this, MigrationModel, {fields, indexes, delimiter})
     }
