@@ -384,7 +384,7 @@ export class Expression {
             } else {
                 subscript = ''
             }
-            let field = fields[prop]
+            let field = fields ? fields[prop] : null
             if (field) {
                 target.push(`#_${this.addName(field.attribute[0])}${subscript}`)
                 //  If nested schema, advance to the next level
@@ -393,9 +393,6 @@ export class Expression {
                 //  No field, so just use the property name.
                 target.push(`#_${this.addName(prop)}${subscript}`)
                 fields = null
-            }
-            if (fields == null) {
-                break
             }
         }
         return target.join('.')

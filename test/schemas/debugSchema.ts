@@ -11,15 +11,23 @@ export default {
     models: {
         User: {
             pk:          { type: String, value: '${_type}#' },
-            sk:          { type: String, value: '${_type}#${data.id}' },
+            sk:          { type: String, value: '${_type}#${email}' },
             id:          { type: String, uuid: true },
             name:        { type: String },
             email:       { type: String },
             active:      { type: Boolean },
             counter:     { type: Number, default: 0 },
             data:        { type: Object, default: {}, schema: {
-                           id:  { type: String, required: true }
+                           id:  { type: String }
                          }
+            },
+            slides:      { type: Object },
+            _slides:      { type: Object, schema: {
+                            id:         { type: String },
+                            mediaType:  { type: String },
+                            mediaUrl:   { type: String },
+                            processed:  { type: Boolean },
+                        }
             },
             gs1pk:       { type: String, value: '${_type}#${name}' },
             gs1sk:       { type: String, value: '${_type}#' },
