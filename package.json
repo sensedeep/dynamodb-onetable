@@ -1,6 +1,6 @@
 {
     "name": "dynamodb-onetable",
-    "version": "1.9.0",
+    "version": "1.9.1",
     "description": "DynamoDB access library for single-table designs",
     "main": "dist/cjs/index.js",
     "module": "dist/mjs/index.js",
