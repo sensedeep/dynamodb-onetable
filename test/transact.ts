@@ -5,7 +5,7 @@
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
-// jest.setTimeout(7200 * 1000)
+jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'TransactTest',
@@ -72,7 +72,7 @@ test('Transaction update', async() => {
     }
     await table.transact('write', transaction, {parse: true, hidden: false})
 
-    users = await table.scan('User')
+    users = await table.scan('User', {}, {hidden: true})
     expect(users.length).toBe(data.length)
     for (let user of users) {
         expect(user.status).toBe('offline')

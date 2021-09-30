@@ -42,7 +42,6 @@ test('Create Table', async() => {
 test('Create', async() => {
     let user = await User.create({email: "peter@example.com", name: "Peter Smith"})
     expect(user).toMatchObject({
-        _type: 'User',
         email: 'peter@example.com',
         name: 'Peter Smith',
         status: 'active'
@@ -52,7 +51,6 @@ test('Create', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         email: 'peter@example.com',
         name: 'Peter Smith',
         status: 'active'
@@ -61,7 +59,6 @@ test('Create', async() => {
     users = await table.queryItems({email: "peter@example.com"}, {index: "emailIndex", parse: true})
     expect(users.length).toBe(1)
     expect(user).toMatchObject({
-        _type: 'User',
         email: 'peter@example.com',
         name: 'Peter Smith',
         status: 'active'

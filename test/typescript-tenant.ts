@@ -37,7 +37,7 @@ let userData = [
 
 test('Create Account', async() => {
     account = await Account.create({name: 'Acme Rockets'})
-    expect(account).toMatchObject({name: 'Acme Rockets', _type: 'Account'})
+    expect(account).toMatchObject({name: 'Acme Rockets'})
 
     table.setContext({accountId: account.id})
     expect(table.getContext()).toMatchObject({accountId: account.id})
@@ -53,7 +53,7 @@ test('Create Users', async() => {
 })
 
 test('Fetch', async() => {
-    let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true})
+    let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true, hidden: true})
     let collection = table.groupByType(items)
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(userData.length)

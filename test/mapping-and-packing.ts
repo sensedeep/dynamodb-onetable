@@ -46,7 +46,6 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -57,7 +56,6 @@ test('Get including hidden', async() => {
     //  Returns property names without hidden (primaryKey)
     let u = await User.get({id: user.id}, {hidden: true})
     expect(u).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
         primarySort: 'us#',
@@ -85,7 +83,6 @@ test('Get without parse', async() => {
 test('Get via GSI', async() => {
     let u = await User.get({email: user.email}, {index: 'gs1', follow: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -96,7 +93,6 @@ test('Find by ID', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -107,7 +103,6 @@ test('Find by name on GSI', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -116,7 +111,6 @@ test('Find by name on GSI', async() => {
 test('Update', async() => {
     user = await User.update({id: user.id, status: 'inactive'})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'inactive',
     })
@@ -133,7 +127,6 @@ test('Remove attribute 2', async() => {
     //  Update and remove attributes using {remove}
     user = await User.update({id: user.id, email: 'peter@gmail.com'}, {remove: ['status'], hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         email: 'peter@gmail.com',
         primarySort: 'us#',
@@ -154,7 +147,6 @@ test('Scan', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Sky Blue',
         status: 'active',
     })

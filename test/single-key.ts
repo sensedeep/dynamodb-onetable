@@ -50,7 +50,6 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -60,7 +59,6 @@ test('Get', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id}, {hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -72,7 +70,6 @@ test('Find by ID', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -81,7 +78,6 @@ test('Find by ID', async() => {
 test('Update', async() => {
     user = await User.update({id: user.id, status: 'inactive'})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'inactive',
     })
@@ -100,7 +96,6 @@ test('Scan', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Sky Blue',
         status: 'active',
     })

@@ -37,7 +37,7 @@ let userData = [
 
 test('Create Account and Users', async() => {
     account = await Account.create({name: 'Acme Rockets'})
-    expect(account).toMatchObject({name: 'Acme Rockets', _type: 'Account'})
+    expect(account).toMatchObject({name: 'Acme Rockets'})
 
     table.setContext({accountId: account.id})
     expect(table.getContext()).toMatchObject({accountId: account.id})

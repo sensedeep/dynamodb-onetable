@@ -38,7 +38,6 @@ test('Create account', async() => {
     account = await Account.create({name: 'Acme'})
     expect(account.name).toBe('Acme')
     expect(account.id).toMatch(Match.ulid)
-    expect(account._type).toBe('Account')
 })
 
 test('Set context', async() => {

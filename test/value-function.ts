@@ -43,7 +43,6 @@ test('Create Table', async() => {
 test('Test value template function for SK', async () => {
     let user = await User.create({email: 'peter@example.com', name: 'Peter Smith'})
     expect(user).toMatchObject({
-        _type: 'User',
         email: 'peter@example.com',
         name: 'Peter Smith',
     })

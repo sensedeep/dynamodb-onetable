@@ -43,7 +43,6 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         email: 'peter@example.com',
     })

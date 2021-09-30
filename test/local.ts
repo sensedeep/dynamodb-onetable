@@ -69,7 +69,6 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
     })
     expect(user.id).toMatch(Match.uuid)
@@ -79,7 +78,6 @@ test('Get by LS1 - by name', async() => {
     //  Get from LS1 with fallback to find.
     user = await User.get({name: user.name}, {index: 'ls1', hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         pk: 'User#',
         sk: `User#${user.id}`,
@@ -92,7 +90,6 @@ test('Get by LS2 - by type', async() => {
     //  type supplied implicitly. This get uses fallback.
     user = await User.get({}, {index: 'ls2', hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         pk: 'User#',
         sk: `User#${user.id}`,

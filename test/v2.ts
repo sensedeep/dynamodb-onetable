@@ -93,7 +93,6 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -103,7 +102,6 @@ test('Get', async() => {
 test('Get including hidden', async() => {
     user = await User.get({id: user.id}, {hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
         sk: 'User#',
@@ -126,7 +124,6 @@ test('Find by ID', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -137,7 +134,6 @@ test('Find by name on GSI', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
     })
@@ -146,7 +142,6 @@ test('Find by name on GSI', async() => {
 test('Update', async() => {
     user = await User.update({id: user.id, status: 'inactive'})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'inactive',
     })
@@ -163,7 +158,6 @@ test('Remove attribute 2', async() => {
     //  Update and remove attributes using {remove}
     user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk'], hidden: true})
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Peter Smith',
         status: 'active',
         sk: 'User#',
@@ -185,7 +179,6 @@ test('Scan', async() => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user).toMatchObject({
-        _type: 'User',
         name: 'Sky Blue',
         status: 'active',
     })

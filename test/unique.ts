@@ -141,7 +141,6 @@ test('Create user via update', async() => {
     }
     let item: any = await User.update(props, {exists: null})
     expect(item).toMatchObject(props)
-    expect(item._type).toBe('User')
 })
 
 test('Destroy Table', async() => {
