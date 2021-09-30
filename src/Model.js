@@ -1033,8 +1033,16 @@ export class Model {
                     continue
                 }
                 if (rec[name] === undefined) {
-                    //  No type transformations - don't have enough info without fields
-                    rec[name] = value
+                    //  Cannot do all type transformations - don't have enough info without fields
+                    if (value instanceof Date) {
+                        if (this.table.isoDates) {
+                            rec[name] = value.toISOString()
+                        } else {
+                            rec[name] = value.getTime()
+                        }
+                    } else {
+                        rec[name] = value
+                    }
                 }
             }
             return rec
