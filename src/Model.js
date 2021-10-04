@@ -1168,7 +1168,6 @@ export class Model {
             Support ${var:length:pad-character} which is useful for sorting.
         */
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
-            //  TODO need to handle "." split as well
             let [name, len, pad] = varName.split(':')
             let v = this.getPropValue(properties, name)
             if (v !== undefined) {

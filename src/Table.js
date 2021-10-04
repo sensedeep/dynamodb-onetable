@@ -365,6 +365,8 @@ export class Table {
             this.setParams(params)
         }
         this.schema = schema
+        this.models[SchemaModel] = this.schemaModel
+        this.models[MigrationModel] = this.migrationModel
     }
 
     getParams() {
@@ -439,7 +441,7 @@ export class Table {
             queries:        { type: 'object', required: true },
             version:        { type: 'string', required: true },
         }
-        this.models[SchemaModel] = new Model(this, SchemaModel, {fields, indexes, delimiter})
+        this.models[SchemaModel] = this.schemaModel = new Model(this, SchemaModel, {fields, indexes, delimiter})
     }
 
     createMigrationModel() {
@@ -455,7 +457,7 @@ export class Table {
             path:           { type: 'string', required: true },
             version:        { type: 'string', required: true },
         }
-        this.models[MigrationModel] = new Model(this, MigrationModel, {fields, indexes, delimiter})
+        this.models[MigrationModel] = this.migrationModel = new Model(this, MigrationModel, {fields, indexes, delimiter})
     }
 
     /*
