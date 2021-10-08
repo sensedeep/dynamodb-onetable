@@ -41,7 +41,7 @@ Join the active community using OneTable on our [GitHub Discussion Hub](https://
 * No module dependencies.
 * Support for the AWS SDK v3.
 * TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
-* Migrations via the [Onetable Migration Controller](https://github.com/sensedeep/dynamodb-onetable) controller and the [Onetable CLI](https://github.com/sensedeep/onetable-cli).
+* Migrations support via [OneTable Migrate](https://github.com/sensedeep/onetable-migrate) and [OneTable CLI](https://github.com/sensedeep/onetable-cli).
 * Graphical monitoring of single-table performance via [SenseDeep](https://www.sensedeep.com).
 
 ## Installation
