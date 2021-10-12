@@ -216,11 +216,12 @@ export class Table {
     */
     getSchema() {
         let schema = this.merge({}, this.schema, {params: this.getParams()})
-        return this.mapSchema(schema)
+        return this.transformSchemaForWrite(schema)
     }
 
     //  Prepare for persisting the schema
-    mapSchema(schema) {
+    transformSchemaForWrite(schema) {
+        let params = schema.params || this.getParams()
         for (let [name, model] of Object.entries(schema.models)) {
             for (let [fname, field] of Object.entries(model)) {
                 if (field.validate && field.validate instanceof RegExp) {
@@ -229,20 +230,27 @@ export class Table {
                 let type = (typeof field.type == 'function') ? field.type.name : field.type
                 field.type = type.toLowerCase()
             }
+            delete model[params.typeField]
         }
+        delete schema.models[SchemaModel]
+        delete schema.models[MigrationModel]
+        return schema
+    }
 
-        /*
-        for (let [name, model] of Object.entries(this.models)) {
-            for (let [fname, field] of Object.entries(model.block.fields)) {
-                if (schema.models[name][fname]) {
-                    schema.models[name][fname].type = field.type
-                    if (field.validate && field.validate instanceof RegExp) {
-                        schema.models[name][fname].validate = `/${field.validate.source}/${field.validate.flags}`
-                    }
-                }
-            }
+    transformSchemaAfterRead(schema) {
+        if (!schema.name) {
+            schema.name == 'Current'
         }
-        */
+        schema.models[SchemaModel] = this.schemaFields
+        schema.models[MigrationModel] = this.migrationFields
+        let params = schema.params || this.getParams()
+        for (let [modelName, mdef] of Object.entries(schema.models)) {
+            if (params.timestamps) {
+                mdef[params.createdField] = {name: params.createdField, type: 'date'}
+                mdef[params.updatedField] = {name: params.updatedField, type: 'date'}
+            }
+            mdef[params.typeField] = {name: params.typeField, type: 'string'}
+        }
         return schema
     }
 
@@ -256,14 +264,35 @@ export class Table {
         if (indexes == DefaultIndexes) {
             ({primary} = await this.getTableKeys())
         }
-        //  FUTURE use await this.schemaModel.update({schema}, {exists: null})
         let params = {
             [primary.hash]: SchemaKey
         }
         if (primary.sort) {
             params[primary.sort] = `${SchemaKey}:Current`
         }
-        return await this.getItem(params, {hidden: true, parse: true})
+        let schema = await this.getItem(params, {hidden: true, parse: true})
+        return this.transformSchemaAfterRead(schema)
+    }
+
+    async readSchemas() {
+        let indexes = this.indexes
+        let primary = indexes.primary
+
+        if (indexes == DefaultIndexes) {
+            ({primary} = await this.getTableKeys())
+        }
+        let params = {
+            [primary.hash]: `${SchemaKey}:`
+        }
+        /*
+        if (primary.sort) {
+            params[primary.sort] = {begins: SchemaKey}
+        } */
+        let schemas = await this.queryItems(params, {hidden: true, parse: true})
+        for (let [index, schema] of Object.entries(schemas)) {
+            schemas[index] = this.transformSchemaAfterRead(schema)
+        }
+        return schemas
     }
 
     async getTableKeys(refresh = false) {
@@ -271,23 +300,22 @@ export class Table {
             return this.described
         }
         let info = await this.describeTable()
-        let primary = {}
+        let indexes = {primary: {}}
         for (let key of info.Table.KeySchema) {
             let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
-            primary[type] = key.AttributeName
+            indexes.primary[type] = key.AttributeName
         }
-        let secondary = {}
         if (info.Table.GlobalSecondaryIndexes) {
             for (let index of info.Table.GlobalSecondaryIndexes) {
-                let keys = secondary[index.IndexName] = {}
+                let keys = indexes[index.IndexName] = {}
                 for (let key of index.KeySchema) {
                     let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
                     keys[type] = key.AttributeName
                 }
-                secondary[index.IndexName] = keys
+                indexes[index.IndexName] = keys
             }
         }
-        this.described = {primary, secondary}
+        this.described = indexes
         return this.described
     }
 
@@ -310,7 +338,7 @@ export class Table {
             if (!schema.queries) {
                 schema.queries = {}
             }
-            schema = this.mapSchema(schema)
+            schema = this.transformSchemaForWrite(schema)
         } else {
             schema = this.getSchema()
         }
@@ -325,8 +353,8 @@ export class Table {
         schema.format = SchemaFormat
 
         //  LEGACY
-        schema.models[SchemaModel] = this.schemaFields
-        schema.models[MigrationModel] = this.migrationFields
+        // schema.models[SchemaModel] = this.schemaFields
+        // schema.models[MigrationModel] = this.migrationFields
 
         let model = this.getModel(SchemaModel)
         return await model.update(schema, {exists: null})
@@ -358,15 +386,21 @@ export class Table {
             indexes = DefaultIndexes
         }
         this.indexes = indexes
-        for (let [name, model] of Object.entries(models)) {
-            this.models[name] = new Model(this, name, {fields: model, indexes})
-        }
+        //  Must set before creating models
         if (params) {
             this.setParams(params)
         }
+        for (let [name, model] of Object.entries(models)) {
+            if (name == SchemaModel || name == MigrationModel) continue
+            this.models[name] = new Model(this, name, {fields: model, indexes})
+        }
         this.schema = schema
-        this.models[SchemaModel] = this.schemaModel
-        this.models[MigrationModel] = this.migrationModel
+
+        //  Must re-create as delimiter may have changed (currently schema & migration hard coded with ':' delimiter)
+        this.createUniqueModel()
+        this.createGenericModel()
+        this.createSchemaModel()
+        this.createMigrationModel()
     }
 
     getParams() {

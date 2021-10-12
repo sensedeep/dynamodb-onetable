@@ -27,7 +27,7 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 
 test('Test', async() => {
-    user = await User.create({
+    user = await User.update({
         email: 'rr@acme.com',
         slides: {
             '4SWys5q0BhHOiTxlRbBsK': {
@@ -36,11 +36,11 @@ test('Test', async() => {
                 processed:  false,
             }
         }
-    })
+    }, {exists: null})
     // dump("USER", user)
 
-    user = await User.update({email: 'rr@acme.com'}, {log: true, set: {'slides.4SWys5q0BhHOiTxlRbBsK.processed': true}})
-    // dump("USER", user)
+    user = await User.get({email: 'rr@acme.com'}, {hidden: true})
+    user = await User.update({email: 'rr@acme.com'}, {set: {'slides.4SWys5q0BhHOiTxlRbBsK.processed': true}})
 })
 
 test('Destroy Table', async() => {

@@ -218,7 +218,6 @@ await User.update({id: user.id, role: 'user'}, {transaction})
 await table.transact('write', transaction)
 ```
 
-
 ## TypeScript
 
 OneTable provides TypeScript type declaration files so that OneTable APIs, requests and responses can be fully type checked.
