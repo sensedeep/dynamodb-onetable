@@ -10,7 +10,7 @@ export default {
     },
     models: {
         User: {
-            pk:          { type: String, value: '${_type}#' },
+            pk:          { type: String, value: '${_type}#${data.id}' },
             sk:          { type: String, value: '${_type}#${email}' },
             id:          { type: String, uuid: true },
             name:        { type: String },
