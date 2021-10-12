@@ -181,11 +181,6 @@ export class Model {
                 this.nested = true
             }
         }
-        if (!prefix) {
-            if (!this.hash || (primary.sort && !this.sort)) {
-                throw new Error(`dynamo: Cannot find primary keys for model "${this.name}" in primary index`)
-            }
-        }
         if (Object.values(fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
             this.hasUniqueFields = true
         }
