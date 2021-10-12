@@ -405,15 +405,20 @@ export class Model {
             if (result.LastEvaluatedKey) {
                 //  DEPRECATE items.start in 2.0
                 items.start = items.next = this.table.unmarshall(result.LastEvaluatedKey)
+                Object.defineProperty(items, 'next', {enumerable: false})
             }
             if (params.count || params.select == 'COUNT') {
                 items.count = result.Count
+                Object.defineProperty(items, 'count', {enumerable: false})
             }
             if (prev) {
                 items.prev = this.table.unmarshall(prev)
+                Object.defineProperty(items, 'prev', {enumerable: false})
             }
-            if (params.prev) {
+            if (params.prev && op != 'scan') {
+                //  DynamoDB scan ignores ScanIndexForward
                 items = items.reverse()
+                let tmp = items.prev ; items.prev = items.next ; items.next = tmp
             }
             return items
         }
@@ -1045,7 +1050,6 @@ export class Model {
                     }
                 }
             }
-            return rec
         }
         return rec
     }
