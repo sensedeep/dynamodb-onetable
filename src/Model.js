@@ -855,6 +855,9 @@ export class Model {
                 }
             }
         }
+        if (params.hidden == true && rec[this.typeField] === undefined) {
+            rec[this.typeField] = this.name
+        }
         if (this.table.transform && ReadWrite[op] == 'read') {
             rec = this.table.transform(this, op, rec, params, raw)
         }
