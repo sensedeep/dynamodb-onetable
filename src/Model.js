@@ -227,7 +227,7 @@ export class Model {
     getPropValue(properties, path) {
         let v = properties
         for (let part of path.split('.')) {
-            v = properties[part]
+            v = v[part]
         }
         return v
     }
