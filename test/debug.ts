@@ -33,7 +33,7 @@ test('Test', async() => {
     }, {log: false})
 
     // user = await User.get({entity: {id: user.entity.id}})
-    dump("USER", user)
+    //dump("USER", user)
 })
 
 test('Destroy Table', async() => {
