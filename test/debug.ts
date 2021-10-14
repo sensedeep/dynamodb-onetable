@@ -27,11 +27,13 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 
 test('Test', async() => {
+    user = undefined
     user = await User.create({
         email: 'rr@acme.com',
-        data: {id: '42'},
-    }, {hidden: true, exists: null, log: false})
-    // dump("USER", user)
+    }, {log: false})
+
+    // user = await User.get({entity: {id: user.entity.id}})
+    dump("USER", user)
 })
 
 test('Destroy Table', async() => {

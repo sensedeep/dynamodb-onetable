@@ -43,6 +43,7 @@ test('Create table with various params', async() => {
             console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
             console.log(JSON.stringify(context, null, 4) + '\n')
         },
+        schema: DefaultSchema,
         generic: true,
         hidden: true,
         uuid: 'uuid',
