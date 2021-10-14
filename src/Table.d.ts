@@ -55,7 +55,7 @@ export class Table {
     getContext(): {};
     getLog(): any;
     getModel<T>(name: string): Model<T>;
-    getSchema(): {};
+    getCurrentSchema(): {};
     groupByType(items: AnyEntity[]): EntityGroup;
     listModels(): AnyModel[];
     listTables(): string[];
@@ -71,7 +71,7 @@ export class Table {
     uuid(): {};
 
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
-    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
@@ -79,7 +79,7 @@ export class Table {
 
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
