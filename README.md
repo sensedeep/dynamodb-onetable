@@ -806,7 +806,7 @@ begins or begins_with
 between
 ```
 
-For TypeScript, the OneTable creates strict typings which make using {beings}, {between} etc. To accomodate TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
+For TypeScript, the OneTable creates strict typings which make using {beings}, {between} etc. To accommodate TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
 
 ```typescript
 let user = await table.queryItems({pk}, {tunnel: {begins: {sk: 'user:john'}}})

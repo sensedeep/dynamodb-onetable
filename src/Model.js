@@ -45,6 +45,8 @@ export class Model {
         this.name = name
         this.options = options
 
+        let schema = this.schema = (options.schema || table.schema)
+
         //  Primary hash and sort attributes and properties
         this.hash = null
         this.sort = null
@@ -63,7 +65,11 @@ export class Model {
             this.timestamps = table.timestamps
         }
         this.updatedField = table.updatedField
-        this.indexes = options.indexes || table.indexes
+        this.indexes = options.indexes || (schema ? schema.indexes : null)
+
+        if (!this.indexes) {
+            throw new Error('Indexes must be defined before creating models')
+        }
         this.indexProperties = this.getIndexProperties(this.indexes)
         this.block = {fields: {}, deps: []}
 
@@ -75,7 +81,7 @@ export class Model {
         */
         this.mappings = {}
 
-        let fields = options.fields || (table.schema ? table.schema.models[this.name] : null)
+        let fields = options.fields || (schema ? schema.models[this.name] : null)
         if (fields) {
             this.prepModel(fields, this.block)
         }
@@ -92,6 +98,9 @@ export class Model {
             //  Top level only
             if (!schemaFields[this.typeField]) {
                 schemaFields[this.typeField] = { type: String, hidden: true }
+                if (!this.generic) {
+                    schemaFields[this.typeField].required = true
+                }
             }
             if (this.timestamps) {
                 schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
@@ -425,7 +434,7 @@ export class Model {
      */
     parseResponse(op, expression, items) {
         let {params, properties} = expression
-        let table = this.table
+        let {schema, table} = this
         if (op == 'put') {
             //  Put requests do not return the item. So use the properties.
             items = [properties]
@@ -438,9 +447,9 @@ export class Model {
                 continue
             }
             let type = item[this.typeField] ? item[this.typeField] : this.name
-            let model = table.models[type] ? table.models[type] : this
+            let model = schema.models[type] ? schema.models[type] : this
             if (model) {
-                if (model == table.uniqueModel) {
+                if (model == schema.uniqueModel) {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
@@ -491,7 +500,7 @@ export class Model {
                 sep = this.delimiter
                 pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             }
-            await this.table.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
+            await this.schema.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
         }
         let item = await this.putItem(properties, params)
 
@@ -593,7 +602,7 @@ export class Model {
                 sep = this.delimiter
                 pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
             }
-            await this.table.uniqueModel.remove({pk}, {transaction})
+            await this.schema.uniqueModel.remove({pk}, {transaction})
         }
         await this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
@@ -676,9 +685,9 @@ export class Model {
                     //  Hasn't changed
                     continue
                 }
-                await this.table.uniqueModel.remove({pk: priorPk}, {transaction, exists: null})
+                await this.schema.uniqueModel.remove({pk: priorPk}, {transaction, exists: null})
             }
-            await this.table.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
+            await this.schema.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
         }
 
         let item = await this.updateItem(properties, params)
