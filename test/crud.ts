@@ -27,7 +27,7 @@ test('Create Table', async() => {
 })
 
 test('Get Schema', () => {
-    let schema:any = table.getSchema()
+    let schema:any = table.getCurrentSchema()
     expect(schema.models).toBeDefined()
     expect(schema.indexes).toBeDefined()
     expect(schema.params).toBeDefined()
