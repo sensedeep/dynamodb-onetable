@@ -1075,37 +1075,42 @@ export class Model {
     setDefaults(op, fields, properties) {
         if (op != 'put' && op != 'init') return
         for (let field of Object.values(fields)) {
-            let value = properties[field.name]
+            if (field.type == 'object' && field.schema) {
+                properties[field.name] = properties[field.name] || {}
+                this.setDefaults(op, field.block.fields, properties[field.name])
+            } else {
+                let value = properties[field.name]
 
-            //  Set defaults and uuid fields
-            if (value === undefined && !field.value) {
-                if (field.default != null) {
-                    //  DEPRECATED
-                    if (typeof field.default == 'function') {
-                        value = field.default(this, field.name, properties)
-                    } else {
-                        value = field.default
+                //  Set defaults and uuid fields
+                if (value === undefined && !field.value) {
+                    if (field.default != null) {
+                        //  DEPRECATED
+                        if (typeof field.default == 'function') {
+                            value = field.default(this, field.name, properties)
+                        } else {
+                            value = field.default
+                        }
+
+                    } else if (op == 'init') {
+                        if (!field.uuid) {
+                            //  Set non-default, non-uuid properties to null
+                            value = null
+                        }
+
+                    } else if (field.uuid) {
+                        if (field.uuid === true) {
+                            value = this.table.makeID()
+
+                        } else if (field.uuid == 'uuid') {
+                            value = this.table.uuid()
+
+                        } else if (field.uuid == 'ulid') {
+                            value = this.table.ulid()
+                        }
                     }
-
-                } else if (op == 'init') {
-                    if (!field.uuid) {
-                        //  Set non-default, non-uuid properties to null
-                        value = null
+                    if (value !== undefined) {
+                        properties[field.name] = value
                     }
-
-                } else if (field.uuid) {
-                    if (field.uuid === true) {
-                        value = this.table.makeID()
-
-                    } else if (field.uuid == 'uuid') {
-                        value = this.table.uuid()
-
-                    } else if (field.uuid == 'ulid') {
-                        value = this.table.ulid()
-                    }
-                }
-                if (value !== undefined) {
-                    properties[field.name] = value
                 }
             }
         }
