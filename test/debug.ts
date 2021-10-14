@@ -25,15 +25,20 @@ test('Create Table', async() => {
 type UserType = Entity<typeof DebugSchema.models.User>
 let User = table.getModel<UserType>('User')
 let user: UserType = null
+let users: any
 
 test('Test', async() => {
     user = undefined
     user = await User.create({
         email: 'rr@acme.com',
-    }, {log: false})
+        domain: 'local',
+    }, {log: false, hidden: true})
+    // dump("USER", user)
+
+    users = await User.find({sk: null}, {log: false, hidden: true})
 
     // user = await User.get({entity: {id: user.entity.id}})
-    //dump("USER", user)
+    // dump("USERS", users)
 })
 
 test('Destroy Table', async() => {

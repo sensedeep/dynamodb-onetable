@@ -9,11 +9,12 @@ export default {
     },
     models: {
         User: {
-            pk:          { type: String, value: 'user#' },
-            sk:          { type: String, value: '${_type}#${id}' },
+            pk:          { type: String, value: '${_type}#' },
+            sk:          { type: String, value: '${_type}#${domain}#${id}' },
             name:        { type: String },
             email:       { type: String },
             id:          { type: String, uuid: "uuid" },
+            domain:      { type: String },
             nested:      { type: Object, schema: {
                 seq:     { type: String, uuid: "uuid" },
             }}

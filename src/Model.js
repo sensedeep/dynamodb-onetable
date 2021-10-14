@@ -1210,9 +1210,8 @@ export class Model {
         if (value.indexOf('${') >= 0) {
             if (field.attribute[0] == index.sort) {
                 if (op == 'find' && !params.where) {
-                    value = value.replace(/\${(.*?)}/g, '')
-                    let sep = this.delimiter
-                    value = value.replace(RegExp(`${sep}${sep}+$`, 'g'), '')
+                    //  Remove unresolved ${} references and retain a fixed leading prefix portion.
+                    value = value.replace(/\${(.*?)}.*/g, '')
                     if (value) {
                         return {begins: value}
                     }
