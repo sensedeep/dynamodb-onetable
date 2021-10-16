@@ -226,6 +226,9 @@ export class Schema {
         Replace Schema and Migration models, timestamp fields and type field
     */
     transformSchemaAfterRead(schema) {
+        if (!schema) {
+            return null
+        }
         if (!schema.name) {
             schema.name == 'Current'
         }
