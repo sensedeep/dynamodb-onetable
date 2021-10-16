@@ -45,7 +45,7 @@ export class Model {
         this.name = name
         this.options = options
 
-        let schema = this.schema = (options.schema || table.schema)
+        let schema = this.schema = (options.schema || (table.schema ? table.schema.schema : null))
 
         //  Primary hash and sort attributes and properties
         this.hash = null

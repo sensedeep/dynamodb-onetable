@@ -16,6 +16,8 @@ export class Schema {
 
     constructor(table, schema) {
         this.table = table
+        Object.defineProperty(this, 'table', {enumerable: false})
+
         this.params = table.getParams()
         this.setSchema(schema)
         if (this.indexes) {
@@ -24,7 +26,6 @@ export class Schema {
     }
 
     getCurrentSchema() {
-        // return schema
         let schema = this.table.merge({}, this.schema, {params: this.params})
         return this.transformSchemaForWrite(schema)
     }

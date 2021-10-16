@@ -110,7 +110,6 @@ export class Table {
         if (params.legacyUnique == true) {
             params.legacyUnique = ':'
         }
-        //  MOB - why pull apart. Why not keep in params
         this.createdField = params.createdField || 'created'
         this.delimiter = params.delimiter || '#'
         this.hidden = params.hidden != null ? params.hidden : true
@@ -144,7 +143,6 @@ export class Table {
         this.params = params
     }
 
-    //  MOB - better if we just kept this.params
     getParams() {
         return {
             createdField: this.createdField,
@@ -163,7 +161,6 @@ export class Table {
         return this.schema.setSchema(schema)
     }
 
-    //  MOB - add to TS defs
     getCurrentSchema() {
         return this.schema.getCurrentSchema()
     }
@@ -751,8 +748,8 @@ export class Table {
     }
 
     mergeOne(recurse, dest, src) {
-        if (recurse++ > 50) {
-            throw new Error('Recursive clone')
+        if (recurse++ > 20) {
+            throw new Error('Recursive merge')
         }
         for (let [key, value] of Object.entries(src)) {
             if (value === undefined) {
@@ -768,7 +765,9 @@ export class Table {
                 if (!Array.isArray(dest[key])) {
                     dest[key] = []
                 }
-                dest[key] = this.mergeOne(recurse, dest[key], value)
+                if (value.length) {
+                    dest[key] = this.mergeOne(recurse, dest[key], value)
+                }
 
             } else if (typeof value == 'object' && !(value instanceof RegExp || value == null)) {
                 if (typeof dest[key] != 'object') {
