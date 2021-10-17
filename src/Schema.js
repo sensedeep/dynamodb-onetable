@@ -32,6 +32,7 @@ export class Schema {
 
     setSchema(schema) {
         this.models = {}
+        this.indexes = null
         if (!schema) {
             return
         }
@@ -320,5 +321,4 @@ export class Schema {
         let model = this.getModel(SchemaModel)
         return await model.update(schema, {exists: null})
     }
-
 }
