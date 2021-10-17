@@ -37,19 +37,6 @@ const ConfirmRemoveTable = 'DeleteTableForever'
 */
 const IV_LENGTH = 16
 
-const ReadWrite = {
-    delete: 'write',
-    get: 'read',
-    find: 'read',
-    put: 'write',
-    scan: 'read',
-    update: 'write',
-    batchGet: 'read',
-    batchWrite: 'write',
-    transactGet: 'read',
-    transactWrite: 'write',
-}
-
 const DynamoOps = {
     delete: 'deleteItem',
     get: 'getItem',

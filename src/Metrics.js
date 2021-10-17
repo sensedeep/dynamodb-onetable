@@ -20,6 +20,32 @@ const DefaultMetrics = {
     tenant: null,
 }
 
+const DynamoOps = {
+    delete: 'deleteItem',
+    get: 'getItem',
+    find: 'query',
+    put: 'putItem',
+    scan: 'scan',
+    update: 'updateItem',
+    batchGet: 'batchGet',
+    batchWrite: 'batchWrite',
+    transactGet: 'transactGet',
+    transactWrite: 'transactWrite',
+}
+
+const ReadWrite = {
+    delete: 'write',
+    get: 'read',
+    find: 'read',
+    put: 'write',
+    scan: 'read',
+    update: 'write',
+    batchGet: 'read',
+    batchWrite: 'write',
+    transactGet: 'read',
+    transactWrite: 'write',
+}
+
 /*
     Represent a single DynamoDB table
  */
