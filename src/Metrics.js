@@ -72,7 +72,7 @@ export class Metrics {
         if (metrics.env && process.env) {
             let key = params.env != true ? params.env : 'LOG_FILTER'
             let filter = process.env[key]
-            if (filter.indexOf('dbmetrics') < 0) {
+            if (!filter || filter.indexOf('dbmetrics') < 0) {
                 metrics.enable = false
             }
         }
@@ -83,7 +83,7 @@ export class Metrics {
 
     add(model, op, result, params, mark) {
         let metrics = this.metrics
-        if (!metrics.enable || this.log.enabled(metrics.chan)) {
+        if (!metrics.enable || !this.log.enabled(metrics.chan)) {
             return
         }
         let timestamp = Date.now()
