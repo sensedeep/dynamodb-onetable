@@ -1176,8 +1176,8 @@ export class Model {
         if (value.indexOf('${') >= 0) {
             if (field.attribute[0] == index.sort) {
                 if (op == 'find' && !params.where) {
-                    //  Remove unresolved ${} references and retain a fixed leading prefix portion.
-                    value = value.replace(/\${(.*?)}.*/g, '')
+                    //  Strip from first ${ onward and retain fixed prefix portion
+                    value = value.replace(/\${.*/g, '')
                     if (value) {
                         return {begins: value}
                     }
