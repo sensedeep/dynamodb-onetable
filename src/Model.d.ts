@@ -23,7 +23,7 @@ type OneType =
 /*
     Schema.indexes signature
  */
-type OneIndexSchema = {
+export type OneIndexSchema = {
     hash?: string,
     sort?: string,
     description?: string,
@@ -36,23 +36,18 @@ type OneIndexSchema = {
  */
 interface OneFieldSchema extends OneTypedField {
     crypt?: boolean,
-    default?: (() => any) | string | number | boolean | object,
+    default?: string | number | boolean | object,
     enum?: string[],
     filter?: boolean,
     hidden?: boolean,
     map?: string,
     nulls?: boolean,
     required?: boolean,
-    transform?: (model: AnyModel, op: string, name: string, value: any) => any,
     type: OneType,
     unique?: boolean,
     uuid?: boolean | string,
-    validate?: RegExp | string | ((model: AnyModel, field: {}, value: any) => any),
-    value?: ((name: string, context: {}, properties: {}) => any) | string,
-
-    //  Deprecated
-    ulid?: boolean,
-    ksuid?: boolean,
+    validate?: RegExp | string | boolean,
+    value?: string,
 }
 
 /*

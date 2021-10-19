@@ -18,9 +18,7 @@ const table = new Table({
                 pk: { type: String, value: 'user#${email}' },
                 sk: {
                     type: String,
-                    value: (propertyName, properties: any) => {
-                        return `user#${properties.email}`
-                    },
+                    value: 'user#${email}',
                 },
                 id: { type: String, uuid: true },
                 email: { type: String, required: true },
@@ -40,7 +38,7 @@ test('Create Table', async() => {
     }
 })
 
-test('Test value template function for SK', async () => {
+test('Test value template', async () => {
     let user = await User.create({email: 'peter@example.com', name: 'Peter Smith'})
     expect(user).toMatchObject({
         email: 'peter@example.com',

@@ -25,13 +25,7 @@ export default {
             //  String regexp
 
             zip:        { type: String, validate: '/^[a-z0-9 ,.-]+$/' },
-            phone:      { type: String, validate: (model, field, value) => {
-                            if (!value.match(Match.phone)) {
-                                return {error: 'Invalid phone number'}
-                            }
-                            return {value}
-                        }
-            },
+            phone:      { type: String, validate: '/^[ 0-9\-\(\)]+$/'},
             status:     { type: String, required: true },
             age:        { type: Number },
         }

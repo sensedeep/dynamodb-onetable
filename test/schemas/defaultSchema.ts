@@ -17,11 +17,6 @@ export default {
             email:      { type: String },
 
             status:     { type: String, default: 'idle' },
-            tag:        { type: String, default: (model, field, properties) => {
-                            // Just to demonstrate default value function
-                            return `${model.name}:${field}:${properties.name}`
-                        }
-            },
             age:        { type: Number },
             profile:    { type: Object },
             registered: { type: Date },

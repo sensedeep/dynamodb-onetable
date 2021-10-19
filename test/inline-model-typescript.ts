@@ -1,5 +1,11 @@
 /*
     model-schema-typescript.ts - Create an inline model using typescript
+
+    NOTE: this pattern is DEPRECATED and may be removed in the future.
+
+    WARNING: this is NOT a recommended pattern. A better approach is to define a literal schema and provide it to the
+    Table constructor. A centralized, declarative schema stored in-table is the preferred pattern so that that table
+    can be self-describing for tooling.
  */
 import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 
@@ -30,10 +36,16 @@ test('Create table', async () => {
 
 test('Create model', async () => {
     let base = table.listModels()
-    //  This model is free-standing not added to the list of table models
+    /*
+        This model is free-standing not added to the list of table models.
+        NOTE: this pattern is DEPRECATED and may be removed in the future.
+
+        WARNING: this is NOT a recommended pattern. A better approach is to define a literal schema and provide it to the
+        Table constructor. A centralized, declarative schema stored in-table is the preferred pattern so that that table
+        can be self-describing for tooling.
+    */
     Card = new Model<CardType>(table, 'Card', {
         fields: CardSchema,
-        indexes: {primary: {hash: 'pk'}},
     })
     let models = table.listModels()
     expect(models.length - base.length).toBe(0)

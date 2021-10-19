@@ -41,7 +41,6 @@ export class Expression {
             set: [],
         }
         this.execute = params.execute === false ? false : true
-        this.delimiter = model.delimiter        //  Composite sort key delimiter
         this.tableName = model.tableName
 
         /*
@@ -500,8 +499,7 @@ export class Expression {
                 */
                 args.ScanIndexForward = (params.reverse == true ^ params.prev != null) ? false : true
 
-                //  DEPRECATE params.start
-                if (params.next || params.start || params.prev) {
+                if (params.next || params.prev) {
                     args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev)
                 }
             }

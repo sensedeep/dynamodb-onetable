@@ -65,33 +65,23 @@ export class Schema {
     }
 
     /*
-        Model for unique attributes
+        Model for unique attributes.
      */
     createUniqueModel() {
         let {indexes, schema, table} = this
         let primary = indexes.primary
-        /*
-            LEGACY 1.7.4 - remove in 2.0.0
-            Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
-            Now, use the delimiter with a unique prefix.
-            Defaults to be ':' in 1.7.
-        */
-        let sep = this.params.legacyUnique || table.delimiter
         let fields = {
-            [primary.hash]: { type: String, value: `${UniqueKey}${sep}\${` + primary.hash + '}'},
+            [primary.hash]: {type: String}
         }
         if (primary.sort) {
-            fields[primary.sort] = { type: String, value: `${UniqueKey}${sep}`}
+            fields[primary.sort] = {type: String}
         }
-        this.uniqueModel = new Model(table, UniqueModel, {
-            fields,
-            timestamps: false,
-            schema: this,
-        })
+        this.uniqueModel = new Model(table, UniqueModel, {fields, timestamps: false})
     }
 
     /*
         Model for genric low-level API access. Generic models allow reading attributes that are not defined on the schema.
+        NOTE: there is not items created based on this model.
      */
     createGenericModel() {
         let {indexes, schema, table} = this
@@ -311,7 +301,6 @@ export class Schema {
         if (!schema) {
             throw new Error('No schema to save')
         }
-        //  REPAIR no name
         if (!schema.name) {
             schema.name = 'Current'
         }

@@ -30,9 +30,6 @@ test('Create', async() => {
     user = await User.create(properties)
     //  Status should have default value
     expect(user.status).toBe('idle')
-
-    //  Tag defined by schema default function
-    expect(user.tag).toBe('User:tag:Peter Smith')
     expect(user).toMatchObject(properties)
     expect(user.id).toMatch(Match.uuid)
 })

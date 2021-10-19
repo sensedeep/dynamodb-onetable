@@ -89,16 +89,7 @@ export class Table {
     }
 
     setParams(params) {
-        /*  LEGACY 1.7.4 - remove in 2.0.0
-            Set legacyUnique to the PK separator. Previously was hard coded to ':' without a 'unique' prefix.
-            Now, use the delimiter with a unique prefix.
-            Defaults to be ':' in 1.7.
-        */
-        if (params.legacyUnique == true) {
-            params.legacyUnique = ':'
-        }
         this.createdField = params.createdField || 'created'
-        this.delimiter = params.delimiter || '#'
         this.hidden = params.hidden != null ? params.hidden : true
         this.isoDates = params.isoDates || false
         this.nulls = params.nulls || false
@@ -107,14 +98,10 @@ export class Table {
         this.updatedField = params.updatedField || 'updated'
 
         /*
-            Preserve prior values for items that may have callback functions (intercept, metrics.properties, uuid)
+            Preserve prior values for items that may have callback functions (metrics.properties, uuid)
             If a schema loads new params, then need to preserve these callback functions.
         */
         this.name = params.name || this.name
-
-        //  DEPRECATE
-        this.intercept = params.intercept || this.intercept
-        this.transform = params.transform || this.transform
 
         if (params.uuid == 'uuid') {
             this.makeID = this.uuid
@@ -133,7 +120,6 @@ export class Table {
     getParams() {
         return {
             createdField: this.createdField,
-            delimiter: this.delimiter,
             hidden: this.hidden,
             isoDates: this.isoDates,
             nulls: this.nulls,
@@ -369,11 +355,6 @@ export class Table {
     clearContext() {
         this.context = {}
         return this
-    }
-
-    //  DEPRECATE in 2.0
-    clear() {
-        return this.clearContext()
     }
 
     /*  PROTOTYPE

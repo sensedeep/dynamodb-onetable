@@ -60,10 +60,6 @@ export class Metrics {
         } else {
             metrics = Object.assign({}, DefaultMetrics, params)
         }
-        //  LEGACY remove in 2.0 (was object)
-        if (!Array.isArray(metrics.dimensions)) {
-            metrics.dimensions = Object.keys(metrics.dimensions)
-        }
         metrics.map = {Profile: true}
         for (let dim of metrics.dimensions) {
             metrics.map[dim] = true

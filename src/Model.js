@@ -45,15 +45,12 @@ export class Model {
         this.name = name
         this.options = options
 
-        let schema = this.schema = (options.schema || (table.schema ? table.schema.schema : null))
-
         //  Primary hash and sort attributes and properties
         this.hash = null
         this.sort = null
 
         //  Cache table properties
         this.createdField = table.createdField
-        this.delimiter = options.delimiter || table.delimiter
         this.generic = options.generic
         this.nested = false
         this.nulls = table.nulls
@@ -407,8 +404,7 @@ export class Model {
         */
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
-                //  DEPRECATE items.start in 2.0
-                items.start = items.next = this.table.unmarshall(result.LastEvaluatedKey)
+                items.next = this.table.unmarshall(result.LastEvaluatedKey)
                 Object.defineProperty(items, 'next', {enumerable: false})
             }
             if (params.count || params.select == 'COUNT') {
@@ -488,19 +484,15 @@ export class Model {
 
         fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
+        if (this.timestamps) {
+            properties[this.updatedField] = properties[this.createdField] = new Date()
+        }
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
         for (let field of fields) {
-            //  LEGACY - remove in 2.0 and just use the delimiter
-            let sep = this.table.params.legacyUnique
-            let pk
-            if (sep) {
-                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            } else {
-                sep = this.delimiter
-                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            }
-            await this.schema.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
+            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+            let sk = '_unique#'
+            await this.schema.uniqueModel.create({pk, sk}, {transaction, exists: false, return: 'NONE'})
         }
         let item = await this.putItem(properties, params)
 
@@ -593,16 +585,9 @@ export class Model {
         params.prepared = properties = this.prepareProperties('delete', properties, params)
 
         for (let field of fields) {
-            //  LEGACY - remove in 2.0 and just use the delimiter
-            let sep = this.table.params.legacyUnique
-            let pk
-            if (sep) {
-                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            } else {
-                sep = this.delimiter
-                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            }
-            await this.schema.uniqueModel.remove({pk}, {transaction})
+            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+            let sk = `_unique#`
+            await this.schema.uniqueModel.remove({pk, sk}, {transaction})
         }
         await this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
@@ -660,34 +645,21 @@ export class Model {
             if (properties[field.name] === undefined) {
                 continue
             }
-            //  LEGACY - remove in 2.0 and just use the delimiter
-            let pk
-            let sep = this.table.params.legacyUnique
-            if (sep) {
-                pk = `${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            } else {
-                let sep = this.delimiter
-                pk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${properties[field.name]}`
-            }
+            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+            let sk = `_unique#`
+
             if (prior && prior[field.name]) {
-                //  LEGACY - remove in 2.0 and just use the delimiter
-                let priorPk
-                if (sep) {
-                    priorPk = `${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
-                } else {
-                    let sep = this.delimiter
-                    priorPk = `_unique${sep}${this.name}${sep}${field.attribute}${sep}${prior[field.name]}`
-                }
                 /*
                     Remove prior unique properties if they have changed and create new unique property.
                 */
+                let priorPk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
                 if (pk == priorPk) {
                     //  Hasn't changed
                     continue
                 }
-                await this.schema.uniqueModel.remove({pk: priorPk}, {transaction, exists: null})
+                await this.schema.uniqueModel.remove({pk: priorPk, sk}, {transaction, exists: null})
             }
-            await this.schema.uniqueModel.create({pk}, {transaction, exists: false, return: 'NONE'})
+            await this.schema.uniqueModel.create({pk, sk}, {transaction, exists: false, return: 'NONE'})
         }
 
         let item = await this.updateItem(properties, params)
@@ -832,8 +804,8 @@ export class Model {
                 value = this.decrypt(value)
             }
             if (field.default !== undefined && value === undefined) {
-                //  DEPRECATED
                 if (typeof field.default == 'function') {
+                    console.log('WARNING: default functions are DEPRECATED and will be removed soon.')
                     value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
@@ -872,11 +844,6 @@ export class Model {
         if (typeof params.transform == 'function') {
             //  Invoke custom data transform after reading
             return params.transform(this, 'read', name, value)
-        }
-        //  DEPRECATED
-        if (typeof field.transform == 'function') {
-            //  Invoke custom data transform after reading
-            return field.transform(this, 'read', name, value)
         }
         if (field.type == 'date') {
             return value ? new Date(value) : null
@@ -1093,12 +1060,7 @@ export class Model {
                 //  Set defaults and uuid fields
                 if (value === undefined && !field.value) {
                     if (field.default != null) {
-                        //  DEPRECATED
-                        if (typeof field.default == 'function') {
-                            value = field.default(this, field.name, properties)
-                        } else {
-                            value = field.default
-                        }
+                        value = field.default
 
                     } else if (op == 'init') {
                         if (!field.uuid) {
@@ -1162,8 +1124,8 @@ export class Model {
                 properties[name] = properties[name](field.pathname, properties)
             }
             if (properties[name] === undefined && field.value) {
-                //  DEPRECATED
                 if (typeof field.value == 'function') {
+                    console.log('WARNING: value functions are DEPRECATED and will be removed soon.')
                     properties[name] = field.value(field.pathname, properties)
                 } else {
                     let value = this.runTemplate(op, index, field, properties, params, field.value)
@@ -1252,20 +1214,23 @@ export class Model {
         }
     }
 
-    validateProperty(field, value, details) {
-        let validate = field.validate
+    validateProperty(field, value, details, params) {
         let fieldName = field.name
+
+        if (typeof params.validate == 'function') {
+            console.log('WARNING: validation functions are DEPRECATED and will be removed soon.')
+            let error
+            ({error, value} = params.validate(this, field, value))
+            if (error) {
+                details[fieldName] = error
+            }
+        }
+
+        let validate = field.validate
         if (validate) {
             if (value === null) {
                 if (field.required && field.value == null) {
                     details[fieldName] = `Value not defined for "${fieldName}"`
-                }
-            } else if (typeof validate == 'function') {
-                //  DEPRECATE
-                let error
-                ({error, value} = validate(this, field, value))
-                if (error) {
-                    details[fieldName] = error
                 }
             } else if (validate instanceof RegExp) {
                 if (!validate.exec(value)) {
@@ -1304,10 +1269,6 @@ export class Model {
 
         if (typeof params.transform == 'function') {
             value = params.transform(this, 'write', field.name, value)
-
-        } else if (typeof field.transform == 'function') {
-            //  DEPRECATED
-            value = field.transform(this, 'write', field.name, value)
 
         } else if (value == null && field.nulls === true) {
             //  Keep the null
