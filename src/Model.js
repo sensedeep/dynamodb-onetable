@@ -716,10 +716,10 @@ export class Model {
     /* private */
     async putItem(properties, params = {}) {
         ({params, properties} = this.checkArgs(properties, params))
-        if (this.timestamps) {
-            properties[this.updatedField] = properties[this.createdField] = new Date()
-        }
         if (!params.prepared) {
+            if (this.timestamps) {
+                properties[this.updatedField] = properties[this.createdField] = new Date()
+            }
             properties = this.prepareProperties('put', properties, params)
         }
         let expression = new Expression(this, 'put', properties, params)
