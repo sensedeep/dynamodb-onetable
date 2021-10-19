@@ -511,6 +511,7 @@ export class Model {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 throw new Error(`dynamo: Cannot create "${this.name}", an item of the same name already exists.`)
             }
+            throw err
         }
         let items = this.parseResponse('put', expression)
         return items[0]
@@ -836,7 +837,7 @@ export class Model {
                 }
             }
         }
-        if (params.hidden == true && rec[this.typeField] === undefined) {
+        if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
             rec[this.typeField] = this.name
         }
         if (this.table.transform && ReadWrite[op] == 'read') {
@@ -929,7 +930,7 @@ export class Model {
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
 
-        this.validateProperties(op, fields, properties)
+        this.validateProperties(op, fields, properties, params)
 
         //  Process nested schema
         if (this.nested && !KeysOnly[op]) {
@@ -1193,7 +1194,7 @@ export class Model {
         return value
     }
 
-    validateProperties(op, fields, properties) {
+    validateProperties(op, fields, properties, params) {
         if (op != 'put' && op != 'update') {
             return
         }
@@ -1201,8 +1202,8 @@ export class Model {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
             if (!field) continue
-            if (field.validate || field.enum) {
-                value = this.validateProperty(field, value, details)
+            if (params.validate || field.validate || field.enum) {
+                value = this.validateProperty(field, value, details, params)
                 properties[name] = value
             }
         }
