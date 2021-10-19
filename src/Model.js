@@ -4,6 +4,7 @@
     A model represents a DynamoDB single-table entity.
 */
 import {Expression} from './Expression.js'
+import {Schema} from './Schema.js'
 
 /*
     Ready / write tags for interceptions
@@ -62,23 +63,24 @@ export class Model {
             this.timestamps = table.timestamps
         }
         this.updatedField = table.updatedField
-        this.indexes = options.indexes || (schema ? schema.indexes : null)
-
-        if (!this.indexes) {
-            throw new Error('Indexes must be defined before creating models')
-        }
-        this.indexProperties = this.getIndexProperties(this.indexes)
         this.block = {fields: {}, deps: []}
 
         /*
             Map Javascript API properties to DynamoDB attribute names. The schema fields
             map property may contain a '.' like 'obj.prop' to pack multiple properties into a single attribute.
-
             field.attribute = [attributeName, optional-sub-propertiy]
         */
         this.mappings = {}
 
-        let fields = options.fields || (schema ? schema.models[this.name] : null)
+        this.schema = table.schema
+        this.indexes = this.schema.indexes
+
+        if (!this.indexes) {
+            throw new Error('Indexes must be defined on the Table before creating models')
+        }
+        this.indexProperties = this.getIndexProperties(this.indexes)
+
+        let fields = options.fields || this.schema.definition.models[this.name]
         if (fields) {
             this.prepModel(fields, this.block)
         }
@@ -474,8 +476,7 @@ export class Model {
     }
 
     /*
-        Create an item with unique attributes. Use a transaction to create a unique item for each
-        unique attribute.
+        Create an item with unique attributes. Use a transaction to create a unique item for each unique attribute.
      */
     async createUnique(properties, params) {
         if (params.batch) {
