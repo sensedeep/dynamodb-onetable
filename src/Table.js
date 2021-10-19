@@ -130,8 +130,8 @@ export class Table {
         }
     }
 
-    setSchema(schema) {
-        return this.schema.setSchema(schema)
+    async setSchema(schema) {
+        return await this.schema.setSchema(schema)
     }
 
     getCurrentSchema() {
@@ -185,6 +185,9 @@ export class Table {
         let attributes = {}
         let indexes = this.schema.indexes
 
+        if (!indexes) {
+            throw new Error('Cannot create table without a schema')
+        }
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
             if (name == 'primary') {
@@ -719,6 +722,9 @@ export class Table {
         if (recurse++ > 20) {
             throw new Error('Recursive merge')
         }
+        if (!src || !dest) {
+            return
+        }
         for (let [key, value] of Object.entries(src)) {
             if (value === undefined) {
                 continue
@@ -752,7 +758,9 @@ export class Table {
 
     merge(dest, ...sources) {
         for (let src of sources) {
-            dest = this.mergeOne(0, dest, src)
+            if (src) {
+                dest = this.mergeOne(0, dest, src)
+            }
         }
         return dest
     }
