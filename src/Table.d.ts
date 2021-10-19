@@ -2,7 +2,7 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
+import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
 
 export type EntityGroup = {
     [key: string]: AnyEntity[]
@@ -50,23 +50,26 @@ export class Table {
     clearContext(): Table;
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
-    exists(): Promise<Boolean>;
     describeTable(): Promise<{}>;
+    exists(): Promise<Boolean>;
     getContext(): {};
     getLog(): any;
+    getKeys(): Promise<OneIndexSchema>;
     getModel<T>(name: string): Model<T>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[]): EntityGroup;
     listModels(): AnyModel[];
     listTables(): string[];
     makeID(): {};
-    readSchema(): OneSchema;
+    readSchema(): Promise<OneSchema>;
+    readSchemas(): Promise<OneSchema[]>;
     removeModel(name: string): void;
-    saveSchema(schema?: OneSchema): OneSchema;
+    removeSchema(schema: OneSchema): Promise<void>;
+    saveSchema(schema?: OneSchema): Promise<OneSchema>;
     setClient(client: {}): void;
     setContext(context?: {}, merge?: boolean): Table;
     setLog(log: any): void;
-    setSchema(schema?: OneSchema): void;
+    setSchema(schema?: OneSchema): Promise<void>;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     uuid(): {};
 
