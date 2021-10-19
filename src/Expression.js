@@ -91,7 +91,7 @@ export class Expression {
             if (fields[name]) {
                 this.add(fields[name], value)
             } else if (this.model.generic) {
-                this.add({attribute: [name]}, value)
+                this.add({attribute: [name], name}, value)
             }
         }
 

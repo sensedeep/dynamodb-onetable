@@ -34,7 +34,7 @@ test('Create user 1', async() => {
         name: 'Peter Smith',
         email: 'peter@example.com',
     }
-    user = await User.create(props)
+    user = await User.create(props, {log: false})
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
@@ -52,7 +52,7 @@ test('Create user 2', async() => {
         name: 'Judy Smith',
         email: 'judy@example.com',
     }
-    user = await User.create(props)
+    user = await User.create(props, {log: false})
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()

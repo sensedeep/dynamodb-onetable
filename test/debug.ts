@@ -1,7 +1,7 @@
 /*
     debug.ts - Just for debug
  */
-import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
 import {DebugSchema} from './schemas'
 
 jest.setTimeout(7200 * 1000)
@@ -27,9 +27,22 @@ let User = table.getModel<UserType>('User')
 let user: UserType = null
 let users: any
 
+class AdminUserModel extends Model<UserType> {
+    constructor() {
+        super(table, 'User')
+    }
+}
+const AdminUser = new AdminUserModel()
+
 test('Test', async() => {
     user = undefined
+
     user = await User.create({
+        email: 'coy@acme.com',
+        domain: 'local',
+    }, {log: false, hidden: true})
+
+    user = await AdminUser.create({
         email: 'rr@acme.com',
         domain: 'local',
     }, {log: false, hidden: true})
