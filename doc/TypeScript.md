@@ -10,10 +10,14 @@ For example:
 
 ```typescript
 const schema = {
+    version: '0.0.1',
+    indexes: {
+        primary: { hash: 'pk', sort: 'sk' },
+    },
     models: {
         Account: {
-            pk:             { type: String, value: 'account:${name}' },
-            name:           { type: String },
+            pk:     { type: String, value: 'account:${name}' },
+            name:   { type: String },
         }
     }
 }
@@ -28,12 +32,7 @@ let account: Account = {
 
 //  Create a model to get/find/update...
 
-let AccountModel = new Model<Account>(table, 'Account', {
-    fields: {
-        pk:    { type: String, value: 'account:${name}' },
-        name:  { type: String },
-    }
-})
+let AccountModel = table.getModel<'Account'>('Account')
 
 let account = await AccountModel.update({
     name: 'Acme',               //  OK
@@ -42,35 +41,4 @@ let account = await AccountModel.update({
 
 account.name = 'Coyote'         //  OK
 account.unknown = 42            //  Error
-```
-
-
-Another example:
-
-```typescript
-let BlogSchema = {
-    pk:        { type: String, value: 'blog:${email}' },
-    sk:        { type: String, value: 'blog:' },
-
-    email:     { type: String, required: true },
-    message:   { type: String, required: true },
-    date:      { type: Date, required: true },
-}
-
-//  Create a type based on the schema
-type Blog = Entity<typeof BlogSchema>
-
-//  Add the schema to the table
-table.addModel('Blog', BlogSchema)
-
-//  Get a typed model for access to the database.
-let BlogModel: Model<Blog> = table.getModel('Blog')
-
-//  Interact with type checking
-let blog = await BlogModel.get({
-    email: 'roadrunner@acme.com',   //  Ok
-    unknown: 42,                    //  Fails
-})
-blog.email = 'coyote@acme.com'      //  Ok
-blog.unknown: 42,                   //  Fails
 ```

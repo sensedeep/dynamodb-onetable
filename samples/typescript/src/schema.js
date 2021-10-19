@@ -70,7 +70,7 @@ export default {
             sk:         { type: String, value: 'invoice#${id}' },
 
             accountId:  { type: String, required: true },
-            date:       { type: Date, default: () => new Date() },
+            date:       { type: Date },
             id:         { type: String, uuid: true },
             product:    { type: String },
             count:      { type: Number },

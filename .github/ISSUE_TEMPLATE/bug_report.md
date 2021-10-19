@@ -12,11 +12,12 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
-1. Include your OneTable schema
-2. Include actual API code that is failing
-3. Include data values and context values
-4. Run API with params of {log: true} and include generated DynamoDB API calls
-5. Ensure you are using a current version of Node and NPM
+1. Try to reproduce by editing the test/debug.ts and execute via `jest debug`
+2. Include your OneTable schema
+3. Include actual API code that is failing
+4. Include data values and context values
+5. Run API with params of {log: true} and include generated DynamoDB API calls
+6. Ensure you are using a current version of Node and NPM
 
 Try using a Table logger and {log: true} in your API and include the DynamoDB command 
 that is being generated.

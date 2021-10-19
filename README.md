@@ -127,16 +127,6 @@ const MySchema = {
 }
 ```
 
-Alternatively, you can define models one by one:
-
-```javascript
-const Card = new Model(table, 'Card', {
-    fields: {
-        /* Model schema field definitions */
-    }
-})
-```
-
 To create an item:
 
 ```javascript
@@ -222,7 +212,7 @@ await table.transact('write', transaction)
 
 OneTable provides TypeScript type declaration files so that OneTable APIs, requests and responses can be fully type checked.
 
-However, OneTable goes further and creates type declarations for your table entities and attributes. TypeScript will catch any invalid entity or entity attribute references.
+OneTable also creates type declarations for your table entities and attributes. TypeScript will catch any invalid entity or entity attribute references.
 
 Using the magic of TypeScript dynamic typing, OneTable automatically converts your OneTable schema into fully typed generic Model APIs.
 
@@ -250,7 +240,7 @@ let account: AccountType = {
 }
 
 //  Get an Account access model
-let Account: Model<AccountType> = table.getModel<AccountType>('Account')
+let Account = table.getModel<AccountType>('Account')
 
 let account = await Account.update({
     name: 'Acme',               //  OK
@@ -363,7 +353,6 @@ The Table constructor takes a parameter of type `object` with the following prop
 | client | `DocumentClient` | An AWS [DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html) instance. |
 | crypto | `object` | Optional properties defining a crypto configuration to encrypt properties. |
 | createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
-| delimiter | `string` | Composite sort key delimiter (default ':'). |
 | hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
 | isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
@@ -615,13 +604,11 @@ The `type` properties defines the attribute data type. Valid types include: Stri
 
 The `validate` property defines a regular expression that is used to validate data before writing to the database. Highly recommended.
 
-The `value` property defines a literal string template or function that is used to compute the attribute value. This is useful for computing key values from other properties, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
+The `value` property defines a literal string template that is used to compute the attribute value. This is useful for computing key values from other properties, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
 String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other fields defined in the schema. If any of the variable references are undefined when an API is called, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
-The `value` may be set to a function which then returns the attribute value. The calling sequence for the function is `value(propertyName, properties)` where `properties` is the properties provided to the API after blending with the `context` (see below). A value function must not depend on the value of other value properties that may or many not have been computed when the function is called. You may use the values of other attributes supplied via the properties parameters.
-
-If you call `find` or any query API and do not provide all the properties needed to resolve the complete value template. i.e. some of the ${var} references are unresolved, OneTable will take the resolved portion and create a `begins with` key condition for that portion of the value template.
+If you call `find` or any query API and do not provide all the properties needed to resolve the complete value template. i.e. some of the ${var} references are unresolved, OneTable will take the resolved leading portion and create a `begins with` key condition for that portion of the value template.
 
 ### Table Contexts
 
@@ -637,6 +624,10 @@ Use the `Table.setContext` method to initialize the context and `Table.clear` to
 ### Table Methods
 
 The Table API provides a utility methods and low-level data API to manage DynamoDB. The low-level methods are: deleteItem, getItem, putItem, updateItem. Use these methods to do raw I/O on your table. In general, you should prefer the Model APIs that are based on their schema definition and provide a higher level of operation. The model methods are: create, get, find, remove and update.
+
+#### addContext(context = {})
+
+Add the table `context` properties. The context properties are merged with (overwrite) the existing context.
 
 #### addModel(name, fields)
 
@@ -674,9 +665,11 @@ Clear the table context properties. The `Table` has a `context` of properties th
 Create a new item in the database of the given model `modelName` as defined in the table schema.
 Wraps the `Model.create` API. See [Model.create](#model-create) for details.
 
+
 #### async createTable(params)
 
 Create a DynamoDB table based upon the needs of the specified OneTable schema. The table configuration can be augmented by supplying additional createTable configuration via the `params`. See [DynamoDB CreateTable](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#createTable-property) for details.
+
 
 #### async deleteItem(properties, params = {})
 
@@ -697,13 +690,15 @@ If `params.many` is set to true, the API may be used to delete more than one ite
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
-#### async deleteTable()
+#### async deleteTable(confirmation)
 
-Delete a DynamoDB table.
+Delete a DynamoDB table. Because this is a destructive operation, a confirmation string of 'DeleteTableForever' must be provided.
+
 
 #### async exists()
 
 Test if the table name exists in the database.
+
 
 #### async fetch(models, properties, params = {})
 
@@ -718,6 +713,36 @@ let products = items.Products
 users.forEach(user => /* operate on user */)
 products.forEach(product => /* operate on product */)
 ```
+
+#### async find(modelName, properties, params = {})
+
+Find an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.find` API. See [Model.find](#model-find) for details.
+
+
+#### async get(modelName, properties, params = {})
+
+Get an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.get` API. See [Model.get](#model-get) for details.
+
+
+#### getContext()
+
+Return the current context properties.
+
+
+#### getCurrentSchema(): OneSchema
+
+Return the schema currently used by the table.
+
+
+#### getLog()
+
+Return the current logger object.
+
+
+#### async getKeys()
+
+Return the current primary table and global secondary index keys. Returns a map indexed by index name or 'primary'. The partition key property is named 'hash' and the sort key 'sort'.
+
 
 #### async getItem(properties, params = {})
 
@@ -740,28 +765,24 @@ If `params.parse` is set to true, the results will be parsed and mapped into a s
 The `params.where` clause may be used to define a filter expression. This will define a FilterExpression and the ExpressionAttributeNames and ExpressionAttributeValues. See [Where Clause](#where-clauses) for more details.
 
 
-#### async find(modelName, properties, params = {})
-
-Find an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.find` API. See [Model.find](#model-find) for details.
-
-
-#### async get(modelName, properties, params = {})
-
-Get an item in the database of the given model `modelName` as defined in the table schema. Wraps the `Model.get` API. See [Model.get](#model-get) for details.
-
-
 #### getModel(name)
 
 Return a model for the given model name.
+
+
+#### groupByType(items)
+
+Return the items grouped by the configured table typeField property. Returns a map indexed by type name.
+
+#### listModels()
+
+Return a list of models defined on the `Table`.
 
 
 #### async listTables()
 
 Return a list of tables in the database.
 
-#### listModels()
-
-Return a list of models defined on the `Table`.
 
 #### async putItem(properties, params = {})
 
@@ -841,9 +862,16 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
+
 #### async readSchema(): OneSchema
 
-Read the schema from the table if it has been stored there via `saveSchema`.
+Read the `Current` schema from the table if it has been stored there via `saveSchema`.
+
+
+#### async readSchemas(): OneSchema[]
+
+Read all stored schemas from the table.
+
 
 #### async remove(modelName, properties, params = {})
 
@@ -852,7 +880,13 @@ Delete an item in the database of the given model `modelName` as defined in the 
 
 #### removeModel(name)
 
-Remove a model from the `Table` schema.
+Remove a model from the current schema in use by the table. This does not impact the persisted schemas.
+
+
+#### removeSchema(schema)
+
+Remove a schema from the persisted `Table` schema items. The schema should include a `name` property that describes the schema.
+
 
 #### async saveSchema(schema?: OneSchema): OneSchema
 
@@ -895,13 +929,16 @@ Assign an AWS SDK V2 DocumentClient or AWS SDK V3 Dynamo helper client to be use
 
 Set the table `context` properties. If `merge` is true, the properties are blended with the existing context.
 
-#### async setSchema(schema: OneSchema)
+#### async setSchema(schema?: OneSchema)
 
 Set the current schema for the table instance. This will reset the current schema. If the schema parameter contains a schema.params, these will be applied and overwrite the current Table params.
+
+If the schema property is null, the current schema will be removed.
 
 If the current table params contained function callbacks for `uuid`, `transform` or `metrics.properties` these will be retained when the new schema is applied.
 
 Note: This will not persist the schema to the table (Use `saveSchema` for that).
+
 
 #### async transact(operation, transaction, params = {})
 
@@ -976,9 +1013,7 @@ import {Table} from 'dynamodb-onetable'
 
 const table = new Table({})
 
-let Account = new Model(table, 'Account', {
-    fields: { /* See schema field definitions */},
-})
+let Account = table.getModel('Account')
 let User = table.getModel('User')
 
 //  Get an item where the name is sufficient to construct the primary key
@@ -995,25 +1030,20 @@ let user = await User.update({email: 'user@example.com', balance: 0})
 
 ### Model Constructor
 
-Models are typically created via the Table `schema` definition and factory. However, you can create them one-by-one as required. After manually creating the model, you should call `Table.addModel` to add to your table.
+Models are typically created via the Table `schema` definition and factory and retrieved using the Table.getModel(name) method.
 
 ```javascript
-let AccountModel = new Model(table, name, options)
+let User = table.getModel('User')
 ```
 
-With TypeScript, you create fully typed models using the generic Model constructor. For example:
+or in TypeScript to return a fully typed model:
 
 ```typescript
-type Account = Entity<typeof schema.models.Account>
-let AccountModel = new Model<Account>(table, 'Account', {
-    fields: {
-        pk:    { type: String, value: 'account:${name}' },
-        name:  { type: String },
-    }
-})
+type UserType = Entity<typeof Schema.models.User>
+let User = table.getModel<UserType>('User')
 ```
 
-Thereafter, the references to Account instances return by the model will be fully type checked.
+Thereafter, the references to User instances will be fully type checked.
 
 Where `table` is a configured instance of `Table`. Name is the name of the model and `options` are an optional hash.
 

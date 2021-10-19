@@ -31,9 +31,9 @@ const table = new Table({
     name: 'TestCrud',
     client: client,
     uuid: 'ulid',
-    delimiter: '#',
     logger: true,
     schema: {
+        version: '0.0.1',
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
             gs1:     { hash: 'gs1pk', sort: 'gs1sk' },
