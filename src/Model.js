@@ -385,6 +385,10 @@ export class Model {
                 if (promises.length) {
                     results = results.concat(await Promise.all(promises))
                 }
+                results.next = items.next
+                results.prev = items.prev
+                Object.defineProperty(results, 'next', {enumerable: false})
+                Object.defineProperty(results, 'prev', {enumerable: false})
                 return results
             }
         }
