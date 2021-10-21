@@ -447,7 +447,7 @@ The following metrics are emitted for each dimension combination:
 
 SenseDeep and other tools can present and analyze these metrics to gain insights and graph into how your single-table designs are performing.
 
-The properties of metrics are:
+The properties of Table constructor `params.metrics` property are:
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
@@ -467,7 +467,7 @@ Metrics can be dynamically controlled by the LOG_FILTER environment variable. If
 
 ```javascript
 const table = new Table({
-    metrics: {source: 'acme:launcher'}
+    metrics: {source: 'acme:launcher', env: true}
 })
 ```
 
@@ -581,7 +581,6 @@ The following attribute properties are supported:
 | enum | `array` | List of valid string values for the attribute. |
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
 | hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
-| ksuid | `boolean` | Set to true to automatically create a new KSUID (time-based sortable unique string) for the attribute when creating. Default false. This requires an implementation be passed to the Table constructor. |
 | map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
 | nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
@@ -606,7 +605,7 @@ The `validate` property defines a regular expression that is used to validate da
 
 The `value` property defines a literal string template that is used to compute the attribute value. This is useful for computing key values from other properties, creating compound (composite) sort keys or for packing fields into a single DynamoDB attribute when using GSIs.
 
-String templates are similar to JavaScript string templates, The template string may contain `${name}` references to other fields defined in the schema. If any of the variable references are undefined when an API is called, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
+String templates are similar to JavaScript string templates. The template string may contain `${name}` references to other fields defined in the entity model. If any of the variable references are undefined when an API is called, the computed field value will be undefined and the attribute will be omitted from the operation. The variable `name` may be of the form: `${name:size:pad}` where the name will be padded to the specified size using the given `pad` character (which default to '0'). This is useful for zero padding numbers so that they sort numerically.
 
 If you call `find` or any query API and do not provide all the properties needed to resolve the complete value template. i.e. some of the ${var} references are unresolved, OneTable will take the resolved leading portion and create a `begins with` key condition for that portion of the value template.
 

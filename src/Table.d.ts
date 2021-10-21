@@ -31,10 +31,6 @@ type TableConstructorParams = {
     updatedField?: string,          //  Name of "updated" timestamp attribute.
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
 
-    //  Deprecated - use uuid == 'ulid'
-    ulid?: () => string,    //  Function to create a ULID if field schema requires it.
-    ksuid?: () => string,   //  Function to create a KSUID if field schema requires it.
-
     legacyUnique?: string | boolean //  Legacy operation for unique fields. Set to unique item separator.
 };
 
