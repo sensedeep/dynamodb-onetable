@@ -60,6 +60,6 @@ export default class ULID {
             bytes[i] = Letters.charAt(mod)
             now = (now - mod) / LettersLen
         }
-        return bytes.join('')
+        return bytes.reverse().join('')
     }
 }

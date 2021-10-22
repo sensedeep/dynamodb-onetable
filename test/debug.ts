@@ -48,9 +48,10 @@ test('Test', async() => {
     }, {log: false, hidden: true})
     // dump("USER", user)
 
-    users = await User.find({sk: null}, {log: false, hidden: true})
+    // users = await User.find({sk: null}, {log: false, hidden: true})
 
-    // user = await User.get({entity: {id: user.entity.id}})
+    // users = await AdminUser.find({}, {index: 'gs1', log: false, hidden: true})
+
     // dump("USERS", users)
 })
 

@@ -67,7 +67,8 @@ export class Table {
     setLog(log: any): void;
     setSchema(schema?: OneSchema): Promise<void>;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
-    uuid(): {};
+    ulid(): string;
+    uuid(): string;
 
     deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
     getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;

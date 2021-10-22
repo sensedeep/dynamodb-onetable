@@ -1,7 +1,7 @@
 /*
     ulid.ts - Unit test for ULID
  */
-import {Match} from './utils/init'
+import {Match, delay} from './utils/init'
 import ULID from '../src/ULID'
 
 // jest.setTimeout(7200 * 1000)
@@ -47,5 +47,20 @@ test('ULID repeat', async() => {
     for (let i = 0; i < 100; i++) {
         let id: any = new ULID().toString()
         expect(id.length).toBe(26)
+    }
+})
+
+test('Sequence of timestamps', async() => {
+    const limit = 100
+    let output = []
+    for (let i = 0; i < limit; i++) {
+        let ulid = new ULID()
+        const id = ulid.toString()
+        await delay(1)
+        output.push(id)
+    }
+    let sorted = output.sort()
+    for (let i = 0; i < limit; i++) {
+        expect(output[i]).toBe(sorted[i])
     }
 })
