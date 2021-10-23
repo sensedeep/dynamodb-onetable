@@ -4,6 +4,8 @@
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {FullSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'PackedAttributeWithFollowTable',
     client: Client,

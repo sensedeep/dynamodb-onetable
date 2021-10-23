@@ -360,6 +360,39 @@ export class Model {
         }
 
         /*
+            Handle pagination next/prev
+        */
+        if (op == 'find' || op == 'scan') {
+            if (result.LastEvaluatedKey) {
+                items.next = this.table.unmarshall(result.LastEvaluatedKey)
+                Object.defineProperty(items, 'next', {enumerable: false})
+            }
+            if (params.count || params.select == 'COUNT') {
+                items.count = result.Count
+                Object.defineProperty(items, 'count', {enumerable: false})
+            }
+            if (prev) {
+                items.prev = this.table.unmarshall(prev)
+                Object.defineProperty(items, 'prev', {enumerable: false})
+            }
+            if (params.prev && op != 'scan') {
+                //  DynamoDB scan ignores ScanIndexForward
+                items = items.reverse()
+                let tmp = items.prev ; items.prev = items.next ; items.next = tmp
+            }
+        }
+
+        /*
+            Log unless the user provides params.log: false.
+            The logger will typically filter data/trace.
+        */
+        if (params.log !== false) {
+            this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {
+                cmd, items, op, properties, params,
+            })
+        }
+
+        /*
             Handle transparent follow. Get/Update/Find the actual item using the keys
             returned from the request on the GSI.
         */
@@ -395,40 +428,7 @@ export class Model {
             }
         }
 
-        /*
-            Log unless the user provides params.log: false.
-            The logger will typically filter data/trace.
-        */
-        if (params.log !== false) {
-            this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {
-                cmd, items, op, properties, params,
-            })
-        }
-
-        /*
-            Handle pagination next/prev
-        */
-        if (op == 'find' || op == 'scan') {
-            if (result.LastEvaluatedKey) {
-                items.next = this.table.unmarshall(result.LastEvaluatedKey)
-                Object.defineProperty(items, 'next', {enumerable: false})
-            }
-            if (params.count || params.select == 'COUNT') {
-                items.count = result.Count
-                Object.defineProperty(items, 'count', {enumerable: false})
-            }
-            if (prev) {
-                items.prev = this.table.unmarshall(prev)
-                Object.defineProperty(items, 'prev', {enumerable: false})
-            }
-            if (params.prev && op != 'scan') {
-                //  DynamoDB scan ignores ScanIndexForward
-                items = items.reverse()
-                let tmp = items.prev ; items.prev = items.next ; items.next = tmp
-            }
-            return items
-        }
-        return items[0]
+        return (op == 'find' || op == 'scan') ? items : items[0]
     }
 
     /*
