@@ -5,6 +5,8 @@ import {AWS, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 import DynamoDB from 'aws-sdk/clients/dynamodb'
 
+// jest.setTimeout(7200 * 1000)
+
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
 let data = [
@@ -29,6 +31,11 @@ const table = new Table({
     timestamps: true,
     isoDates: true,
     uuid: 'ulid',
+    logger: (level, message, context) => {
+        if (level == 'trace' || level == 'data') return
+        console.log(`${new Date().toLocaleString()}: ${level}: ${message}`)
+        console.log(JSON.stringify(context, null, 4) + '\n')
+    }
 })
 
 let User = null
