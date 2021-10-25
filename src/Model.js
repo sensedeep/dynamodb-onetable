@@ -1110,7 +1110,7 @@ export class Model {
                 params.remove.push(field.pathname)
                 delete properties[name]
 
-            } else if (field.type == 'object' && typeof value == 'object') {
+            } else if (typeof value == 'object' && (field.type == 'object' || field.type == 'array')) {
                 properties[name] = this.removeNulls(field, value)
             }
         }
@@ -1435,13 +1435,22 @@ export class Model {
     }
 
     /*
-        Handle nulls properly according to nulls preference.
+        Handle nulls and empty strings properly according to nulls preference.
+        NOTE: DynamoDB can handle empty strings as top level string attributes, but not nested in lists or maps. Ugh!
     */
     removeNulls(field, obj) {
         let result
-        if (obj !== null && typeof obj == 'object') {
+        /*
+            Loop over plain objects and arrays only
+        */
+        if (obj !== null && typeof obj == 'object' &&
+                (obj.constructor.name == 'Object' || obj.constructor.name == 'Array')) {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
+                if (value === '') {
+                    //  Convert to null and handle according to field.nulls
+                    value = null
+                }
                 if (value == null && field.nulls !== true) {
                     //  Match null and undefined
                     continue
