@@ -13,7 +13,7 @@ const DefaultMetrics = {
     hot: false,                                                     //  Hot partition tracking
     max: 100,                                                       //  Buffer metrics for 100 requests
     namespace: 'SingleTable/Metrics.1',                             //  CloudWatch metrics namespace
-    period: 30,                                                     //  or buffer for 30 seconds
+    period: 60,                                                     //  or buffer for 30 seconds
     properties: {},                                                 //  Additional properties to emit
     queries: true,                                                  //  Query profiling
     source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default',      //  Default source name
@@ -169,6 +169,7 @@ export class Metrics {
             Object.keys(rec).forEach(field => rec[field] === 0 && delete rec[field])
             this.emitMetrics(timestamp, rec)
         }
+        this.metrics.counters = {}
     }
 
     emitMetrics(timestamp, rec) {
