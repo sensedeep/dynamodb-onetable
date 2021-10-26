@@ -52,9 +52,13 @@ Schemas may be stored in the data table and thus the table becomes self-describi
 }
 ```
 
+## Conventions
+
+The following keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT, RECOMMENDED, MAY, and OPTIONAL are interpreted as described in the [Key Words RFC2119](http://tools.ietf.org/html/rfc2119).
+
 ## Formats
 
-OneTable schemas are expressed in [JSON](https://www.json.org/json-en.html) and may be directly imported into code or tools.
+OneTable schemas are expressed in [JSON](https://www.json.org/json-en.html) so they may be imported by code and tools or persisted in database tables.
 
 A OneTable schema is an Object Map with a set of mandatory and optional top-level properties.
 
