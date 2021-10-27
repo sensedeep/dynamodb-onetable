@@ -1261,6 +1261,11 @@ for (let segment = 0; segment < segments; segment++) {
 let results = await Promise.all(promises)
 ```
 
+<a name="model-template"></a>
+#### async template(fieldName, properties)
+
+Return the evaluated field value template based on the given properties. This is a utility routine to manually evaluate value templates.
+
 <a name="model-update"></a>
 #### async update(properties, params = {})
 

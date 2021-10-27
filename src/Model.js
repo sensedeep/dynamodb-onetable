@@ -1187,9 +1187,6 @@ export class Model {
                             properties[name] = value
                         }
                     }
-                /*
-                } else if (typeof params.value == 'function') {
-                    properties[name] = params.value(field.pathname, properties) */
                 }
             }
         }
@@ -1230,7 +1227,7 @@ export class Model {
             Consider unresolved template variables. If field is the sort key and doing find,
             then use sort key prefix and begins_with, (provide no where clause).
          */
-        if (value.indexOf('${') >= 0) {
+        if (value.indexOf('${') >= 0 && index) {
             if (field.attribute[0] == index.sort) {
                 if (op == 'find' && !params.where) {
                     //  Strip from first ${ onward and retain fixed prefix portion
@@ -1247,6 +1244,16 @@ export class Model {
             return undefined
         }
         return value
+    }
+
+    //  Public routine to run templates
+    template(name, properties, params = {}) {
+        let fields = this.block.fields
+        let field = fields[name]
+        if (!field) {
+            throw new OneError('Cannot find field', {name})
+        }
+        return this.runTemplate('find', null, properties, params)
     }
 
     validateProperties(op, fields, properties, params) {
