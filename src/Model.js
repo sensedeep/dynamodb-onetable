@@ -879,27 +879,39 @@ export class Model {
         Note: this does not map names to attributes or evaluate value templates, that happens in Expression.
      */
     prepareProperties(op, properties, params = {}) {
+        delete params.fallback
         let index = this.selectIndex(op, params)
-        if (index != this.indexes.primary) {
-            //  Handle fallback for get/delete as GSIs only support find and scan
-            if (op != 'find' && op != 'scan') {
-                if (params.low) {
-                    throw new Error('Cannot use non-primary index for "${op}" operation')
-                }
-                params.fallback = true
-                return properties
-            }
-        }
-        let rec = this.transformProperties(op, this.block, index, properties, params)
 
+        if (this.needsFallback(op, index, params)) {
+            params.fallback = true
+            return properties
+        }
+
+        let rec = this.collectProperties(op, this.block, index, properties, params)
+        if (params.fallback) {
+            return properties
+        }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
             this.table.log.error(`Empty hash key`, {properties, params, op})
-            throw new Error(`dynamo: Empty hash key. Check hash key and any value template variable references.`)
+            throw new OneError(`Empty hash key. Check hash key and any value template variable references.`, {
+                properties, rec, code: 'Missing',
+            })
         }
-        if (this.table.transform && ReadWrite[op] == 'write') {
-            rec = this.table.transform(this, op, rec, params)
+        if (this.table.params.transform && ReadWrite[op] == 'write') {
+            rec = this.table.params.transform(this, op, rec, properties, params)
         }
         return rec
+    }
+
+    //  Handle fallback for get/delete as GSIs only support find and scan
+    needsFallback(op, index, params) {
+        if (index != this.indexes.primary && op != 'find' && op != 'scan') {
+            if (params.low) {
+                throw new OneArgError('Cannot use non-primary index for "${op}" operation')
+            }
+            return true
+        }
+        return false
     }
 
     /*
@@ -933,30 +945,36 @@ export class Model {
         return index
     }
 
-    transformProperties(op, block, index, properties, params, context, rec = {}) {
+    /*
+        Collect the required attribute from the properties and context.
+        This handles tunneled properties, blends context properties, resolves default values, handles Nulls and empty strings,
+        and invokes validations. Nested schemas are handled here.
+    */
+    collectProperties(op, block, index, properties, params, context, rec = {}) {
         let fields = block.fields
         if (!context) {
-            context = params.context ? params.context : this.table.context
+            context = params.context || this.table.context
+        }
+        if (this.nested && !KeysOnly[op]) {
+            //  Process nested schema recursively
+            for (let [name, value] of Object.entries(properties)) {
+                let field = fields[name]
+                if (field && field.schema && typeof value == 'object') {
+                    rec[name] = rec[name] || {}
+                    this.collectProperties(op, field.block, index, value, params, context[name] || {}, rec[name])
+                }
+            }
         }
         this.tunnelProperties(properties, params)
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties)
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
-
         this.validateProperties(op, fields, properties, params)
+        this.selectProperties(op, block, index, properties, params, rec)
+        this.transformProperties(op, fields, properties, params, rec)
 
-        //  Process nested schema
-        if (this.nested && !KeysOnly[op]) {
-            for (let [name, value] of Object.entries(properties)) {
-                let field = fields[name]
-                if (field && field.schema && typeof value == 'object') {
-                    let r = rec[name] = rec[name] || {}
-                    this.transformProperties(op, field.block, index, value, params, context[name] || {}, r)
-                }
-            }
-        }
-        return this.selectProperties(op, block, index, properties, params, rec)
+        return rec
     }
 
     /*
@@ -974,9 +992,57 @@ export class Model {
     }
 
     /*
-        Select the properties to include in the request
+        Select the attributes to include in the request
     */
     selectProperties(op, block, index, properties, params, rec) {
+        let project = this.getProjection(index)
+        /*
+            NOTE: Value templates for unique items may need other properties when removing unique items
+        */
+        for (let [name, field] of Object.entries(block.fields)) {
+            if (field.schema) continue
+            let omit = false
+
+            if (block == this.block) {
+                let attribute = field.attribute[0]
+                //  Missing sort key on a high-level API for get/delete
+                if (properties[name] == null && attribute == index.sort && params.high && KeysOnly[op]) {
+                    if (op == 'delete' && !params.many) {
+                        throw new OneError('Missing sort key', {code: 'Missing'})
+                    }
+                    /*
+                        Missing sort key for high level get, or delete without "any".
+                        Fallback to find to select the items of interest. Get will throw if more than one result is returned.
+                    */
+                    params.fallback = true
+                    return
+                }
+                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
+                    //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.
+                    //  FUTURE: could have a "strict" mode where we warn for other properties instead of ignoring.
+                    omit = true
+
+                } else if (project && project.indexOf(attribute) < 0) {
+                    //  Attribute is not projected
+                    omit = true
+
+                } else if (name == this.typeField && op == 'find') {
+                    omit = true
+                }
+                /*
+            } else {
+                // result[name] = this.transformWriteAttribute(op, field, value, params, properties)
+                rec[name] = properties[name]
+                */
+            }
+            if (!omit && properties[name] !== undefined) {
+                rec[name] = properties[name]
+            }
+        }
+        this.addProjectedProperties(op, properties, params, project, rec)
+    }
+
+    getProjection(index) {
         let project = index.project
         if (project) {
             if (project == 'all') {
@@ -986,45 +1052,11 @@ export class Model {
                 project = [primary.hash, primary.sort, index.hash, index.sort]
             }
         }
-        /*
-            Unique valute templates may need other properties when removing unique items
-        */
-        for (let [name, field] of Object.entries(block.fields)) {
-            if (field.schema) continue
-            let attribute = field.attribute[0]
-            let value = properties[name]
-            if (block == this.block) {
-                //  Missing sort key on a high-level API for get/delete
-                if (value == null && attribute == index.sort && params.high && KeysOnly[op]) {
-                    if (op == 'delete' && !params.many) {
-                        throw new Error('Missing sort key')
-                    }
-                    /*
-                        Missing sort key for high level get, or delete without many. Fallback to find to select the items of interest.
-                        Get will throw if more than one result is returned.
-                    */
-                    params.fallback = true
-                    return properties
-                }
-                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
-                    //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.
-                    //  FUTURE: could have a "strict" mode where we warn for other properties instead of ignoring.
-                    continue
-                }
-                if (project && project.indexOf(attribute) < 0) {
-                    //  Attribute is not projected
-                    continue
-                }
-                if (name == this.typeField && op == 'find') {
-                    continue
-                }
-            }
-            if (value !== undefined) {
-                rec[name] = this.transformWriteAttribute(op, field, value, params)
-            }
-        }
+        return project
+    }
 
-        //  For generic (table low level APIs), add all properties that are projected
+    //  For generic (table low level APIs), add all properties that are projected
+    addProjectedProperties(op, properties, params, project, rec) {
         let generic = params.generic != null ? params.generic : this.generic
         if (generic && !KeysOnly[op]) {
             for (let [name, value] of Object.entries(properties)) {
@@ -1141,17 +1173,23 @@ export class Model {
                 continue
             }
             if (typeof properties[name] == 'function') {
+                //  Undocumented and not supported for typescript
                 properties[name] = properties[name](field.pathname, properties)
-            }
-            if (properties[name] === undefined && field.value) {
-                if (typeof field.value == 'function') {
-                    console.log('WARNING: value functions are DEPRECATED and will be removed soon.')
-                    properties[name] = field.value(field.pathname, properties)
-                } else {
-                    let value = this.runTemplate(op, index, field, properties, params, field.value)
-                    if (value != null) {
-                        properties[name] = value
+
+            } else if (properties[name] === undefined) {
+                if (field.value) {
+                    if (typeof field.value == 'function') {
+                        console.log('WARNING: value functions are DEPRECATED and will be removed soon.')
+                        properties[name] = field.value(field.pathname, properties)
+                    } else {
+                        let value = this.runTemplate(op, index, field, properties, params, field.value)
+                        if (value != null) {
+                            properties[name] = value
+                        }
                     }
+                /*
+                } else if (typeof params.value == 'function') {
+                    properties[name] = params.value(field.pathname, properties) */
                 }
             }
         }
@@ -1181,6 +1219,9 @@ export class Model {
                 }
             } else {
                 v = match
+            }
+            if (typeof v == 'object' && v.toString() == '[object Object]') {
+                throw new OneError(`Value for "${field.pathname}" is not a primitive value`, {code: 'Type'})
             }
             return v
         })
@@ -1228,7 +1269,8 @@ export class Model {
         }
         if (Object.keys(details).length > 0) {
             this.table.log.error(`Validation error for "${this.name}"`, {model: this.name, properties, details})
-            let err = new Error(`dynamo: Validation Error for "${this.name}"`)
+            let err = new OneError(`Validation Error for "${this.name}"`, {validation: details, code: 'Validation'})
+            //  DEPRECATE
             err.details = details
             throw err
         }
@@ -1281,14 +1323,24 @@ export class Model {
         return value
     }
 
+    transformProperties(op, fields, properties, params, rec) {
+        for (let [name, field] of Object.entries(fields)) {
+            let value = rec[name]
+            if (value !== undefined && !field.schema) {
+                rec[name] = this.transformWriteAttribute(op, field, value, params, properties)
+            }
+        }
+        return rec
+    }
+
     /*
-        Transform types before writing data to Dynamo
+        Transform an attribute before writing. This invokes transform callbacks and handles nested objects.
      */
-    transformWriteAttribute(op, field, value, params) {
+    transformWriteAttribute(op, field, value, params, properties) {
         let type = field.type
 
         if (typeof params.transform == 'function') {
-            value = params.transform(this, 'write', field.name, value)
+            value = params.transform(this, 'write', field.name, value, properties)
 
         } else if (value == null && field.nulls === true) {
             //  Keep the null
