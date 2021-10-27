@@ -25,6 +25,7 @@ module.exports = {
         "!**/teardown.[jt]s",
         "!**/helpers.[jt]s",
         "!**/schemas/*",
+        "!**/proto.ts"
     ],
     globalSetup: '<rootDir>/test/utils/setup.ts',
     globalTeardown: '<rootDir>/test/utils/teardown.ts',

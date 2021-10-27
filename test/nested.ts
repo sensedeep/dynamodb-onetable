@@ -49,8 +49,8 @@ test('Get Schema', () => {
 
 test('Create', async() => {
     //  Unknown properties must not be written to the table
-    let params = Object.assign({unknown: 42, location: {unknown: 42}}, Properties)
-    user = await User.create(params)
+    let properties = Object.assign({unknown: 42, location: {unknown: 42}}, Properties)
+    user = await User.create(properties)
     expect(user).toMatchObject(Properties)
     expect(user.id).toMatch(Match.uuid)
     expect(user.balance).toBe(0)
