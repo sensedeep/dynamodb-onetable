@@ -10,6 +10,7 @@ import ULID from './ULID.js'
 import {Model} from './Model.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
+import {OneError, OneArgError} from './Error.js'
 
 /*
     AWS V2 DocumentClient methods
@@ -59,7 +60,7 @@ export class Table {
 
     constructor(params = {}) {
         if (!params.name) {
-            throw new Error('Missing "name" property')
+            throw new OneArgError('Missing "name" property')
         }
         this.context = {}
 
@@ -186,7 +187,7 @@ export class Table {
         let indexes = this.schema.indexes
 
         if (!indexes) {
-            throw new Error('Cannot create table without a schema')
+            throw new OneArgError('Cannot create table without a schema')
         }
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
@@ -196,7 +197,7 @@ export class Table {
                 if (index.hash == null || index.hash == indexes.primary.hash) {
                     collection = 'LocalSecondaryIndexes'
                     if (index.project) {
-                        throw new Error('Unwanted project for LSI')
+                        throw new OneArgError('Unwanted project for LSI')
                     }
                 } else {
                     collection = 'GlobalSecondaryIndexes'
@@ -278,7 +279,7 @@ export class Table {
                 await this.service.deleteTable({TableName: this.name}).promise()
             }
         } else {
-            throw new Error(`Missing required confirmation "${ConfirmRemoveTable}"`)
+            throw new OneArgError(`Missing required confirmation "${ConfirmRemoveTable}"`)
         }
     }
 
@@ -427,7 +428,7 @@ export class Table {
             } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
                 //  Not a hard error -- typically part of normal operation
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
-                throw new Error(`Conditional create failed for "${model}`)
+                throw new OneError(`Conditional create failed for "${model}`, {code: 'Condition'})
 
             } else {
                 result = result || {}
@@ -597,11 +598,11 @@ export class Table {
     encrypt(text, name = 'primary', inCode = 'utf8', outCode = 'base64') {
         if (text) {
             if (!this.crypto) {
-                throw new Error('dynamo: No database secret or cipher defined')
+                throw new OneArgError('No database secret or cipher defined')
             }
             let crypto = this.crypto[name]
             if (!crypto) {
-                throw new Error(`dynamo: Database crypto not defined for ${name}`)
+                throw new OneArgError(`Database crypto not defined for ${name}`)
             }
             let iv = Crypto.randomBytes(IV_LENGTH)
             let crypt = Crypto.createCipheriv(crypto.cipher, crypto.secret, iv)
@@ -619,11 +620,11 @@ export class Table {
                 return text
             }
             if (!this.crypto) {
-                throw new Error('dynamo: No database secret or cipher defined')
+                throw new OneArgError('No database secret or cipher defined')
             }
             let crypto = this.crypto[name]
             if (!crypto) {
-                throw new Error(`dynamo: Database crypto not defined for ${name}`)
+                throw new OneArgError(`Database crypto not defined for ${name}`)
             }
             iv = Buffer.from(iv, 'hex')
             let crypt = Crypto.createDecipheriv(crypto.cipher, crypto.secret, iv)
@@ -734,7 +735,7 @@ export class Table {
 
     assignInner(dest, src, recurse = 0) {
         if (recurse++ > 20) {
-            throw new Error('Recursive merge')
+            throw new OneError('Recursive merge', {code: 'Runtime'})
         }
         if (!src || !dest || typeof src != 'object') {
             return

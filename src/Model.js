@@ -5,6 +5,7 @@
 */
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
+import {OneError, OneArgError} from './Error.js'
 
 /*
     Ready / write tags for interceptions
@@ -34,13 +35,13 @@ export class Model {
      */
     constructor(table, name, options = {}) {
         if (!table) {
-            throw new Error('Missing table argument')
+            throw new OneArgError('Missing table argument')
         }
         if (!table.typeField || !table.uuid) {
-            throw new Error('Invalid table instance')
+            throw new OneArgError('Invalid table instance')
         }
         if (!name) {
-            throw new Error('Missing name of model')
+            throw new OneArgError('Missing name of model')
         }
         this.table = table
         this.name = name
@@ -76,7 +77,7 @@ export class Model {
         this.indexes = this.schema.indexes
 
         if (!this.indexes) {
-            throw new Error('Indexes must be defined on the Table before creating models')
+            throw new OneArgError('Indexes must be defined on the Table before creating models')
         }
         this.indexProperties = this.getIndexProperties(this.indexes)
 
@@ -117,7 +118,7 @@ export class Model {
             let pathname = prefix ? `${prefix}.${name}` : name
 
             if (!field.type) {
-                throw new Error(`Missing field type for ${pathname}`)
+                throw new OneArgError(`Missing field type for ${pathname}`)
             }
             field.pathname = pathname
             field.name = name
@@ -134,16 +135,16 @@ export class Model {
                 mapTargets[att] = mapTargets[att] || []
                 if (sub) {
                     if (map[name] && !Array.isArray(map[name])) {
-                        throw new Error(`dynamo: Map already defined as literal for ${this.name}.${name}`)
+                        throw new OneArgError(`Map already defined as literal for ${this.name}.${name}`)
                     }
                     field.attribute = map[name] = [att, sub]
                     if (mapTargets[att].indexOf(sub) >= 0) {
-                        throw new Error(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
+                        throw new OneArgError(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
                     }
                     mapTargets[att].push(sub)
                 } else {
                     if (mapTargets[att].length > 1) {
-                        throw new Error(`Multiple attributes in ${this.name} mapped to the target ${to}`)
+                        throw new OneArgError(`Multiple attributes in ${this.name} mapped to the target ${to}`)
                     }
                     field.attribute = map[name] = [att]
                     mapTargets[att].push(true)
@@ -162,7 +163,7 @@ export class Model {
             if (index && !prefix) {
                 field.isIndexed = true
                 if (field.attribute.length > 1) {
-                    throw new Error(`dynamo: Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
+                    throw new OneArgError(`Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
                 }
                 if (index == 'primary') {
                     field.required = true
@@ -209,7 +210,7 @@ export class Model {
         }
         type = type.toLowerCase()
         if (ValidTypes.indexOf(type) < 0) {
-            throw new Error(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
+            throw new OneArgError(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
         }
         return type
     }
@@ -264,7 +265,7 @@ export class Model {
         let t = params.transaction
         if (t) {
             if (params.batch) {
-                throw new Error('Cannot have batched transactions')
+                throw new OneArgError('Cannot have batched transactions')
             }
             let top = TransactOps[op]
             if (top) {
@@ -273,7 +274,7 @@ export class Model {
                 items.push({[top]: cmd})
                 return this.transformReadItem(op, properties, properties, params)
             } else {
-                throw new Error(`Unknown transaction operation ${op}`)
+                throw new OneArgError(`Unknown transaction operation ${op}`)
             }
         }
         /*
@@ -480,7 +481,7 @@ export class Model {
      */
     async createUnique(properties, params) {
         if (params.batch) {
-            throw new Error('Cannot use batch with unique properties which require transactions')
+            throw new OneArgError('Cannot use batch with unique properties which require transactions')
         }
         let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
@@ -509,7 +510,10 @@ export class Model {
             await this.table.transact('write', params.transaction, params)
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
-                throw new Error(`dynamo: Cannot create "${this.name}", an item of the same name already exists.`)
+                let names = fields.map(f => f.name).join(', ')
+                throw new OneError(`Cannot create unqiue attributes "${names}" for "${this.name}", ` +
+                                   `an item of the same name already exists.`,
+                                   {properties, transaction, code: 'Unique'})
             }
             throw err
         }
@@ -530,7 +534,7 @@ export class Model {
             params.limit = 2
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                throw new Error('Get without sort key returns more than one result')
+                throw new OneError('Get without sort key returns more than one result', {properties, code: 'NonUnique'})
             }
             return items[0]
         }
@@ -564,12 +568,15 @@ export class Model {
      */
     async removeByFind(properties, params) {
         if (params.retry) {
-            throw new Error('dynamo: Remove cannot retry')
+            throw new OneArgError('Remove cannot retry', {properties})
         }
         params.parse = true
         let items = await this.find(properties, params)
         if (items.length > 1 && !params.many) {
-            throw new Error(`dynamo: warning: removing multiple items from "${this.name}". Use many:true to enable.`)
+            throw new OneError(`Removing multiple items from "${this.name}". Use many:true to enable.`, {
+                properties,
+                code: 'NonUnique',
+            })
         }
         for (let item of items) {
             if (this.hasUniqueFields) {
@@ -623,7 +630,7 @@ export class Model {
      */
     async updateUnique(properties, params) {
         if (params.batch) {
-            throw new Error('Cannot use batch with unique properties which require transactions')
+            throw new OneArgError('Cannot use batch with unique properties which require transactions')
         }
         let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
@@ -639,7 +646,7 @@ export class Model {
         if (prior) {
             prior = this.prepareProperties('update', prior)
         } else if (params.exists === undefined || params.exists == true) {
-            throw new Error('Cannot find item to update')
+            throw new OneError('Cannot find existing item to update', {properties, code: 'NotFound'})
         }
 
         /*
@@ -682,7 +689,10 @@ export class Model {
             await this.table.transact('write', params.transaction, params)
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
-                throw new Error(`dynamo: Cannot create "${this.name}", an item of the same name already exists.`)
+                let names = fields.map(f => f.name).join(', ')
+                throw new OneError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
+                                   `an item of the same name already exists.`,
+                                   {properties, transaction, code: 'Unique'})
             }
         }
         let items = this.parseResponse('put', expression)
@@ -1289,7 +1299,7 @@ export class Model {
         } else if (type == 'number') {
             let num = Number(value)
             if (isNaN(num)) {
-                throw new Error(`Invalid value "${value}" provided for field "${field.name}"`)
+                throw new OneError(`Invalid value "${value}" provided for field "${field.name}"`, {code: 'Validation'})
             }
             value = num
 
@@ -1347,7 +1357,7 @@ export class Model {
 
     transformWriteSet(type, value) {
         if (!Array.isArray(value)) {
-            throw new Error('Set values must be arrays')
+            throw new OneError('Set values must be arrays', {code: 'Type'})
         }
         if (type == Set || type == 'Set') {
             let v = value.values().next().value
@@ -1359,7 +1369,7 @@ export class Model {
                 value = value.map(v => v.toString('base64'))
             }
         } else {
-            throw new Error('Unknown type')
+            throw new OneError('Unknown type', {code: 'Type'})
         }
         return value
     }
@@ -1423,14 +1433,16 @@ export class Model {
             return {params, properties}
         }
         if (!properties) {
-            throw new Error('Missing properties')
+            throw new OneArgError('Missing properties')
         }
         if (typeof params != 'object') {
-            throw new Error('Invalid type for params')
+            throw new OneError('Invalid type for params', {code: 'Type'})
         }
+        //  Must not use merge as we need to modify the callers batch/transaction objects
         params = Object.assign(overrides, params)
+
         params.checked = true
-        properties = Object.assign({}, properties)
+        properties = this.table.assign({}, properties)
         return {params, properties}
     }
 
