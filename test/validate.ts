@@ -68,7 +68,7 @@ test('Create invalid', async() => {
         //  Never get here
         expect(false).toBeTruthy()
     } catch (err) {
-        expect(err.message).toMatch('dynamo: Validation Error for "User"')
+        expect(err.message).toMatch('Validation Error for "User"')
         let details = err.details
         expect(details).toBeDefined()
         expect(details.address).toBeDefined()
@@ -95,7 +95,7 @@ test('Create missing required property', async() => {
         //  Never get here
         expect(false).toBeTruthy()
     } catch (err) {
-        expect(err.message).toMatch('dynamo: Validation Error for "User"')
+        expect(err.message).toMatch('Validation Error for "User"')
         let details = err.details
         expect(details).toBeDefined()
         expect(details.email).toBeDefined()
@@ -109,6 +109,6 @@ test('Remove required property', async() => {
     try {
         await User.update({id: user.id, email: null})
     } catch (err) {
-        expect(err.message).toMatch('dynamo: Validation Error for "User"')
+        expect(err.message).toMatch('Validation Error for "User"')
     }
 })
