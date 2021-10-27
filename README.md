@@ -830,13 +830,15 @@ begins or begins_with
 between
 ```
 
-For TypeScript, the OneTable creates strict typings which make using {beings}, {between} etc. To accommodate TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
+For TypeScript, the OneTable creates strict typings on properties and so special steps are required for {beings}, {between} etc. For TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
 
 ```typescript
 let user = await table.queryItems({pk}, {tunnel: {begins: {sk: 'user:john'}}})
 let tickets = await table.queryItems({pk}, {tunnel: {between: {sk: [1000, 2000]}}})
 let invoices = await table.queryItems({pk}, {tunnel: {'<=': {sk: 1000}}})
 ```
+
+**Filter Expressions**
 
 Non-key fields are used to construct a filter expression which is applied by DynamoDB after reading the data but before returning it to the caller. OneTable will utilize fields in `properties` that correspond to the schema attributes for the model. Superfluous property fields will be ignored in the filter expression.
 
