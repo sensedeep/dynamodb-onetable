@@ -27,6 +27,8 @@ type TableConstructorParams = {
     schema?: OneSchema,             //  Table models schema.
     senselogs?: {},                 //  SenseLogs instance for logging
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
+    transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams) => any,
+                                    //  Transform record for read / write.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.

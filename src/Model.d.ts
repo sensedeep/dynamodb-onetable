@@ -165,7 +165,7 @@ export type OneParams = {
     maxPages?: number,
     next?: object,
     parse?: boolean,
-    postFormat?: (model: AnyModel, args: any) => any,
+    postFormat?: (model: AnyModel, cmd: {}) => {},
     preFormat?: (model: AnyModel, expression: Expression<AnyModel>) => void,
     prev?: object,
     remove?: string[],
@@ -178,10 +178,12 @@ export type OneParams = {
     stats?: object,
     substitutions?: object,
     throw?: boolean,
+    transform?: (model: AnyModel, op: string, name: string, value: any, properties: OneProperties) => any,
     transaction?: object,
     type?: string,
     tunnel?: object,
     updateIndexes?: boolean,
+    // value?: (name: string, properties: OneProperties) => any,
     where?: string,
 };
 
