@@ -1323,7 +1323,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | next | `object` | Starting key for the result set. This is used to set the ExclusiveStartKey when doing a find/scan. Typically set to the result.next value returned on a previous find/scan. |
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
-| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `args`, expects updated `args` to be returned. Args is an object with properties for the relevant DynamoDB API.|
+| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
 | preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
@@ -1334,7 +1334,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | substitutions | `object` | Variables that can be referenced in a where clause. Values will be added to ExpressionAttributeValues when used.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
-| transform | `function` | Function to be invoked to format and parse the data before reading and writing. Defaults to null.|
+| transform | `function` | Function to be invoked to format and parse the data before reading and writing. Called with signature: transform(model, op, fieldName, value, properties). Where op is 'read' or 'write'. Defaults to null.|
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
@@ -1348,7 +1348,7 @@ If `stats` is defined, find/query/scan operations will return the following stat
 The `transform` property may be used to format data prior to writing into the database and parse it when reading back. This can be useful to convert to alternate data representations in your table. The transform signature is:
 
 ```javascript
-value = transform(model, operation, name, value)
+value = transform(model, operation, name, value, properties)
 ```
 
 The `operation` parameter is set to `read` or `write`. The `name` argument is set to the field attribute name.
