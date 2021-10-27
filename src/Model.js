@@ -225,8 +225,12 @@ export class Model {
             for (let pathname of vars) {
                 let name = pathname.split('.').shift()
                 let ref = fields[name]
-                if (ref && ref != field && (ref.schema || ref.value)) {
-                    this.orderFields(ref.block, ref)
+                if (ref && ref != field) {
+                    if (ref.schema) {
+                        this.orderFields(ref.block, ref)
+                    } else if (ref.value) {
+                        this.orderFields(block, ref)
+                    }
                 }
             }
         }
