@@ -718,48 +718,53 @@ export class Table {
         return item
     }
 
-    mergeOne(recurse, dest, src) {
-        if (recurse++ > 20) {
-            throw new Error('Recursive merge')
-        }
-        if (!src || !dest) {
-            return
-        }
-        for (let [key, value] of Object.entries(src)) {
-            if (value === undefined) {
-                continue
-
-            } else if (value instanceof Date) {
-                dest[key] = new Date(value)
-
-            } else if (value instanceof RegExp) {
-                dest[key] = new RegExp(value.source, value.flags)
-
-            } else if (Array.isArray(value)) {
-                if (!Array.isArray(dest[key])) {
-                    dest[key] = []
-                }
-                if (value.length) {
-                    dest[key] = this.mergeOne(recurse, dest[key], value)
-                }
-
-            } else if (typeof value == 'object' && !(value instanceof RegExp || value == null)) {
-                if (typeof dest[key] != 'object') {
-                    dest[key] = {}
-                }
-                dest[key] = this.mergeOne(recurse, dest[key], value)
-
-            } else {
-                dest[key] = value
+    /*
+        Recursive Object.assign. Will clone dates, regexp, simple objects and arrays.
+        Other class instances and primitives are copied not cloned.
+        Max recursive depth of 20
+    */
+    assign(dest, ...sources) {
+        for (let src of sources) {
+            if (src) {
+                dest = this.assignInner(dest, src)
             }
         }
         return dest
     }
 
-    merge(dest, ...sources) {
-        for (let src of sources) {
-            if (src) {
-                dest = this.mergeOne(0, dest, src)
+    assignInner(dest, src, recurse = 0) {
+        if (recurse++ > 20) {
+            throw new Error('Recursive merge')
+        }
+        if (!src || !dest || typeof src != 'object') {
+            return
+        }
+        for (let [key, v] of Object.entries(src)) {
+            if (v === undefined) {
+                continue
+
+            } else if (v instanceof Date) {
+                dest[key] = new Date(v)
+
+            } else if (v instanceof RegExp) {
+                dest[key] = new RegExp(v.source, v.flags)
+
+            } else if (Array.isArray(v)) {
+                if (!Array.isArray(dest[key])) {
+                    dest[key] = []
+                }
+                if (v.length) {
+                    dest[key] = this.assignInner([key], v, recurse)
+                }
+
+            } else if (typeof v == 'object' && v != null && v.constructor.name == 'Object') {
+                if (typeof dest[key] != 'object') {
+                    dest[key] = {}
+                }
+                dest[key] = this.assignInner(dest[key], v, recurse)
+
+            } else {
+                dest[key] = v
             }
         }
         return dest

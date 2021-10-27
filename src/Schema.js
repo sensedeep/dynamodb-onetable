@@ -25,7 +25,7 @@ export class Schema {
 
     getCurrentSchema() {
         if (this.definition) {
-            let schema = this.table.merge({}, this.definition, {params: this.params})
+            let schema = this.table.assign({}, this.definition, {params: this.params})
             return this.transformSchemaForWrite(schema)
         }
         return null
@@ -285,7 +285,7 @@ export class Schema {
             await this.getKeys()
         }
         if (schema) {
-            schema = this.table.merge({}, schema)
+            schema = this.table.assign({}, schema)
             if (!schema.params) {
                 schema.params = this.params
             }
