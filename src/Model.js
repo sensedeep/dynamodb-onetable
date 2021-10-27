@@ -92,7 +92,7 @@ export class Model {
     prepModel(schemaFields, block, prefix = '') {
         let {fields} = block
 
-        schemaFields = this.table.merge({}, schemaFields)
+        schemaFields = this.table.assign({}, schemaFields)
         if (!prefix) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
