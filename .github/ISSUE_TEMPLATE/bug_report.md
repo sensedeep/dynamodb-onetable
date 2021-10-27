@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-NOTE: ISSUES will not receive priority that do not follow this template or cannot be easily reproduced or diagnosed.
+**ISSUES will not receive priority that do not follow this template or cannot be easily reproduced or diagnosed**
 
 **Describe the bug**
 A clear and concise description of what the bug is.
