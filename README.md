@@ -810,7 +810,11 @@ This API invokes the DynamoDB `query` API and return the results.
 
 The properties should include the relevant key properties.
 
-The sort key may be defined as a key condition by setting the property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value. For example:
+The sort key may be defined as a key condition by setting the property to an object that defines the condition. The condition operator is specified as the key, and the operand as the value.
+
+These operators may only be used with the sort key property. If the sort key uses a value template, you cannot use the operator on the sort key value directly and not on the properties that are referenced in the value template.
+
+For example:
 
 ```javascript
 let user = await table.queryItems({pk, sk: {begins: 'user:john'}})
