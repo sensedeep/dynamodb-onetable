@@ -925,7 +925,7 @@ export class Model {
         if (params.index && params.index != 'primary') {
             index = this.indexes[params.index]
             if (!index) {
-                throw new Error(`Cannot find index ${params.index}`)
+                throw new OneError(`Cannot find index ${params.index}`, {code: 'Missing'})
             }
         } else {
             index = this.indexes.primary
