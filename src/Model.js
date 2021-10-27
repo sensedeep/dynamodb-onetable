@@ -854,8 +854,8 @@ export class Model {
         if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
             rec[this.typeField] = this.name
         }
-        if (this.table.transform && ReadWrite[op] == 'read') {
-            rec = this.table.transform(this, op, rec, params, raw)
+        if (this.table.params.transform && ReadWrite[op] == 'read') {
+            rec = this.table.params.transform(this, op, rec, params, raw)
         }
         return rec
     }
