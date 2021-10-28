@@ -5,3 +5,4 @@ coverage
 .dynamodb
 test/proto.ts
 test/schemas/protoSchema.ts
+*.keep
