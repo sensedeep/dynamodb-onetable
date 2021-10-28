@@ -1383,6 +1383,18 @@ If a value inside `{}` is a number, it will be typed as a number for DynamoDB. T
 
 Note: the property name is an unmapped schema property name and not a mapped attribute name.
 
+Substutions also support a `splat` syntax for use with filterExpressions and the `IN` operator.
+
+With this syntax, the list is expanded in-situ and each list item is defined as a separate ExpressionAttributeValue.
+
+```javascript
+let adminUsers = await User.find({}, {
+    where: '(${role} IN @{...roles})',
+    substitutions: {
+        roles: ['user', 'admin']
+    }
+})
+
 ##### Where Clause Operators
 
 You can use the following operators with a `where` clause:

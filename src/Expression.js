@@ -224,13 +224,23 @@ export class Expression {
         where = where.replace(/@{(.*?)}/g, (match, value) => {
             let index
             const {substitutions} = this.params
-            if (!substitutions || !substitutions[value]) {
-                throw new OneArgErrorError(`Missing value for attribute value "${value}" in expression "${expr}"`, {
+            let name = value.replace(/^\.\.\./, '')
+            if (!substitutions || !substitutions[name]) {
+                throw new OneArgErrorError(`Missing substitutions for attribute value "${name}"`, {
+                    expr,
                     substitutions,
                     properties: this.properties,
                 })
             }
-            index = this.addValue(substitutions[value])
+            //  Support @{...list} to support filter expressions "IN ${...list}"
+            if (value != name && Array.isArray(substitutions[name])) {
+                let indicies = []
+                for (let item of substitutions[name]) {
+                    indicies.push(this.addValue(item))
+                }
+                return indicies.map(i => `:_${i}`).join(', ')
+            }
+            index = this.addValue(substitutions[name])
             return `:_${index}`
         })
 

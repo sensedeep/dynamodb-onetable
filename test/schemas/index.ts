@@ -1,6 +1,5 @@
 import CryptoSchema from './cryptoSchema'
 import DataTypesSchema from './dataTypesSchema'
-import DebugSchema from './debugSchema'
 import DefaultSchema from './defaultSchema'
 import FullSchema from './fullSchema'
 import LocalSchema from './localSchema'
@@ -15,7 +14,6 @@ import ValidationSchema from './validationSchema'
 export {
     CryptoSchema,
     DataTypesSchema,
-    DebugSchema,
     DefaultSchema,
     FullSchema,
     LocalSchema,

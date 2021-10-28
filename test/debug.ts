@@ -7,17 +7,35 @@
  */
 import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
 
-//  Use this schema or declare your own inline here
-import {DebugSchema} from './schemas'
-
 jest.setTimeout(7200 * 1000)
+
+//  Change with your schema
+const schema = {
+    version: '0.0.1',
+    indexes: {
+        primary: { hash: 'pk', sort: 'sk' },
+        gs1: { hash: 'gs1pk', sort: 'gs1sk', project: 'all' },
+    },
+    models: {
+        User: {
+            pk:          { type: String, value: '${_type}#' },
+            sk:          { type: String, value: '${_type}#${domain}#${id}' },
+
+            gs1pk:       { type: String, value: '${_type}#' },
+            gs1sk:       { type: String, value: '${_type}#${id}' },
+
+            name:        { type: String },
+            email:       { type: String },
+            id:          { type: String, uuid: "uuid" },
+        }
+    }
+}
 
 //  Change your table params as required
 const table = new Table({
     name: 'DebugTable',
     client: Client,
-    //  Change this if you are using an inline schema
-    schema: DebugSchema,
+    schema,
     logger: true,
 })
 
