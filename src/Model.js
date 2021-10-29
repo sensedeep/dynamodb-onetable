@@ -855,7 +855,7 @@ export class Model {
             rec[this.typeField] = this.name
         }
         if (this.table.params.transform && ReadWrite[op] == 'read') {
-            rec = this.table.params.transform(this, op, rec, params, raw)
+            rec = this.table.params.transform(this, op, rec, params, properties)
         }
         return rec
     }
