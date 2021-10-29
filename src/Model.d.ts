@@ -48,6 +48,7 @@ interface OneFieldSchema extends OneTypedField {
     uuid?: boolean | string,
     validate?: RegExp | string | boolean,
     value?: string,
+    schema?: OneModelSchema,
 }
 
 /*
