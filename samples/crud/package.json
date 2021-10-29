@@ -12,7 +12,7 @@
         "@aws-sdk/client-dynamodb": "^3.18.0",
         "@aws-sdk/util-dynamodb": "^3.18.0",
         "core-js": "^3.15.1",
-        "dynamodb-onetable": "^1.9"
+        "dynamodb-onetable": "^2"
     },
     "devDependencies": {
         "dynamo-db-local": "^4.0.2",
