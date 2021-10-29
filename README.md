@@ -667,7 +667,7 @@ Wraps the `Model.create` API. See [Model.create](#model-create) for details.
 
 #### async createTable(params)
 
-Create a DynamoDB table based upon the needs of the specified OneTable schema. The table configuration can be augmented by supplying additional createTable configuration via the `params`. See [DynamoDB CreateTable](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#createTable-property) for details.
+Create a DynamoDB table based upon the needs of the specified OneTable schema. The table configuration can be augmented by supplying additional createTable configuration via the `params.provisioned`. See [DynamoDB CreateTable](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html#createTable-property) for details.
 
 
 #### async deleteItem(properties, params = {})
@@ -992,6 +992,27 @@ If `params.execute` is set to false, the command will not be executed and the pr
 
 If `params.parse` is set to true, the results will be parsed and mapped into a set of Javascript properties. Otherwise, the unmodified DynamoDB response will be returned.
 
+
+#### async updateTable(params)
+
+Update a table and create or remove a Global Secondary Index.  
+
+Set `params.create` to an index to create. Set `create` to a map with properties for the `hash` and `sort` attributes. E.g.
+
+```javascript
+await table.updateTable({create: {
+    hash: 'gs1pk',
+    hash: 'gs2pk',
+    name: 'gs1',
+}})
+```
+Set `params.remove` to remove an index. Set `remove` to a map with a `name` property of the table to remove. E.g.
+
+```javascript
+await table.updateTable({remove: {
+    name: 'gs1'
+}})
+```
 
 #### uuid()
 
