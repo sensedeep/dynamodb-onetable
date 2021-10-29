@@ -176,10 +176,14 @@ export class Table {
             GlobalSecondaryIndexes: [],
             TableName: this.name,
         }
-        let provisioned = params.ProvisionedThroughput
+        let provisioned = params.provisioned || params.ProvisionedThroughput
         if (provisioned) {
-            def.ProvisionedThroughput = provisioned
-            def.BillingMode = 'PROVISIONED'
+            if (!provisioned.ReadCapacityUnits && !provisioned.WriteCapacityUnits) {
+                def.BillingMode = 'PAY_PER_REQUEST'
+            } else {
+                def.ProvisionedThroughput = provisioned
+                def.BillingMode = 'PROVISIONED'
+            }
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
@@ -187,14 +191,14 @@ export class Table {
         let indexes = this.schema.indexes
 
         if (!indexes) {
-            throw new OneArgError('Cannot create table without a schema')
+            throw new OneArgError('Cannot create table without schema indexes')
         }
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
             if (name == 'primary') {
                 keys = def.KeySchema
             } else {
-                if (index.hash == null || index.hash == indexes.primary.hash) {
+                if (index.hash == null || index.hash == indexes.primary.hash || index.type == 'local') {
                     collection = 'LocalSecondaryIndexes'
                     if (index.project) {
                         throw new OneArgError('Unwanted project for LSI')
@@ -203,54 +207,44 @@ export class Table {
                     collection = 'GlobalSecondaryIndexes'
                 }
                 keys = []
-                let project, attributes
+                let project, projection
                 if (Array.isArray(index.project)) {
-                    project = 'INCLUDE'
-                    attributes = index.project
+                    projection = 'INCLUDE'
+                    project = index.project.filter(a => a != index.hash && a != index.sort)
                 } else if (index.project == 'keys') {
-                    project = 'KEYS_ONLY'
+                    projection = 'KEYS_ONLY'
                 } else {
-                    project = 'ALL'
+                    projection = 'ALL'
                 }
                 let projDef = {
                     IndexName: name,
                     KeySchema: keys,
                     Projection: {
-                        ProjectionType: project,
+                        ProjectionType: projection,
                     }
                 }
-                if (attributes) {
-                    projDef.Projection.NonKeyAttributes = attributes
+                if (project) {
+                    projDef.Projection.NonKeyAttributes = Object.keys(project)
                 }
                 def[collection].push(projDef)
             }
-            keys.push({
-                AttributeName: index.hash || indexes.primary.hash,
-                KeyType: 'HASH',
-            })
+            keys.push({AttributeName: index.hash || indexes.primary.hash, KeyType: 'HASH'})
+
             if (index.hash && !attributes[index.hash]) {
-                def.AttributeDefinitions.push({
-                    AttributeName: index.hash,
-                    AttributeType: 'S',
-                })
+                def.AttributeDefinitions.push({AttributeName: index.hash, AttributeType: 'S'})
                 attributes[index.hash] = true
             }
             if (index.sort) {
                 if (!attributes[index.sort]) {
-                    def.AttributeDefinitions.push({
-                        AttributeName: index.sort,
-                        AttributeType: 'S',
-                    })
+                    def.AttributeDefinitions.push({AttributeName: index.sort, AttributeType: 'S'})
                     attributes[index.sort] = true
                 }
-                keys.push({
-                    AttributeName: index.sort,
-                    KeyType: 'RANGE',
-                })
+                keys.push({AttributeName: index.sort, KeyType: 'RANGE'})
             }
         }
         if (def.GlobalSecondaryIndexes.length == 0) {
             delete def.GlobalSecondaryIndexes
+
         } else if (provisioned) {
             for (let index of def.GlobalSecondaryIndexes) {
                 index.ProvisionedThroughput = provisioned
@@ -259,7 +253,7 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
-        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
+        this.log.info(`OneTable createTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.createTable(def)
         } else {
@@ -280,6 +274,86 @@ export class Table {
             }
         } else {
             throw new OneArgError(`Missing required confirmation "${ConfirmRemoveTable}"`)
+        }
+    }
+
+    async updateTable(params = {}) {
+        let def = {
+            AttributeDefinitions: [],
+            GlobalSecondaryIndexUpdates: [],
+            TableName: this.name,
+        }
+        let provisioned = params.provisioned
+        if (provisioned) {
+            if (!provisioned.ReadCapacityUnits && !provisioned.WriteCapacityUnits) {
+                def.BillingMode = 'PAY_PER_REQUEST'
+            } else {
+                def.ProvisionedThroughput = provisioned
+                def.BillingMode = 'PROVISIONED'
+            }
+        }
+        let indexes = this.schema.indexes
+        if (!indexes) {
+            throw new OneArgError('Cannot update table without schema indexes')
+        }
+        let create = params.create
+        if (create) {
+            if (create.hash == null || create.hash == indexes.primary.hash || create.type == 'local') {
+                throw new OneArgError('Cannot update table to create an LSI')
+            }
+            let keys = []
+            let projection, project
+
+            if (Array.isArray(create.project)) {
+                projection = 'INCLUDE'
+                project = create.project.filter(a => a != create.hash && a != create.sort)
+            } else if (create.project == 'keys') {
+                projection = 'KEYS_ONLY'
+            } else {
+                projection = 'ALL'
+            }
+            let projDef = {
+                IndexName: create.name,
+                KeySchema: keys,
+                Projection: {
+                    ProjectionType: projection,
+                }
+            }
+            if (project) {
+                projDef.Projection.NonKeyAttributes = Object.keys(project)
+            }
+            keys.push({AttributeName: create.hash, KeyType: 'HASH'})
+            def.AttributeDefinitions.push({AttributeName: create.hash, AttributeType: 'S'})
+
+            if (create.sort) {
+                def.AttributeDefinitions.push({AttributeName: create.sort, AttributeType: 'S'})
+                keys.push({AttributeName: create.sort, KeyType: 'RANGE'})
+            }
+            def.GlobalSecondaryIndexUpdates.push({Create: projDef})
+
+        } else if (params.remove) {
+            def.GlobalSecondaryIndexUpdates.push({Delete: {IndexName: params.remove.name}})
+
+        } else if (params.update) {
+            let update = {Update: {IndexName: params.update.name}}
+            if (provisioned) {
+                update.Update.ProvisionedThroughput = provisioned
+            }
+            def.GlobalSecondaryIndexUpdates.push(update)
+        }
+        if (def.GlobalSecondaryIndexUpdates.length == 0) {
+            delete def.GlobalSecondaryIndexUpdates
+
+        } else if (provisioned) {
+            for (let index of def.GlobalSecondaryIndexes) {
+                index.ProvisionedThroughput = provisioned
+            }
+        }
+        this.log.info(`OneTable updateTable for "${this.name}"`, {def})
+        if (this.V3) {
+            return await this.service.updateTable(def)
+        } else {
+            return await this.service.updateTable(def).promise()
         }
     }
 
