@@ -210,7 +210,7 @@ export class Table {
                 let project, projection
                 if (Array.isArray(index.project)) {
                     projection = 'INCLUDE'
-                    project = index.project.filter(a => a != index.hash && a != index.sort)
+                    project = index.project.filter(a => a != indexes.primary.hash && a != indexes.primary.sort)
                 } else if (index.project == 'keys') {
                     projection = 'KEYS_ONLY'
                 } else {
@@ -224,7 +224,7 @@ export class Table {
                     }
                 }
                 if (project) {
-                    projDef.Projection.NonKeyAttributes = Object.keys(project)
+                    projDef.Projection.NonKeyAttributes = project
                 }
                 def[collection].push(projDef)
             }
@@ -253,7 +253,7 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
-        this.log.info(`OneTable createTable for "${this.name}"`, {def})
+        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.createTable(def)
         } else {
@@ -320,7 +320,7 @@ export class Table {
                 }
             }
             if (project) {
-                projDef.Projection.NonKeyAttributes = Object.keys(project)
+                projDef.Projection.NonKeyAttributes = project
             }
             keys.push({AttributeName: create.hash, KeyType: 'HASH'})
             def.AttributeDefinitions.push({AttributeName: create.hash, AttributeType: 'S'})
@@ -349,7 +349,7 @@ export class Table {
                 index.ProvisionedThroughput = provisioned
             }
         }
-        this.log.info(`OneTable updateTable for "${this.name}"`, {def})
+        this.log.trace(`OneTable updateTable for "${this.name}"`, {def})
         if (this.V3) {
             return await this.service.updateTable(def)
         } else {
