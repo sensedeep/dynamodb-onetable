@@ -249,9 +249,9 @@ export class Schema {
             [primary.hash]: SchemaKey
         }
         if (primary.sort) {
-            params[primary.sort] = `${SchemaKey}#Current`
+            params[primary.sort] = `${SchemaKey}:Current`
         }
-        let schema = await this.table.getItem(params, {hidden: true, parse: true})
+        let schema = await this.table.getItem(params, {hidden: true, parse: true, log: true})
         return this.transformSchemaAfterRead(schema)
     }
 
