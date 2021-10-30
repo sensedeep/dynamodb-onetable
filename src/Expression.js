@@ -23,7 +23,7 @@ export class Expression {
         this.params = params
 
         this.table = model.table
-        this.already = {}           //  Fields already processed
+        this.already = {}           //  Fields already processed (index is property name)
         this.conditions = []        //  Condition expressions
         this.filters = []           //  Filter expressions
         this.key = {}               //  Primary key attribute
@@ -79,6 +79,7 @@ export class Expression {
             for (let [name, value] of Object.entries(this.properties)) {
                 if (fields[name] == null && value != null) {
                     this.addFilter(name, value)
+                    this.already[name] = true
                 }
             }
         }
@@ -339,6 +340,7 @@ export class Expression {
         let fields = this.model.block.fields
 
         if (params.add) {
+            //  keys are property names not attributes
             for (let [key, value] of Object.entries(params.add)) {
                 if (key == this.hash || key == this.sort) {
                     throw new OneArgError('Cannot add to hash or sort')

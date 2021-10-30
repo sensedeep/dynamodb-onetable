@@ -1304,12 +1304,14 @@ If the method fails to update, it will throw an exception. If `params.throw` is 
 
 The optional params are described in [Model API Params](#model-api-params).    
 
-The `params.add` parameter may be set a value to add to an attribute.
-The `params.delete` parameter may be set to a hash, where the hash keys are the attribute sets to modify and the values are the items in the sets to remove.
-The `params.remove` parameter may be set to a list of attributes to remove.
-The `params.set` parameter may be set to a hash, where the hash keys are the attributes to modify and the values are expresions.
+The `params.add` parameter may be set a value to add to property.
+The `params.delete` parameter may be set to a hash, where the hash keys are the property sets to modify and the values are the items in the sets to remove.
+The `params.remove` parameter may be set to a list of properties to remove.
+The `params.set` parameter may be set to a hash, where the hash keys are the properties to modify and the values are expresions.
 
-If a field is specified in properties an in params.set, params.delete, params.remove or params.add, then the params.* value takes precedence.
+The propertys provided to params.add, delete, remove and set are property names (not mapped attribute names).
+
+If a property is specified in the API `properties` first argument and the property is also set in params.set, params.delete, params.remove or params.add, then the params.* property value takes precedence.
 
 For example:
 
