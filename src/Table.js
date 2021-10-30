@@ -617,11 +617,15 @@ export class Table {
     /*
         Convert items into a map of items by model type
     */
-    groupByType(items) {
+    groupByType(items, params={}) {
         let result = {}
         for (let item of items) {
             let type = item[this.typeField] || '_unknown'
             let list = result[type] = result[type] || []
+            let model = this.schema.models[type]
+            if (Object.keys(params).length && model && model !== this.schema.uniqueModel) {
+                item = model.transformReadItem('get', item, {}, params)
+            }
             list.push(item)
         }
         return result
