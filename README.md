@@ -825,7 +825,7 @@ let invoices = await table.queryItems({pk, sk: {'<=': 1000}})
 The operators include:
 
 ```javascript
-< <= = >= >
+< <= = <> >= >
 begins or begins_with
 between
 ```
@@ -1423,7 +1423,7 @@ let adminUsers = await User.find({}, {
 You can use the following operators with a `where` clause:
 
 ```javascript
-< <= = >= >
+< <= = <> >= >
 AND OR NOT BETWEEN IN
 ()
 attribute_exists()
