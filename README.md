@@ -359,8 +359,6 @@ The Table constructor takes a parameter of type `object` with the following prop
 | metrics | `object` | Configure metrics. Default null.|
 | name | `string` | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
-| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
-| preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
@@ -1385,6 +1383,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | next | `object` | Starting key for the result set. This is used to set the ExclusiveStartKey when doing a find/scan. Typically set to the result.next value returned on a previous find/scan. |
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
+| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|

@@ -534,7 +534,7 @@ export class Expression {
             args = Object.fromEntries(Object.entries(args).filter(([, v]) => v != null))
         }
 
-        if (params.postFormat) {
+        if (typeof params.postFormat == 'function') {
             args = params.postFormat(model, args)
         }
         return args

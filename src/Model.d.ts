@@ -167,7 +167,6 @@ export type OneParams = {
     next?: object,
     parse?: boolean,
     postFormat?: (model: AnyModel, cmd: {}) => {},
-    preFormat?: (model: AnyModel, expression: Expression<AnyModel>) => void,
     prev?: object,
     remove?: string[],
     return?: string,
