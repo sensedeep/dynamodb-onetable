@@ -5,7 +5,7 @@
 import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'TransactTest',

@@ -1439,9 +1439,19 @@ Where clauses when used with `find` or `scan` on non-key attribugtes can also us
 
 See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html) for more details.
 
+    
+#### Error Handling
+
+API errors will throw an instance of the `OneError` class. This instance has the following properties:
+
+* message &mdash; Text error message.
+* code &mdash; Set to a string error code indicating the class of error.
+* context &mdash; Map of additional context information.
+
+
 #### Using `postFormat` to customize the final API request
 
-In cases where you can't acheive what you need through the OneTable APIs, you can customize the final request to DynamoDB using `postFormat`. For a contrived example, imagine if you needed to add an extra ExpressionAttributeValues, you could do:
+In cases where you cannot acheive what you need through the OneTable APIs, you can customize the final request to DynamoDB using `postFormat`. For a contrived example, imagine if you needed to add an extra ExpressionAttributeValues, you could do:
 
 ```
 await RouteModel.update({ routeId }, {

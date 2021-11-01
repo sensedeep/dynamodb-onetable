@@ -4,6 +4,8 @@
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {ValidationSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'ValidateTestTable',
     client: Client,
@@ -69,16 +71,16 @@ test('Create invalid', async() => {
         expect(false).toBeTruthy()
     } catch (err) {
         expect(err.message).toMatch('Validation Error for "User"')
-        let details = err.details
-        expect(details).toBeDefined()
-        expect(details.address).toBeDefined()
-        expect(details.city).toBeDefined()
-        expect(details.email).toBeDefined()
-        expect(details.name).toBeDefined()
-        expect(details.phone).toBeDefined()
-        expect(details.status).toBeDefined()
-        expect(details.zip).toBeDefined()
-        expect(details.age).not.toBeDefined()
+        let validation = err.context.validation
+        expect(validation).toBeDefined()
+        expect(validation.address).toBeDefined()
+        expect(validation.city).toBeDefined()
+        expect(validation.email).toBeDefined()
+        expect(validation.name).toBeDefined()
+        expect(validation.phone).toBeDefined()
+        expect(validation.status).toBeDefined()
+        expect(validation.zip).toBeDefined()
+        expect(validation.age).not.toBeDefined()
     }
 })
 
@@ -96,12 +98,12 @@ test('Create missing required property', async() => {
         expect(false).toBeTruthy()
     } catch (err) {
         expect(err.message).toMatch('Validation Error for "User"')
-        let details = err.details
-        expect(details).toBeDefined()
-        expect(details.email).toBeDefined()
-        expect(details.status).toBeUndefined()
-        expect(details.age).toBeUndefined()
-        expect(details.name).toBeUndefined()
+        let validation = err.context.validation
+        expect(validation).toBeDefined()
+        expect(validation.email).toBeDefined()
+        expect(validation.status).toBeUndefined()
+        expect(validation.age).toBeUndefined()
+        expect(validation.name).toBeUndefined()
     }
 })
 

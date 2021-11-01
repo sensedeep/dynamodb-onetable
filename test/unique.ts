@@ -11,7 +11,6 @@ const table = new Table({
     client: Client,
     schema: UniqueSchema,
     logger: true,
-    // legacyUnique: false,
 })
 
 type UserEntity = Entity<typeof UniqueSchema.models.User>;
@@ -70,6 +69,7 @@ test('Update user 2 with unique email', async() => {
     let items = await table.scanItems()
     expect(items.length).toBe(6)
 })
+
 
 test('Update non-unique property', async() => {
     const props = {

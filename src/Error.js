@@ -7,6 +7,10 @@ function init(self, message, context) {
     self.message = message
     if (context) {
         self.context = context
+        if (context.code) {
+            self.code = `${context.code}Error`
+            delete context.code
+        }
     }
     self.date = new Date()
     if (typeof Error.captureStackTrace === 'function') {
@@ -24,10 +28,10 @@ export class OneError extends Error {
 
     toString() {
         let buf = [`message: ${this.message}`]
-        if (this.context) {
-            if (this.context.code) {
-                buf.push(`code: ${this.context.code}Error`)
+        if (this.context.code) {
+            buf.push(`code: ${this.code}`)
         }
+        if (this.context) {
             buf.push(`context: ${JSON.stringify(this.context, null, 4)}`)
         }
         if (this.stack) {
