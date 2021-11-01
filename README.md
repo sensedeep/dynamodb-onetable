@@ -1394,10 +1394,8 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | substitutions | `object` | Variables that can be referenced in a where clause. Values will be added to ExpressionAttributeValues when used.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
-| transform | `function` | Function to be invoked to format and parse the data before reading and writing. Called with signature: transform(model, op, fieldName, value, properties). Where op is 'read' or 'write'. Defaults to null.|
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
-| validate | `function` | Callback function to validate parameters. Invoked as fn(model, fieldName, value). |
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 If `stats` is defined, find/query/scan operations will return the following statistics in the stats object:

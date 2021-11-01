@@ -864,6 +864,7 @@ export class Model {
     transformReadAttribute(field, name, value, params) {
         if (typeof params.transform == 'function') {
             //  Invoke custom data transform after reading
+            console.log('WARNING: params.transform functions are DEPRECATED and will be removed soon.')
             return params.transform(this, 'read', name, value)
         }
         if (field.type == 'date') {
@@ -1290,6 +1291,7 @@ export class Model {
 
         //  DEPRECATE
         if (typeof params.validate == 'function') {
+            console.log('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
             let error
             ({error, value} = params.validate(this, field, value))
             if (error) {
@@ -1348,7 +1350,7 @@ export class Model {
         let type = field.type
 
         if (typeof params.transform == 'function') {
-            value = params.transform(this, 'write', field.name, value, properties)
+            value = params.transform(this, 'write', field.name, value, properties, null)
 
         } else if (value == null && field.nulls === true) {
             //  Keep the null
