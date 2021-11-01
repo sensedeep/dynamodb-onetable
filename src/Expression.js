@@ -533,7 +533,7 @@ export class Expression {
         if (args) {
             args = Object.fromEntries(Object.entries(args).filter(([, v]) => v != null))
         }
-        //  Allow user to modify the command at will
+
         if (params.postFormat) {
             args = params.postFormat(model, args)
         }

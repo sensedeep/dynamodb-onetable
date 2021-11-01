@@ -27,13 +27,16 @@ type TableConstructorParams = {
     schema?: OneSchema,             //  Table models schema.
     senselogs?: {},                 //  SenseLogs instance for logging
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
-    transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams) => any,
-                                    //  Transform record for read / write.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
 
-    legacyUnique?: string | boolean //  Legacy operation for unique fields. Set to unique item separator.
+    //  Transform record for read / write.
+    transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams, raw?: {}) => AnyEntity,
+    //  Validate properties before writing
+    validate?: (model: AnyModel, properties: OneProperties, params?: OneParams) => {},
+    //  Compute a value for a value template
+    value?: (model: AnyModel, fieldName: string, properties: OneProperties, params?: OneParams) => string,
 };
 
 export class Table {

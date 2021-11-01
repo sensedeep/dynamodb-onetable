@@ -359,13 +359,17 @@ The Table constructor takes a parameter of type `object` with the following prop
 | metrics | `object` | Configure metrics. Default null.|
 | name | `string` | The name of your DynamoDB table. |
 | nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
+| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
+| preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | transform | `function` | Callback function to be invoked to format and parse the data before reading and writing. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| uuid | `string` or Function | Create a UUID, ULID or custom ID if the schema model requires and the property is not already defined. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
+| uuid | `string` or function | Create a UUID, ULID or custom ID if the schema model requires and the property is not already defined. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
+| validate | `function | Function to validate properties before issuing an API.|
+| value | `function | Function to evaluate value templates. Default null. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -373,15 +377,43 @@ By default, OneTable will not write `null` values to the database rather, it wil
 
 The `metrics` property may be set to a map that configures detailed CloudWatch EMF metrics. See Metrics below.
 
-The optional `transform` function will be invoked on read and write requests to assist with data migrations after all other transformations have taken place. The transform function can modify the item as it sees fit. The invocation signature is:
+#### Transforming Data
+
+The optional Table `transform` function will be invoked on read and write requests to transform data before reading or writing to the table. The transform function can be used for custom storage formats or to assist with data migrations. The transform function can modify the item as it sees fit and return the modified item. The invocation signature is:
 
 ```javascript
-transform(model, operation, item, apiParams, rawReadData)
+item = transform(model, operation, item, properties, params, raw)
 ```
 
-Where `operation` is set to 'read' or 'write'. For read operations, the `raw` parameter has the raw data as read from the table before conversion into Javascript properties in `item`.
+Where `operation` is set to 'read' or 'write'. The `params` and `properties` are the original params and properties provided to the API call. When writing, the `item` will contain the already transformed properties by the internal transformers. You can overwrite the value in `item` using your own custom transformation logic using property values from `properties`.
+
+When reading, the `item` will contain the already transformed read data and the `raw` parameter will contain the raw data as read from the table before conversion into Javascript properties in `item` via the internal transformers.
 
 You can also use a `params.transform` with many Model APIs. See [Model API Params](#model-api-params) for details.
+
+#### Table Validations
+
+The optional Table `validate` function will be invoked on requests to enable property validation before writing to the table.
+The invocation signature is:
+
+```javascript
+details = validate(model, properties, params)
+```
+
+The validation function must return a map of validation messages for properties that fail validation checks. The map is indexed by the property field name.
+
+#### Value Template Function
+
+Value templates are defined in the schema for model fields. These are typically literal strings with property variable references. In some use cases, more complex logic for a value template requires a function to calculate the property value at runtime. The Table params.value function provides a centralized place to evaluate value templates. It will be invoked for fields that define their value template to be `true`.
+
+The value template function is called with the signature:
+
+```javascript
+str = value(model, fieldName, properties, params)
+```
+
+The value template should return a string to be used for the given fieldName.
+
 
 #### Crypto
 
@@ -1032,6 +1064,8 @@ Models define attributes in the database which may overlap with the attributes o
 
 A model instance is typically created via a model constructor or via the `Table` factory.
 
+Errors will thow an instance of the `OneError` error class. See [Error Handling](#error-handling) for more details.
+
 ### Model Examples
 
 ```javascript
@@ -1351,8 +1385,6 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | next | `object` | Starting key for the result set. This is used to set the ExclusiveStartKey when doing a find/scan. Typically set to the result.next value returned on a previous find/scan. |
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
-| postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
-| preFormat | `function` | Hook to invoke on the model before formatting the DynmamoDB API command. Passed the `model` and `expression`. Internal API, use at own risk.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
@@ -1365,6 +1397,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | transform | `function` | Function to be invoked to format and parse the data before reading and writing. Called with signature: transform(model, op, fieldName, value, properties). Where op is 'read' or 'write'. Defaults to null.|
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
 | updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
+| validate | `function` | Callback function to validate parameters. Invoked as fn(model, fieldName, value). |
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 If `stats` is defined, find/query/scan operations will return the following statistics in the stats object:
@@ -1439,7 +1472,7 @@ Where clauses when used with `find` or `scan` on non-key attribugtes can also us
 
 See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html) for more details.
 
-    
+
 #### Error Handling
 
 API errors will throw an instance of the `OneError` class. This instance has the following properties:

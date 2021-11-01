@@ -479,7 +479,7 @@ export class Table {
         return await model.update(properties, params)
     }
 
-    async execute(model, op, cmd, params = {}, properties = {}) {
+    async execute(model, op, cmd, properties = {}, params = {}) {
         let mark = new Date()
         let trace = {model, cmd, op, properties}
         let result
@@ -651,8 +651,7 @@ export class Table {
         let list = []
         if (Array.isArray(v)) {
             list = v
-        } else if (typeof v != 'function') {
-            //  FUTURE - need 'depends' to handle function dependencies
+        } else if (typeof v == 'string') {
             v.replace(/\${(.*?)}/g, (match, varName) => {
                 list.push(varName)
             })

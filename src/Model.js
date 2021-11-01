@@ -252,6 +252,7 @@ export class Model {
     async run(op, expression) {
         let {index, properties, params} = expression
 
+        //  UNDOCUMENTED AND DEPRECATED
         if (params.preFormat) {
             params.preFormat(this, expression)
         }
@@ -316,8 +317,7 @@ export class Model {
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         let result
         do {
-            result = await this.table.execute(this.name, op, cmd, params, properties)
-
+            result = await this.table.execute(this.name, op, cmd, properties, params)
             if (result.LastEvaluatedKey) {
                 //  Continue next page
                 cmd.ExclusiveStartKey = result.LastEvaluatedKey
@@ -440,7 +440,7 @@ export class Model {
         Parse the response into Javascript objects and transform for the high level API.
      */
     parseResponse(op, expression, items) {
-        let {params, properties} = expression
+        let {properties, params} = expression
         let {schema, table} = this
         if (op == 'put') {
             //  Put requests do not return the item. So use the properties.
@@ -470,7 +470,7 @@ export class Model {
         Create/Put a new item. Will overwrite existing items if exists: null.
     */
     async create(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
         let result
         if (this.hasUniqueFields) {
             result = await this.createUnique(properties, params)
@@ -526,12 +526,12 @@ export class Model {
     }
 
     async find(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return await this.queryItems(properties, params)
     }
 
     async get(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
             //  Fallback via find when using non-primary indexes
@@ -548,12 +548,12 @@ export class Model {
     }
 
     init(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return this.initItem(properties, params)
     }
 
     async remove(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {exists: null, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {exists: null, high: true}))
 
         properties = this.prepareProperties('delete', properties, params)
         if (params.fallback) {
@@ -611,12 +611,12 @@ export class Model {
     }
 
     async scan(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return await this.scanItems(properties, params)
     }
 
     async update(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
             let hasUniqueProperties = Object.entries(properties).find((pair, index) => {
                 return this.block.fields[pair[0]].unique
@@ -698,6 +698,7 @@ export class Model {
                                    `an item of the same name already exists.`,
                                    {properties, transaction, code: 'Unique'})
             }
+            throw err
         }
         let items = this.parseResponse('put', expression)
         return items[0]
@@ -707,7 +708,7 @@ export class Model {
 
     /* private */
     async deleteItem(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
             properties = this.prepareProperties('delete', properties, params)
         }
@@ -717,7 +718,7 @@ export class Model {
 
     /* private */
     async getItem(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
@@ -725,13 +726,13 @@ export class Model {
 
     /* private */
     initItem(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         return this.setDefaults('init', this.block.fields, properties)
     }
 
     /* private */
     async putItem(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
             if (this.timestamps) {
                 properties[this.updatedField] = properties[this.createdField] = new Date()
@@ -744,7 +745,7 @@ export class Model {
 
     /* private */
     async queryItems(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('find', properties, params)
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
@@ -753,7 +754,7 @@ export class Model {
     //  Note: scanItems will return all model types
     /* private */
     async scanItems(properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('scan', properties, params)
         let expression = new Expression(this, 'scan', properties, params)
         return await this.run('scan', expression)
@@ -761,7 +762,7 @@ export class Model {
 
     /* private */
     async updateItem(properties, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         if (this.timestamps) {
             properties[this.updatedField] = new Date()
         }
@@ -772,7 +773,7 @@ export class Model {
 
     /* private */
     async fetch(models, properties = {}, params = {}) {
-        ({params, properties} = this.checkArgs(properties, params))
+        ({properties, params} = this.checkArgs(properties, params))
         if (models.length == 0) {
             return {}
         }
@@ -855,7 +856,7 @@ export class Model {
             rec[this.typeField] = this.name
         }
         if (this.table.params.transform && ReadWrite[op] == 'read') {
-            rec = this.table.params.transform(this, op, rec, params, properties)
+            rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params, raw)
         }
         return rec
     }
@@ -875,7 +876,7 @@ export class Model {
     }
 
     /*
-        Validate properties and map types before writing to the database.
+        Validate properties and map types if required.
         Note: this does not map names to attributes or evaluate value templates, that happens in Expression.
      */
     prepareProperties(op, properties, params = {}) {
@@ -898,7 +899,7 @@ export class Model {
             })
         }
         if (this.table.params.transform && ReadWrite[op] == 'write') {
-            rec = this.table.params.transform(this, op, rec, properties, params)
+            rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params)
         }
         return rec
     }
@@ -973,7 +974,6 @@ export class Model {
         this.validateProperties(op, fields, properties, params)
         this.selectProperties(op, block, index, properties, params, rec)
         this.transformProperties(op, fields, properties, params, rec)
-
         return rec
     }
 
@@ -1029,11 +1029,6 @@ export class Model {
                 } else if (name == this.typeField && op == 'find') {
                     omit = true
                 }
-                /*
-            } else {
-                // result[name] = this.transformWriteAttribute(op, field, value, params, properties)
-                rec[name] = properties[name]
-                */
             }
             if (!omit && properties[name] !== undefined) {
                 rec[name] = properties[name]
@@ -1172,7 +1167,10 @@ export class Model {
                 //  Ignore indexes not being used for this call
                 continue
             }
-            if (typeof properties[name] == 'function') {
+            if (field.value === true && typeof this.table.params.value == 'function') {
+                properties[name] = this.table.params.value(this, field.pathname, properties, params)
+
+            } else if (typeof properties[name] == 'function') {
                 //  Undocumented and not supported for typescript
                 properties[name] = properties[name](field.pathname, properties)
 
@@ -1260,41 +1258,44 @@ export class Model {
         if (op != 'put' && op != 'update') {
             return
         }
-        let details = {}
+        let validation = {}
+        if (typeof this.table.params.validate == 'function') {
+            validation = this.table.params.validate(this, properties, params) || {}
+        }
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
             if (!field) continue
             if (params.validate || field.validate || field.enum) {
-                value = this.validateProperty(field, value, details, params)
+                value = this.validateProperty(field, value, validation, params)
                 properties[name] = value
             }
         }
         for (let field of Object.values(fields)) {
             if (op == 'put' && properties[field.name] == null && field.required) {
-                details[field.name] = `Value not defined for required field "${field.name}"`
+                validation[field.name] = `Value not defined for required field "${field.name}"`
             }
         }
-        if (Object.keys(details).length > 0) {
-            this.table.log.error(`Validation error for "${this.name}"`, {model: this.name, properties, details})
-            let err = new OneError(`Validation Error for "${this.name}"`, {validation: details, code: 'Validation'})
+
+        if (Object.keys(validation).length > 0) {
+            let error = new OneError(`Validation Error for "${this.name}"`, {validation, code: 'Validation'})
             //  DEPRECATE
-            err.details = details
-            throw err
+            // error.details = validations
+            // Object.defineProperty(error, 'details', {enumerable: false})
+            throw error
         }
     }
 
     validateProperty(field, value, details, params) {
         let fieldName = field.name
 
+        //  DEPRECATE
         if (typeof params.validate == 'function') {
-            console.log('WARNING: validation functions are DEPRECATED and will be removed soon.')
             let error
             ({error, value} = params.validate(this, field, value))
             if (error) {
                 details[fieldName] = error
             }
         }
-
         let validate = field.validate
         if (validate) {
             if (value === null) {
@@ -1334,7 +1335,7 @@ export class Model {
         for (let [name, field] of Object.entries(fields)) {
             let value = rec[name]
             if (value !== undefined && !field.schema) {
-                rec[name] = this.transformWriteAttribute(op, field, value, params, properties)
+                rec[name] = this.transformWriteAttribute(op, field, value, properties, params)
             }
         }
         return rec
@@ -1343,7 +1344,7 @@ export class Model {
     /*
         Transform an attribute before writing. This invokes transform callbacks and handles nested objects.
      */
-    transformWriteAttribute(op, field, value, params, properties) {
+    transformWriteAttribute(op, field, value, properties, params) {
         let type = field.type
 
         if (typeof params.transform == 'function') {
@@ -1493,7 +1494,7 @@ export class Model {
     checkArgs(properties, params, overrides = {}) {
         if (params.checked) {
             //  Only need to clone once
-            return {params, properties}
+            return {properties, params}
         }
         if (!properties) {
             throw new OneArgError('Missing properties')
@@ -1506,7 +1507,7 @@ export class Model {
 
         params.checked = true
         properties = this.table.assign({}, properties)
-        return {params, properties}
+        return {properties, params}
     }
 
     /*
