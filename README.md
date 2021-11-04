@@ -614,6 +614,7 @@ The following attribute properties are supported:
 | map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
 | nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
+| reference | `string` | Describes a reference to another entity item. Format is: model:index:attribute=src-attribute,... |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
 | uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
@@ -628,6 +629,14 @@ If the `hidden` property is set to true, the attribute will be defined in the Dy
 The `map` property can be used to set an alternate or shorter attribute name when storing in the database. The map value may be a simple string that will be used as the actual attribute name.
 
 Alternatively, the map value can be a pair of the form: 'obj.name', where the attribute value will be stored in an object attribute named "obj" with the given name `name`. Such two-level mappings may be used to map multiple properties to a single table attribute. This is helpful for the design pattern where GSIs project keys plus a single 'data' field and have multiple models map relevant attributes into the projected 'data' attribute. OneTable will automatically pack and unpack attribute values into the mapped attribute. Note: APIs that write to a mapped attribute must provide all the properties that map to that attribute on the API call. Otherwise an incomplete attribute would be written to the table.
+
+The `reference` attribute documents a reference to another entity by using this attribute in combination with other attributes. The format is:
+
+```bash
+model:index:attribute=source-attribute,...
+```
+
+The "model" selects that target entity model of the reference using the nominated "index" where the target "attribute" is determined by the associated source-attribute. Multiple attributes can be specified. Tools can use this reference to navigate from one entity item to another.
 
 The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or Binary) and Set. The object type is mapped to a `map`, the array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps unless the `isoDates` parameter is true, in which case the dates are store as ISO date strings. Binary data is supplied via `buffer` types and is stored as base64 strings in DynamoDB.
 
@@ -1497,6 +1506,7 @@ await RouteModel.update({ routeId }, {
 ### References
 
 - [OneTable Samples](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples)
+- [OneTable Schema Specification](https://github.com/sensedeep/dynamodb-onetable/blob/main/doc/schema-1.0.0.md)
 - [OneTable Tests](https://github.com/sensedeep/dynamodb-onetable/tree/main/test)
 - [SenseDeep Blog](https://www.sensedeep.com/blog/)
 - [DynamoDB Checklist](https://www.sensedeep.com/blog/posts/2021/dynamodb-checklist.html)
