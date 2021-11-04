@@ -575,13 +575,18 @@ The `schema.models` property contains one or more models with attribute field de
         sk:     { type: String, value: '${_type}:' },
         name:   { type: String, required: true },
         songs:  { type: Number },
-        _type:  { type: String, value: 'album' },
     },
     artist: {
         pk:     { type: String, value: '${_type}:${name}' },
         sk:     { type: String, value: '${_type}:' },
         name:   { type: String, required: true },
-        _type:  { type: String, value: 'artist' },
+        address: {
+            type: Object, schema: {
+                street: { type: String },
+                city: { type: String },
+                zip: { type: String },
+            },
+        },
     }
 }
 ```
@@ -596,7 +601,7 @@ These JavaScript types map onto the equivalent DynamoDB types. For Binary types,
 
 For Sets, you should set the schema type to Set and supply values as instances of the JavaScript Set type. DynamoDB supports sets with elements that are strings, numbers or binary data.
 
-OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish as shown in the example above.
+OneTable will automatically add a `_type` attribute to each model that is set to the name of the model. However, you can explicitly define your type attribute in your model schema if you wish.
 
 The type field can be used in PK/SK value templates by using `${_type}`. You can change the name of the type field from `_type` by setting the `params.typeField` in the Table constructor.
 
@@ -615,6 +620,7 @@ The following attribute properties are supported:
 | nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
 | required | `boolean` | Set to true if the attribute is required. Default false. |
 | reference | `string` | Describes a reference to another entity item. Format is: model:index:attribute=src-attribute,... |
+| schema | `object` | Nested schema. |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
 | uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
@@ -637,6 +643,8 @@ model:index:attribute=source-attribute,...
 ```
 
 The "model" selects that target entity model of the reference using the nominated "index" where the target "attribute" is determined by the associated source-attribute. Multiple attributes can be specified. Tools can use this reference to navigate from one entity item to another.
+
+The `schema` property permits nested field definitions.
 
 The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or Binary) and Set. The object type is mapped to a `map`, the array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps unless the `isoDates` parameter is true, in which case the dates are store as ISO date strings. Binary data is supplied via `buffer` types and is stored as base64 strings in DynamoDB.
 
