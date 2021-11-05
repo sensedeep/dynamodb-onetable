@@ -617,12 +617,25 @@ export class Table {
     /*
         Convert items into a map of items by model type
     */
-    groupByType(items) {
+    groupByType(items, params={}) {
         let result = {}
         for (let item of items) {
             let type = item[this.typeField] || '_unknown'
             let list = result[type] = result[type] || []
-            list.push(item)
+            let model = this.schema.models[type]
+            let preparedItem
+            if (typeof params.hidden === 'boolean' && !params.hidden) {
+                let fields = model.block.fields
+                preparedItem = {}
+                for (let [name, field] of Object.entries(fields)) {
+                    if (!(field.hidden && params.hidden !== true)) {
+                        preparedItem[name] = item[name]
+                    }
+                }
+            } else {
+                preparedItem = item
+            }
+            list.push(preparedItem)
         }
         return result
     }

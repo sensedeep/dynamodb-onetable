@@ -58,7 +58,7 @@ export class Table {
     getKeys(): Promise<OneIndexSchema>;
     getModel<T>(name: string): Model<T>;
     getCurrentSchema(): {};
-    groupByType(items: AnyEntity[]): EntityGroup;
+    groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
     listTables(): string[];
     makeID(): {};

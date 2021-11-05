@@ -59,6 +59,19 @@ test('Fetch', async() => {
     expect(collection.User.length).toBe(userData.length)
 })
 
+
+test('Group by with params', async() => {
+    let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true, hidden: true})
+
+    let collection = table.groupByType(items)
+    expect(collection.Account.length).toBe(1)
+    expect(collection.Account[0]._type).toBe('Account')
+
+    collection = table.groupByType(items, {parse: true, hidden:false})
+    expect(collection.Account.length).toBe(1)
+    expect(collection.Account[0]._type).toBeUndefined()
+})
+
 test('Fetch', async() => {
     let collection = await table.fetch(['Account', 'User'], {pk: `Account#${account.id}`})
     expect(collection.Account.length).toBe(1)
