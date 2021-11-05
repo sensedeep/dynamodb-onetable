@@ -604,7 +604,7 @@ export class Model {
         for (let field of fields) {
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
-            await this.schema.uniqueModel.remove({pk, sk}, {transaction})
+            await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
         }
         await this.deleteItem(properties, params)
         await this.table.transact('write', params.transaction, params)
@@ -674,9 +674,9 @@ export class Model {
                     //  Hasn't changed
                     continue
                 }
-                await this.schema.uniqueModel.remove({pk: priorPk, sk}, {transaction, exists: null})
+                await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {transaction, exists: null})
             }
-            await this.schema.uniqueModel.create({pk, sk}, {transaction, exists: false, return: 'NONE'})
+            await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
         }
 
         let item = await this.updateItem(properties, params)
