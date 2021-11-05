@@ -623,10 +623,19 @@ export class Table {
             let type = item[this.typeField] || '_unknown'
             let list = result[type] = result[type] || []
             let model = this.schema.models[type]
-            if (Object.keys(params).length && model && model !== this.schema.uniqueModel) {
-                item = model.transformReadItem('get', item, {}, params)
+            let preparedItem
+            if(typeof params.hidden === 'boolean' && !params.hidden){
+                let fields = model.block.fields
+                preparedItem = {}
+                for (let [name, field] of Object.entries(fields)) {
+                    if (!(field.hidden && params.hidden !== true)) {
+                        preparedItem[name] = item[name]
+                    }
+                }
+            } else {
+                preparedItem = item
             }
-            list.push(item)
+            list.push(preparedItem)
         }
         return result
     }
