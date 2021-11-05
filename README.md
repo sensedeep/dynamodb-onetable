@@ -7,10 +7,9 @@
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
 
-## The most elegant way to create DynamoDB single table designs!
+## DynamoDB Single Table Designs!
 
-DynamoDB OneTable (OneTable) transforms single-table design patterns with DynamoDB, providing an elegant, dry syntax while still enabling easy access to the full DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
-
+DynamoDB OneTable makes single-table design patterns with DynamoDB easy. It provides an elegant, dry syntax while still enabling full access to DynamoDB API. It works with AWS V2 and V3 SDKs for JavaScript and TypeScript apps.
 
 Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions) and learn about the growing set of extentions for migrations, CLI and graphical monitoring tools for your single-table designs.
 
@@ -20,9 +19,9 @@ Join the active community using OneTable on our [GitHub Discussion Hub](https://
 * Efficient storage and access of multiple entities in a single DynamoDB table.
 * High level API with type marshaling, validations, and extended query capability for get/delete/update operations.
 * Bidirectional conversion of DynamoDB types to Javascript types.
-* Option to invoke DynamoDB or simply generate API parameters.
 * Generation of Conditional, Filter, Key and Update expressions.
-* Schema item definitions for attribute types, default values, enums and validations.
+* Schema item definitions for attribute types, default values, enums, unique attributes and validations.
+* Option to invoke DynamoDB or simply generate API parameters.
 * Powerful field level validations with "required" and "unique" attributes.
 * Easy parameterization of filter and conditional queries.
 * Detailed metrics by Table, Tenant, Source, Index, Model and Operation.
@@ -31,7 +30,7 @@ Join the active community using OneTable on our [GitHub Discussion Hub](https://
 * Attribute mapping and packing.
 * Support for sparse GSIs that project keys and overloaded attributes.
 * Encrypted fields.
-* CreateTable, DeleteTable admin operations.
+* CreateTable, DeleteTable table and index admin operations.
 * Support for Batch, Transactions, GSI, LSI indexes.
 * Intercept hooks to modify DynamoDB requests and responses.
 * Controllable logging to see exact parameter, data and responses.

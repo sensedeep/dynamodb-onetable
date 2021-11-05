@@ -1,6 +1,6 @@
 {
     "name": "dynamodb-onetable",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "description": "DynamoDB access library for single-table designs",
     "main": "dist/cjs/index.js",
     "module": "dist/mjs/index.js",
@@ -16,16 +16,7 @@
         }
     },
     "keywords": [
-        "dynamodb",
-        "onetable",
-        "serverless",
-        "aws",
-        "nosql",
-        "single-table",
-        "datamapper",
-        "toolbox",
-        "dynamo",
-        "orm"
+        "dynamodb"
     ],
     "author": "Michael O'Brien <mob@sensedeep.com>",
     "license": "MIT",
