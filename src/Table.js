@@ -624,7 +624,7 @@ export class Table {
             let list = result[type] = result[type] || []
             let model = this.schema.models[type]
             let preparedItem
-            if(typeof params.hidden === 'boolean' && !params.hidden){
+            if (typeof params.hidden === 'boolean' && !params.hidden) {
                 let fields = model.block.fields
                 preparedItem = {}
                 for (let [name, field] of Object.entries(fields)) {
