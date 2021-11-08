@@ -502,7 +502,7 @@ export class Table {
             } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
                 //  Not a hard error -- typically part of normal operation
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
-                throw new OneError(`Conditional create failed for "${model}`, {code: 'Condition'})
+                throw new OneError(`Conditional create failed for "${model}`, {code: 'Condition', trace})
 
             } else {
                 result = result || {}
