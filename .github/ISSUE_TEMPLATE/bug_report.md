@@ -10,7 +10,7 @@ assignees: ''
 **ISSUES will not receive priority that do not follow this template or cannot be easily reproduced or diagnosed**
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+A clear and complete description of what the bug is. Please explain in detail what the bug is. Most people are too brief in the description and it results in delays addressing issues as we go back and forth with questions. Please spend some time writing a complete description.
 
 **To Reproduce**
 
@@ -20,10 +20,12 @@ Steps to reproduce the behavior:
 2. Edit your reproducible, minimal, stand-alone test case into the test/debug.ts file.
 3. Run via `jest debug` or run VS code in the top level directory.
 
+If you don't edit debug.ts and provide snippets of code, then your issue may not receive priority.
+
 Ensure that your debug.ts includes:
 
-1. Your OneTable schema
-2. Actual API code that is failing. Add comments where helpful.
+1. Your OneTable schema (complete schema with indexes and models).
+2. Actual API code that is failing. Don't use code snippets. Add comments where helpful.
 3. Run API with params of {log: true} and include generated DynamoDB API calls
 
 Check that:
@@ -35,7 +37,11 @@ Check that:
 Include the code from your debug.ts here and replace the CODE segment. Remember to preserve the three backticks above and below the code block.  See [Formatting Code](https://www.freecodecamp.org/news/how-to-format-code-in-markdown/) for details.
 
 ```
-PUT YOUR DEBUG.TS CODE HERE
+PUT YOUR DEBUG.TS CODE HERE.
+```
+
+```
+PUT YOUR LOG OUTPUT HERE showing the actual DynamoDB command issued.
 ```
 
 **Expected behavior**
