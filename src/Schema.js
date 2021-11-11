@@ -224,7 +224,7 @@ export class Schema {
         schema.models[MigrationModel] = this.migrationModelFields
 
         let params = schema.params || this.params
-        for (let [modelName, mdef] of Object.entries(schema.models)) {
+        for (let mdef of Object.values(schema.models)) {
             if (params.timestamps) {
                 let createdField = params.createdField || 'created'
                 let updatedField = params.updatedField || 'updated'
