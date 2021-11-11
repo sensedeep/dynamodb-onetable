@@ -2,8 +2,6 @@
     Metrics.js - DynamoDB metrics class
  */
 
-import {Model} from './Model.js'
-
 const DefaultMetrics = {
     chan: 'metrics',                                                //  Default channel
     dimensions: [
