@@ -117,7 +117,7 @@ export class Metrics {
         }
         let properties
         if (typeof metrics.properties == 'function') {
-            properties = metrics.properties(operation, params, result)
+            properties = metrics.properties(op, params, result)
         } else {
             properties = metrics.properties || {}
         }
