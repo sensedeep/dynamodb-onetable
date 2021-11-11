@@ -227,7 +227,7 @@ export class Expression {
             const {substitutions} = this.params
             let name = value.replace(/^\.\.\./, '')
             if (!substitutions || !substitutions[name]) {
-                throw new OneArgErrorError(`Missing substitutions for attribute value "${name}"`, {
+                throw new OneError(`Missing substitutions for attribute value "${name}"`, {
                     expr,
                     substitutions,
                     properties: this.properties,
