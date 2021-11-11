@@ -7,7 +7,6 @@
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
-import {Model} from './Model.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneError, OneArgError} from './Error.js'

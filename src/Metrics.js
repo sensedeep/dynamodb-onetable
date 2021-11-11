@@ -2,8 +2,6 @@
     Metrics.js - DynamoDB metrics class
  */
 
-import {Model} from './Model.js'
-
 const DefaultMetrics = {
     chan: 'metrics',                                                //  Default channel
     dimensions: [
@@ -119,7 +117,7 @@ export class Metrics {
         }
         let properties
         if (typeof metrics.properties == 'function') {
-            properties = metrics.properties(operation, params, result)
+            properties = metrics.properties(op, params, result)
         } else {
             properties = metrics.properties || {}
         }
@@ -165,7 +163,7 @@ export class Metrics {
 
     flushMetrics(timestamp = Date.now()) {
         if (!this.metrics.enable) return
-        for (let [key, rec] of Object.entries(this.metrics.counters)) {
+        for (let rec of Object.values(this.metrics.counters)) {
             Object.keys(rec).forEach(field => rec[field] === 0 && delete rec[field])
             this.emitMetrics(timestamp, rec)
         }

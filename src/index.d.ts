@@ -20,6 +20,7 @@ import {
 
 import { Table } from './Table'
 import { Expression } from './Expression'
+import { OneError, OneArgError } from './Error'
 
 import ULID from './ULID.js'
 import UUID from './UUID.js'
@@ -30,6 +31,8 @@ export {
     Entity,
     EntityParameters,
     Model,
+    OneArgError,
+    OneError,
     OneFieldSchema,
     OneIndexSchema,
     OneModelSchema,
