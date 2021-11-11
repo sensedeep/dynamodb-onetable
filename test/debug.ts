@@ -50,6 +50,8 @@ test('Create Table', async() => {
 test('Test', async() => {
     /*
         Put your code here
+    let User = table.getModel('User')
+    let users = await User.find({})
     */
 })
 
