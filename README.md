@@ -102,7 +102,7 @@ const MySchema = {
         Account: {
             pk:          { type: String, value: 'account:${name}' },
             sk:          { type: String, value: 'account:' },
-            id:          { type: String, uuid: 'uuid', validate: /^[0-9A-F]{32}$/i },
+            id:          { type: String, uuid: 'ulid', validate: /^[0-9A-F]{32}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
