@@ -601,6 +601,9 @@ export class Model {
         params.prepared = properties = this.prepareProperties('delete', properties, params)
 
         for (let field of fields) {
+            if (!properties[field.name]) {
+                throw new OneArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, {properties})
+            }
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
             await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
