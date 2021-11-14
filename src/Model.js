@@ -337,9 +337,12 @@ export class Model {
                 items = [result.Attributes]
                 break
             }
+            if (params.progress) {
+                params.progress({items, pages, stats, params, cmd})
+            }
             if (items.length) {
                 if (cmd.Limit) {
-                    cmd.Limit -= result.ScannedCount
+                    cmd.Limit -= result.Count
                     if (cmd.Limit <= 0) {
                         break
                     }
