@@ -502,9 +502,11 @@ export class Model {
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
         for (let field of fields) {
-            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
-            let sk = '_unique#'
-            await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+            if (properties[field.name]) {
+                let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+                let sk = '_unique#'
+                await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+            }
         }
         let item = await this.putItem(properties, params)
 
