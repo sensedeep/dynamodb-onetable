@@ -643,7 +643,7 @@ model:index:attribute=source-attribute,...
 
 The "model" selects that target entity model of the reference using the nominated "index" where the target "attribute" is determined by the associated source-attribute. Multiple attributes can be specified. Tools can use this reference to navigate from one entity item to another.
 
-The `schema` property permits nested field definitions.
+The `schema` property permits nested field definitions. The parent property must be an Object as Arrays are not yet supported. Note: TypeScript typings are not created for nested schemas.
 
 The `type` properties defines the attribute data type. Valid types include: String, Number, Boolean, Date, Object, Null, Array, Buffer (or Binary) and Set. The object type is mapped to a `map`, the array type is mapped to a `list`. Dates are stored as Unix numeric epoch date stamps unless the `isoDates` parameter is true, in which case the dates are store as ISO date strings. Binary data is supplied via `buffer` types and is stored as base64 strings in DynamoDB.
 
