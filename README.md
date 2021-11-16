@@ -483,7 +483,7 @@ The properties of Table constructor `params.metrics` property are:
 | chan | `string` | Log channel to use to emit metrics. Defaults to 'metrics'.|
 | dimensions | `array` | Ordered array of dimensions to emit. Defaults to [Table, Tenant, Source, Index, Model, Operation].|
 | enable | `boolean` | Set to true to enable metrics. Defaults to true.|
-| env | `boolean` | Set to true to enable dynamic control via the LOG_FILTER environment variable. Defaults to false.|
+| env | `boolean` | Set to true to enable dynamic control via the LOG_FILTER environment variable. Defaults to true.|
 | max | `number` | Number of DynamoDB API calls for which to buffer metrics before flushing. Defaults to 100.|
 | namespace | `string` | CloudWatch metrics namespace for the metrics. Defaults to `SingleTable/metrics`.|
 | period | `number` | Number of seconds to buffer metrics before flushing. Defaults to 30 seconds.|

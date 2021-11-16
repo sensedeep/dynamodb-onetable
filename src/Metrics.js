@@ -8,6 +8,7 @@ const DefaultMetrics = {
         'Table', 'Tenant', 'Source', 'Index', 'Model', 'Operation'  //  Default dimensions
     ],
     enable: true,                                                   //  Enabled
+    env: true,                                                      //  Observe LOG_FILTER for dbmetrics
     hot: false,                                                     //  Hot partition tracking
     max: 100,                                                       //  Buffer metrics for 100 requests
     namespace: 'SingleTable/Metrics.1',                             //  CloudWatch metrics namespace
@@ -56,6 +57,7 @@ export class Metrics {
         if (params == true) {
             metrics = Object.assign({}, DefaultMetrics)
         } else {
+            //  Params takes priority
             metrics = Object.assign({}, DefaultMetrics, params)
         }
         metrics.map = {Profile: true}
@@ -68,13 +70,12 @@ export class Metrics {
         metrics.counters = {}
 
         if (metrics.env && process.env) {
-            let key = params.env != true ? params.env : 'LOG_FILTER'
-            let filter = process.env[key]
+            let filter = process.env.LOG_FILTER
             if (!filter || filter.indexOf('dbmetrics') < 0) {
                 metrics.enable = false
             }
         }
-        //  Preserve any prior defined properites functions
+        //  Preserve any prior defined properties functions
         metrics.properties = metrics.properties || prior.properties
         this.metrics = metrics
     }
