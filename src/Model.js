@@ -685,7 +685,6 @@ export class Model {
             }
             await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
         }
-
         let item = await this.updateItem(properties, params)
 
         if (!transactHere) {
@@ -771,7 +770,12 @@ export class Model {
     async updateItem(properties, params = {}) {
         ({properties, params} = this.checkArgs(properties, params))
         if (this.timestamps) {
-            properties[this.updatedField] = new Date()
+            let now = new Date()
+            properties[this.updatedField] = now
+            if (params.exists == null) {
+                let when = (this.table.isoDates) ? now.toISOString() : now.getTime()
+                params.set = { [this.createdField]: `if_not_exists(\${${this.createdField}}, {${when}})` }
+            }
         }
         properties = this.prepareProperties('update', properties, params)
         let expression = new Expression(this, 'update', properties, params)

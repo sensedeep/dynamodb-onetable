@@ -5,7 +5,6 @@
  */
 
 const Version = '1.1.0'
-const EnumUuid = /^[0-9A-F]{32}$/i
 
 export default {
     version: '0.0.1',
@@ -33,7 +32,7 @@ export default {
             enable:         { type: Boolean },
             family:         { type: String, enum: ['metrics', 'events', 'logs', 'recommendations', 'relay'], required: true },
             forward:        { type: Object },                       //  Forward logs to another destination
-            id:             { type: String, validate: EnumUuid },   //  Unique ID used in pk/sk
+            id:             { type: String },                       //  Unique ID used in pk/sk
             interval:       { type: String },                       //  Metric sampling interval
             name:           { type: String, required: true },       //  Alarm name
             metric:         { type: String },                       //  Metric name to compare
@@ -67,7 +66,7 @@ export default {
             resolved:       { type: Boolean },                      //  Alert resolved by user
             resource:       { type: String },                       //  Resource triggering the alert
             severity:       { type: String, enum: ['critical', 'error', 'warning', 'info']},  //  Alarm.severity
-            seq:            { type: String, validate: EnumUuid },   //  Alert unique sequence
+            seq:            { type: String },                       //  Alert unique sequence
             start:          { type: Date },                         //  Start of lambda invocation
             statistic:      { type: String },                       //  Alarm.statistic
             timestamp:      { type: Date },                         //  Time of log event
@@ -103,7 +102,7 @@ export default {
             enable:         { type: Boolean },                      //  Enable log parsing
             fields:         { type: Array },                        //  Log event fields
             format:         { type: String },                       //  Log format (json, plain, ...)
-            id:             { type: String, validate: EnumUuid },   //  Log unique ID
+            id:             { type: String },                       //  Log unique ID
             lambda:         { type: Object },                       //  Lambda configuration
             lifespan:       { type: Number },                       //  Duration of log entries to store
             name:           { type: String, required: true },       //  AWS log group name
