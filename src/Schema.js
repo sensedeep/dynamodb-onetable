@@ -204,6 +204,7 @@ export class Schema {
                 }
                 let type = (typeof field.type == 'function') ? field.type.name : field.type
                 field.type = type.toLowerCase()
+                delete field[params.typeField]
             }
         }
         return schema
