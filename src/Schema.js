@@ -78,7 +78,7 @@ export class Schema {
     }
 
     /*
-        Model for unique attributes.
+        Model for unique attributes. Free standing and not in models[]
      */
     createUniqueModel() {
         let {indexes, schema, table} = this
@@ -154,6 +154,9 @@ export class Schema {
         }
         let model = this.models[name.toString()]
         if (!model) {
+            if (name == UniqueModel) {
+                return this.uniqueModel
+            }
             throw new Error(`Cannot find model ${name}`)
         }
         return model
