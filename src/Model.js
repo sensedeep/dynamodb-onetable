@@ -733,7 +733,7 @@ export class Model {
     /* private */
     initItem(properties, params = {}) {
         ({properties, params} = this.checkArgs(properties, params))
-        return this.setDefaults('init', this.block.fields, properties)
+        return this.setDefaults('init', this.block.fields, properties, params)
     }
 
     /* private */
@@ -980,7 +980,7 @@ export class Model {
         }
         this.tunnelProperties(properties, params)
         this.addContext(op, fields, index, properties, params, context)
-        this.setDefaults(op, fields, properties)
+        this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, fields, properties, params)
         this.convertNulls(fields, properties, params)
         this.validateProperties(op, fields, properties, params)
@@ -1107,8 +1107,10 @@ export class Model {
     /*
         Set default property values on Put.
     */
-    setDefaults(op, fields, properties) {
-        if (op != 'put' && op != 'init') return
+    setDefaults(op, fields, properties, params) {
+        if (op != 'put' && op != 'init' && !(op == 'update' && params.exists == null)) {
+            return
+        }
         for (let field of Object.values(fields)) {
             if (field.type == 'object' && field.schema) {
                 properties[field.name] = properties[field.name] || {}
