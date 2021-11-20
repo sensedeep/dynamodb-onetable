@@ -1114,7 +1114,7 @@ export class Model {
         for (let field of Object.values(fields)) {
             if (field.type == 'object' && field.schema) {
                 properties[field.name] = properties[field.name] || {}
-                this.setDefaults(op, field.block.fields, properties[field.name])
+                this.setDefaults(op, field.block.fields, properties[field.name], params)
             } else {
                 let value = properties[field.name]
 
