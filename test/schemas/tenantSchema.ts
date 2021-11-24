@@ -24,7 +24,7 @@ export default {
             id:         { type: String, uuid: true },
             name:       { type: String, required: true },
             email:      { type: String, required: true },
-            optional:   { type: String }, 
+            optional:   { type: String },
 
             gs1pk:      { type: String, value: '${_type}#${email}' },
             gs1sk:      { type: String, value: '${_type}#${accountId}' },
