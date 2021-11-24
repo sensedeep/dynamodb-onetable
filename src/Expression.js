@@ -364,9 +364,13 @@ export class Expression {
             if (!Array.isArray(params.remove)) {
                 params.remove = [params.remove]
             }
+            let fields = this.model.block.fields
             for (let key of params.remove) {
                 if (key == this.hash || key == this.sort) {
                     throw new OneArgError('Cannot remove hash or sort')
+                }
+                if (fields.required) {
+                    throw new OneArgError('Cannot remove required field')
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
