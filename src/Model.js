@@ -733,7 +733,14 @@ export class Model {
     /* private */
     initItem(properties, params = {}) {
         ({properties, params} = this.checkArgs(properties, params))
-        return this.setDefaults('init', this.block.fields, properties, params)
+        let fields = this.block.fields
+        //  Ensure all fields are present
+        for (let key of Object.keys(fields)) {
+            properties[key] = null
+        }
+        this.setDefaults('init', fields, properties, params)
+        this.runTemplates('put', this.indexes.primary, fields, properties, params)
+        return properties
     }
 
     /* private */
