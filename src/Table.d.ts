@@ -86,6 +86,7 @@ export class Table {
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    init(modelName: string, properties?: OneProperties, params?: OneParams): AnyEntity;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;

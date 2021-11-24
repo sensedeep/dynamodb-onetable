@@ -463,6 +463,11 @@ export class Table {
         return await model.get(properties, params)
     }
 
+    init(modelName, properties, params) {
+        let model = this.getModel(modelName)
+        return model.init(properties, params)
+    }
+
     async remove(modelName, properties, params) {
         let model = this.getModel(modelName)
         return await model.remove(properties, params)
