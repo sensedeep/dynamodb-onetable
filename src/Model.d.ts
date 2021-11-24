@@ -56,14 +56,6 @@ export type OneSchema = {
 };
 
 /*
-    Schema field with "type" property
-type OneTypedField = {
-    type: OneType,
-    required?: boolean
-};
- */
-
-/*
     Schema.models.Model.Field signature
  */
 export type /* OneFieldSchema extends */ OneTypedField = {
@@ -126,7 +118,7 @@ export type Optional<T extends OneTypedModel> = {
 /*
     Merge two types
 */
-type Merge<A, B> = { 
+type Merge<A, B> = {
     [P in keyof (A & B)]: P extends keyof A ? A[P] : B[P]
 };
 
@@ -195,7 +187,6 @@ export type OneParams = {
     type?: string,
     tunnel?: object,
     updateIndexes?: boolean,
-    // value?: (name: string, properties: OneProperties) => any,
     where?: string,
 };
 
