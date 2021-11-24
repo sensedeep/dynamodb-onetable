@@ -8,3 +8,4 @@ test/schemas/protoSchema.ts
 *.keep
 .idea
 yarn.lock
+.cdrc

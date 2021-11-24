@@ -653,20 +653,19 @@ export class Model {
             Get the prior item so we know the previous unique property values so they can be removed.
             This must be run here, even if part of a transaction.
         */
-        let prior = await this.get(properties)
+        let prior = await this.get(properties, {hidden:true})
         if (prior) {
             prior = this.prepareProperties('update', prior)
         } else if (params.exists === undefined || params.exists == true) {
             throw new OneError('Cannot find existing item to update', {properties, code: 'NotFound'})
         }
-
         /*
             Create all required unique properties. Remove prior unique properties if they have changed.
         */
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         for (let field of fields) {
-            if (properties[field.name] === undefined) {
+            if (properties[field.name] === undefined || (prior && properties[field.name] === prior[field.name])) {
                 continue
             }
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`

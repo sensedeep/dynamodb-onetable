@@ -6,6 +6,8 @@
 import {AWS, Client, Entity, Model, Table, print, dump, delay} from './utils/init'
 import {NestedSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 describe('TypeScript', () => {
 
     const table = new Table({

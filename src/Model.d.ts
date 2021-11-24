@@ -4,12 +4,11 @@
     Supports dynamic definition of types based on the Schema.js
 */
 import { Expression } from './Expression'
-import { UndefinedToOptional } from './utils';
 
 /*
     Possible types for a schema field "type" property
  */
-type OneType =
+export type OneType =
     ArrayConstructor |
     BooleanConstructor |
     DateConstructor |
@@ -32,9 +31,42 @@ export type OneIndexSchema = {
 };
 
 /*
+    Schema.models signature
+ */
+export type OneModelSchema = {
+    [key: string]: OneFieldSchema
+};
+
+/*
+    Schema signature
+ */
+export type OneSchema = {
+    name?: string,
+    version?: string,
+    format?: string,
+    params?: {
+        [key: string]: any
+    },
+    models: {
+        [key: string]: OneModelSchema
+    },
+    indexes: {
+        [key: string]: OneIndexSchema
+    },
+};
+
+/*
+    Schema field with "type" property
+type OneTypedField = {
+    type: OneType,
+    required?: boolean
+};
+ */
+
+/*
     Schema.models.Model.Field signature
  */
-interface OneFieldSchema extends OneTypedField {
+export type /* OneFieldSchema extends */ OneTypedField = {
     crypt?: boolean,
     default?: string | number | boolean | object,
     enum?: string[],
@@ -52,40 +84,7 @@ interface OneFieldSchema extends OneTypedField {
 }
 
 /*
-    Schema.models signature
- */
-export type OneModelSchema = {
-    [key: string]: OneFieldSchema
-};
-
-/*
-    Schema signature
- */
-type OneSchema = {
-    name?: string,
-    version?: string,
-    format?: string,
-    params?: {
-        [key: string]: any
-    },
-    models: {
-        [key: string]: OneModelSchema
-    },
-    indexes: {
-        [key: string]: OneIndexSchema
-    },
-};
-
-/*
-    Schema field with "type" property
- */
-type OneTypedField = {
-    type: OneType,
-    required?: boolean
-};
-
-/*
-    Schema Model of fields with a type property
+    Schema Models with field properties that contain field signatures (above) including "type" and "required".
  */
 type OneTypedModel = Record<string, OneTypedField>;
 
@@ -111,17 +110,30 @@ type EntityField<T extends OneTypedField> =
     : never;
 
 /*
-    Entities are typed objects whoes signature is based on the schema model of the same name.
-    In the example below UndefinedToOptional takes properties from an object that can be undefined and makes the property optional.
-    T[P]['required'] represents the value of a given property and T[P]['required'] extends true is kind of checking if the value
-    is true.
-    If the value is true then the value must be required and therefore it is not optional and can only be of the expected type.
-    If the value is false then it can be of the expected type or underfined which will then be taken by UndefinedToOptional and
-    made optional.
- */
-export type Entity<T extends OneTypedModel> = UndefinedToOptional<{
-    [P in keyof T]: T[P]['required'] extends true ? EntityField<T[P]> : EntityField<T[P]> | undefined
-}>
+    Select the required properties from a model
+*/
+export type Required<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['required'] extends true ? P : never]: EntityField<T[P]>
+};
+
+/*
+    Select the optional properties from a model
+*/
+export type Optional<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]>
+};
+
+/*
+    Merge two types
+*/
+type Merge<A, B> = { 
+    [P in keyof (A & B)]: P extends keyof A ? A[P] : B[P]
+};
+
+/*
+    Create entity type which includes required and optional types
+*/
+type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
 
 /*
     Entity Parameters are partial Entities.  Useful for search, update parameters.

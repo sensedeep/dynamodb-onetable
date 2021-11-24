@@ -29,10 +29,10 @@ type AccountType = Entity<typeof TenantSchema.models.Account>
 let Account = table.getModel<AccountType>('Account')
 let account: AccountType = null
 
-let userData = [
+let userData: UserType[] = [
     {accountId: null, name: 'Peter Smith', email: 'peter@example.com' },
     {accountId: null, name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: null, name: 'Cu Later', email: 'cu@example.com' },
+    {accountId: null, name: 'Cu Later', email: 'cu@example.com', optional: '42' },
 ]
 
 test('Create Account', async() => {
