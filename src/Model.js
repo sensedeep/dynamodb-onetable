@@ -1215,7 +1215,7 @@ export class Model {
         value = value.replace(/\${(.*?)}/g, (match, varName) => {
             let [name, len, pad] = varName.split(':')
             let v = this.getPropValue(properties, name)
-            if (v !== undefined) {
+            if (v != null) {
                 if (v instanceof Date) {
                     v = this.transformWriteDate(v)
                 }
