@@ -31,10 +31,30 @@ export type OneIndexSchema = {
 };
 
 /*
+    Schema.models.Model.Field signature
+ */
+export type OneField = {
+    crypt?: boolean,
+    default?: string | number | boolean | object,
+    enum?: string[],
+    filter?: boolean,
+    hidden?: boolean,
+    map?: string,
+    nulls?: boolean,
+    required?: boolean,
+    type: OneType,
+    unique?: boolean,
+    uuid?: boolean | string,
+    validate?: RegExp | string | boolean,
+    value?: boolean | string,
+    schema?: OneModelSchema,
+}
+
+/*
     Schema.models signature
  */
 export type OneModelSchema = {
-    [key: string]: OneFieldSchema
+    [key: string]: OneField
 };
 
 /*
@@ -56,34 +76,14 @@ export type OneSchema = {
 };
 
 /*
-    Schema.models.Model.Field signature
- */
-export type /* OneFieldSchema extends */ OneTypedField = {
-    crypt?: boolean,
-    default?: string | number | boolean | object,
-    enum?: string[],
-    filter?: boolean,
-    hidden?: boolean,
-    map?: string,
-    nulls?: boolean,
-    required?: boolean,
-    type: OneType,
-    unique?: boolean,
-    uuid?: boolean | string,
-    validate?: RegExp | string | boolean,
-    value?: boolean | string,
-    schema?: OneModelSchema,
-}
-
-/*
     Schema Models with field properties that contain field signatures (above) including "type" and "required".
  */
-type OneTypedModel = Record<string, OneTypedField>;
+type OneTypedModel = Record<string, OneField>;
 
 /*
     Entity field signature generated from the schema
  */
-type EntityField<T extends OneTypedField> =
+type EntityField<T extends OneField> =
       T['type'] extends ArrayConstructor ? any[]
     : T['type'] extends BooleanConstructor ? boolean
     : T['type'] extends NumberConstructor ? number
