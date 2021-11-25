@@ -227,10 +227,10 @@ const MySchema = {
             pk:    { type: String, value: 'account:${name}' },
             name:  { type: String },
         }
-    }
+    } as const     // Required for TypeScript
 }
 
-//  Fully typed Account object based on the schema
+//  Fully typed Account object based on the schema (must include "as const" after the models above)
 type AccountType = Entity<typeof MySchema.models.Account>
 
 let account: AccountType = {
@@ -1117,7 +1117,7 @@ type UserType = Entity<typeof Schema.models.User>
 let User = table.getModel<UserType>('User')
 ```
 
-Thereafter, the references to User instances will be fully type checked.
+Thereafter, the references to User instances will be fully type checked. Note: you must add "as const" to the end of your models after the closing brace.
 
 Where `table` is a configured instance of `Table`. Name is the name of the model and `options` are an optional hash.
 
