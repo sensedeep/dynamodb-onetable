@@ -118,12 +118,15 @@ export type Optional<T extends OneTypedModel> = {
 /*
     Merge two types
 */
-type Merge<A, B> = {
-    [P in keyof (A & B)]: P extends keyof A ? A[P] : B[P]
+type Merge<A extends any, B extends any> = {
+    [P in keyof (A & B)]: P extends keyof A ? A[P] : (P extends keyof B ? B[P] : never)
 };
 
 /*
     Create entity type which includes required and optional types
+
+    The following works, but the intellisense types are terrible. Merge does a better job.
+    type Entity<T extends OneTypedModel> = Required<T> & Optional<T>
 */
 type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
 

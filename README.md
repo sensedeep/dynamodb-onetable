@@ -1410,7 +1410,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
 | transaction | `object` | Accumulated transactional API calls. Invoke with `Table.transaction` |
 | type | `string` | Add a `type` condition to the `create`, `delete` or `update` API call. Set `type` to the DynamoDB required type.|
-| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values which are defined during create.|
+| updateIndexes | `boolean` | Set to true to update index attributes. The default during updates is to not update index values (either primary or secondard) which are defined during create.|
 | where | `string` | Define a filter or update conditional expression template. Use `${attribute}` for attribute names, `@{var}` for variable substituions and `{value}` for values. OneTable will extract attributes and values into the relevant ExpressionAttributeNames and ExpressionAttributeValues.|
 
 If `stats` is defined, find/query/scan operations will return the following statistics in the stats object:
