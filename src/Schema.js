@@ -111,7 +111,6 @@ export class Schema {
         let primary = indexes.primary
         let fields = this.schemaModelFields = {
             [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
-            [primary.sort]: { type: 'string', required: true, value: `${SchemaKey}:\${name}` },
             format:         { type: 'string', required: true },
             indexes:        { type: 'array',  required: true },
             name:           { type: 'string', required: true },
@@ -119,6 +118,9 @@ export class Schema {
             params:         { type: 'object', required: true },
             queries:        { type: 'object', required: true },
             version:        { type: 'string', required: true },
+        }
+        if (primary.sort) {
+            fields[primary.sort] = { type: 'string', required: true, value: `${SchemaKey}:\${name}`}
         }
         this.models[SchemaModel] = new Model(table, SchemaModel, {fields})
     }
@@ -128,11 +130,13 @@ export class Schema {
         let primary = indexes.primary
         let fields = this.migrationModelFields = {
             [primary.hash]: { type: 'string', value: `${MigrationKey}` },
-            [primary.sort]: { type: 'string', value: `${MigrationKey}:\${version}` },
             date:           { type: 'date',   required: true },
             description:    { type: 'string', required: true },
             path:           { type: 'string', required: true },
             version:        { type: 'string', required: true },
+        }
+        if (primary.sort) {
+            fields[primary.sort] = { type: 'string', value: `${MigrationKey}:\${version}` }
         }
         this.models[MigrationModel] = new Model(this.table, MigrationModel, {fields, indexes})
     }
