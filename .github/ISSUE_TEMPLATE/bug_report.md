@@ -54,6 +54,8 @@ If applicable, add screenshots to help explain your problem.
  - OS
  - Node Version
  - OneTable Version
+ - TypeScript Version
+ - Any other relevant environment information
 
 **Additional context**
 Add any other context about the problem here.
