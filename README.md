@@ -317,14 +317,14 @@ const table = new Table({
 
 //  Fetch an item collection (will return parsed entities in an item collection)
 let items = await table.fetch(['User', 'Product'], {pk: 'account:AcmeCorp'})
-let users = items.Users
-let products = items.Products
+let users = items.User
+let products = items.Product
 
 //  Alternatively, group after a standard query
-let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true})
+let items = await table.queryItems({pk: 'account:AcmeCorp'}, {parse: true, hidden: true})
 items = table.groupByType(items)
-let users = items.Users
-let products = items.Products
+let users = items.User
+let products = items.Product
 
 //  Fetch an account by the ID which is used to create the primary key value
 let account = await table.get('Account', {id})
@@ -753,8 +753,8 @@ For example:
 
 ```javascript
 let items = await table.fetch(['User', 'Product'], {pk: 'account:AcmeCorp'})
-let users = items.Users
-let products = items.Products
+let users = items.User
+let products = items.Product
 users.forEach(user => /* operate on user */)
 products.forEach(product => /* operate on product */)
 ```
@@ -1007,10 +1007,10 @@ The `Table.groupBy` can be used to organize the returned items by model. E.g.
 let transaction = {}
 await table.get('Account', {id: accountId}, {transaction})
 await table.get('User', {id: userId}, {transaction})
-let items = await table.transact('get', transaction, {parse: true})
-items = table.groupByType(items).
+let items = await table.transact('get', transaction, {parse: true, hidden: true})
+items = table.groupByType(items)
 let accounts = items.Account
-let users = items.Users
+let users = items.User
 ```
 
 #### async update(modelName, properties, params = {})
