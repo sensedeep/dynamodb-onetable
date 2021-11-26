@@ -33,6 +33,20 @@ test('List Models', async() => {
     expect(models).toContain('User')
 })
 
+test('Numeric Sort Key', async() => {
+    let table = new Table({
+        name: 'NumericSortKey',
+        client: Client,
+        schema: {
+            version: '0.0.1',
+            indexes: { primary: { hash: 'pk', sort: 'sk' }, },
+            models: { User: { sk: { type: 'number' } } }
+        }
+    })
+    await table.createTable()
+    await table.deleteTable('DeleteTableForever')
+})
+
 test('Destroy', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)

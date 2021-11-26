@@ -187,7 +187,7 @@ export class Table {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
         let attributes = {}
-        let indexes = this.schema.indexes
+        let {indexes, models} = this.schema
 
         if (!indexes) {
             throw new OneArgError('Cannot create table without schema indexes')
@@ -230,12 +230,14 @@ export class Table {
             keys.push({AttributeName: index.hash || indexes.primary.hash, KeyType: 'HASH'})
 
             if (index.hash && !attributes[index.hash]) {
-                def.AttributeDefinitions.push({AttributeName: index.hash, AttributeType: 'S'})
+                let type = this.getAttributeType(index.hash) == 'number' ? 'N' : 'S'
+                def.AttributeDefinitions.push({AttributeName: index.hash, AttributeType: type})
                 attributes[index.hash] = true
             }
             if (index.sort) {
                 if (!attributes[index.sort]) {
-                    def.AttributeDefinitions.push({AttributeName: index.sort, AttributeType: 'S'})
+                    let type = this.getAttributeType(index.sort) == 'number' ? 'N' : 'S'
+                    def.AttributeDefinitions.push({AttributeName: index.sort, AttributeType: type})
                     attributes[index.sort] = true
                 }
                 keys.push({AttributeName: index.sort, KeyType: 'RANGE'})
@@ -258,6 +260,16 @@ export class Table {
         } else {
             return await this.service.createTable(def).promise()
         }
+    }
+
+    getAttributeType(name) {
+        for (let model of Object.values(this.schema.models)) {
+            let fields = model.block.fields
+            if (fields[name]) {
+                return fields[name].type
+            }
+        }
+        return null
     }
 
     /*
@@ -781,15 +793,6 @@ export class Table {
         for (let [key, value] of Object.entries(item)) {
             if (value instanceof Set) {
                 item[key] = this.client.createSet(Array.from(value))
-                /*
-                let first = value.values().next().value
-                if (typeof first == 'number') {
-                    item[key] = { NS: Array.from(value).map(v => v) }
-                } else if (first instanceof Buffer || first instanceof ArrayBuffer) {
-                    item[key] = { BS: Array.from(value).map(v => v.toString('base64')) }
-                } else {
-                    item[key] = { SS: Array.from(value).map(v => v.toString()) }
-                } */
             }
         }
         return item
