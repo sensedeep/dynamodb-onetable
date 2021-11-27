@@ -559,7 +559,7 @@ The `schema.indexes` property can contain one or more indexes and must contain t
 
 Note the hash and sort names are schema property names which may differ from table attribute names if you are using mapping.
 
-The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of attributes (not properties) to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable API.
+The `project` property can be set to 'all' to project all attributes to the secondary index, set to 'keys' to project only keys and may be set to an array of attributes (not properties) to specify an explicit list of attributes to project. The `project` property is used by the Table.createTable and updateTable APIs only.
 
 The `follow` property is used to support GSI indexes that project KEYS_ONLY or only a subset of an items properties. When `follow` is true, any fetch of an item via the GSI will be transparently followed by a fetch of the full item using the primary index and the GSI projected keys. This incurs an additional request for each item, but for large data sets, it is useful to minimize the size of a GSI and yet retain access to full items.
 
@@ -695,6 +695,8 @@ let results = await table.batchGet(batch)
 ```
 
 Set batch params.consistent for a consistent read.
+
+If using params.fields to return a field set, you must provide actual attribute names in the field list and not mapped property names like when using normal Model params.fields.
 
 #### async batchWrite(batch, params = {})
 
@@ -1390,7 +1392,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | delete | `object` | Used to delete items from a `set` attribute. Set to an object containing the attribute name and item to delete. Example: delete: {colors: 'blue'}|
 | execute | `boolean` | Set to true to execute the API. If false, return the formatted command and do not execute. Defaults to true.|
 | exists | `boolean` | Set to true for `create`, `delete` or `update` APIs to verify if an item of the same key exists or not. Defaults to false for `create`, null for `delete` and true for `update` Set to null to disable checking either way.|
-| fields | `array` | List of attributes to return. This sets the ProjectionExpression. Default null. |
+| fields | `array` | List of properties to return. This sets the ProjectionExpression. Default null. |
 | hidden | `boolean` | Hide key attributes in Javascript properties. Overrides model.hidden. Default null. |
 | index | `string` | Name of index to utilize. Defaults to 'primary'|
 | limit | `number` | Set to the maximum number of items to return from a find / scan.|
