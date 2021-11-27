@@ -19,7 +19,7 @@ const schema = {
     models: {
         User: {
             pk:          { type: String, value: '${_type}#' },
-            sk:          { type: String, value: '${_type}#${domain}#${id}' },
+            sk:          { type: String, value: '${_type}#${id}' },
 
             gs1pk:       { type: String, value: '${_type}#' },
             gs1sk:       { type: String, value: '${_type}#${id}' },

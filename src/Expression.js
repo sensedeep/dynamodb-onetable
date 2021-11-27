@@ -62,7 +62,7 @@ export class Expression {
     }
 
     prepare() {
-        let {op, properties} = this
+        let {op, params, properties} = this
         let fields = this.model.block.fields
         if (op == 'find') {
             this.addFilters()
@@ -111,9 +111,10 @@ export class Expression {
                 this.add({attribute: [k], name: k, filter: false}, v, properties)
             }
         }
-        if (this.params.fields) {
-            for (let name of this.params.fields) {
-                let att = fields[name].attribute[0]
+        if (params.fields) {
+            for (let name of params.fields) {
+                //  BatchGet params.project must provide attributes not properties
+                let att = (op == 'batchGet') ? name : fields[name].attribute[0]
                 this.project.push(`#_${this.addName(att)}`)
             }
         }
@@ -463,6 +464,7 @@ export class Expression {
             if (filters.length) {
                 throw new OneArgError('Invalid filters with batch operation')
             }
+
         } else {
             args = {
                 ConditionExpression: conditions.length ? this.and(conditions) : undefined,

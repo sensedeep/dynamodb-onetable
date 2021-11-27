@@ -7,6 +7,7 @@
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
+import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneError, OneArgError} from './Error.js'
@@ -550,7 +551,18 @@ export class Table {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return []
         }
-        batch.ConsistentRead = params.consistent ? true : false
+        let def = batch.RequestItems[this.name]
+
+        if (params.fields) {
+            if (params.fields.indexOf(this.typeField) < 0) {
+                params.fields.push(this.typeField)
+            }
+            let expression = new Expression(this.schema.genericModel, 'batchGet', {}, params)
+            let cmd = expression.command()
+            def.ProjectionExpression = cmd.ProjectionExpression
+            def.ExpressionAttributeNames = cmd.ExpressionAttributeNames
+        }
+        def.ConsistentRead = params.consistent ? true : false
 
         let result = await this.execute(GenericModel, 'batchGet', batch, {}, params)
 

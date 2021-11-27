@@ -287,13 +287,14 @@ export class Model {
         let b = params.batch
         if (b) {
             params.expression = expression
-            let items = b.RequestItems = b.RequestItems || {}
+            let ritems = b.RequestItems = b.RequestItems || {}
             if (op == 'get') {
-                let list = items[this.tableName] = items[this.tableName] || {Keys: []}
+                let list = ritems[this.tableName] = ritems[this.tableName] || {Keys: []}
                 list.Keys.push(cmd.Keys)
                 return this.transformReadItem(op, properties, properties, params)
+                
             } else {
-                let list = items[this.tableName] = items[this.tableName] || []
+                let list = ritems[this.tableName] = ritems[this.tableName] || []
                 let bop = BatchOps[op]
                 list.push({[bop]: cmd})
                 return this.transformReadItem(op, properties, properties, params)

@@ -106,6 +106,21 @@ test('Batch with error', async() => {
     }).rejects.toThrow()
 })
 
+test('Batch with fields', async () => {
+    //  Get with fields
+    let batch = {}
+    users = await table.scan('User')
+    for (let user of users) {
+        table.get('User', {id: user.id}, {batch})
+    }
+
+    users = await table.batchGet(batch, {parse: true, fields: ['email']})
+    for (let user of users) {
+        expect(user.name).toBeUndefined()
+        expect(user.email).toBeDefined()
+    }
+})
+
 test('Destroy', async() => {
     await table.deleteTable('DeleteTableForever')
 })
