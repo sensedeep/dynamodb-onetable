@@ -4,8 +4,9 @@
  */
 import Crypto from 'crypto'
 
+//  Crockford's base 32 excluding I, L, O and U
 //  Repeat Z to make encoding faster for rand == 0xFF
-const Letters = '0123456789ABCDEFGHIJKMNPQRSTVWXYZZ'
+const Letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZZ'
 const LettersLen = Letters.length - 1
 const RandomLength = 16
 const TimeLen = 10
