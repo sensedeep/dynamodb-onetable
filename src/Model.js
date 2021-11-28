@@ -292,7 +292,7 @@ export class Model {
                 let list = ritems[this.tableName] = ritems[this.tableName] || {Keys: []}
                 list.Keys.push(cmd.Keys)
                 return this.transformReadItem(op, properties, properties, params)
-                
+
             } else {
                 let list = ritems[this.tableName] = ritems[this.tableName] || []
                 let bop = BatchOps[op]
@@ -1300,7 +1300,9 @@ export class Model {
         }
 
         if (Object.keys(validation).length > 0) {
-            let error = new OneError(`Validation Error for "${this.name}"`, {validation, code: 'Validation'})
+            let error = new OneError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`, 
+                {validation, code: 'Validation'}
+            )
             //  DEPRECATE
             // error.details = validations
             // Object.defineProperty(error, 'details', {enumerable: false})

@@ -70,7 +70,7 @@ test('Create invalid', async() => {
         //  Never get here
         expect(false).toBeTruthy()
     } catch (err) {
-        expect(err.message).toMatch('Validation Error for "User"')
+        expect(err.message).toMatch(/Validation Error in "User"/)
         let validation = err.context.validation
         expect(validation).toBeDefined()
         expect(validation.address).toBeDefined()
@@ -97,7 +97,7 @@ test('Create missing required property', async() => {
         //  Never get here
         expect(false).toBeTruthy()
     } catch (err) {
-        expect(err.message).toMatch('Validation Error for "User"')
+        expect(err.message).toMatch(/Validation Error in "User"/)
         let validation = err.context.validation
         expect(validation).toBeDefined()
         expect(validation.email).toBeDefined()
@@ -111,6 +111,6 @@ test('Remove required property', async() => {
     try {
         await User.update({id: user.id, email: null})
     } catch (err) {
-        expect(err.message).toMatch('Validation Error for "User"')
+        expect(err.message).toMatch(/Validation Error in "User"/)
     }
 })
