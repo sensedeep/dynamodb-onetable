@@ -112,7 +112,7 @@ export class Schema {
         let fields = this.schemaModelFields = {
             [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
             format:         { type: 'string', required: true },
-            indexes:        { type: 'array',  required: true },
+            indexes:        { type: 'object',  required: true },
             name:           { type: 'string', required: true },
             models:         { type: 'array',  required: true },
             params:         { type: 'object', required: true },
