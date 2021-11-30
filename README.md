@@ -357,7 +357,7 @@ The Table constructor takes a parameter of type `object` with the following prop
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
 | metrics | `object` | Configure metrics. Default null.|
 | name | `string` | The name of your DynamoDB table. |
-| nulls | `boolean` | Store nulls in database attributes or remove attributes set to null. Default false. |
+| nulls | `boolean` | Store nulls in database attributes vs remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
 | timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |

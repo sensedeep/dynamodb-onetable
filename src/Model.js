@@ -1300,7 +1300,7 @@ export class Model {
         }
 
         if (Object.keys(validation).length > 0) {
-            let error = new OneError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`, 
+            let error = new OneError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
                 {validation, code: 'Validation'}
             )
             //  DEPRECATE
@@ -1538,7 +1538,7 @@ export class Model {
 
     /*
         Handle nulls and empty strings properly according to nulls preference.
-        NOTE: DynamoDB can handle empty strings as top level string attributes, but not nested in lists or maps. Ugh!
+        NOTE: DynamoDB can handle empty strings as top level non-key string attributes, but not nested in lists or maps. Ugh!
     */
     removeNulls(field, obj) {
         let result
