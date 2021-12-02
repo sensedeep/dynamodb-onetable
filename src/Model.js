@@ -991,7 +991,7 @@ export class Model {
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, fields, properties, params)
-        this.convertNulls(fields, properties, params)
+        this.convertNulls(op, fields, properties, params)
         this.validateProperties(op, fields, properties, params)
         this.selectProperties(op, block, index, properties, params, rec)
         this.transformProperties(op, fields, properties, params, rec)
@@ -1161,11 +1161,18 @@ export class Model {
     /*
         Remove null properties from the table unless Table.nulls == true
     */
-    convertNulls(fields, properties, params) {
+    convertNulls(op, fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
             if (!field) continue
             if (value === null && field.nulls !== true) {
+                if (field.required && (
+                        //  create with null/undefined, or update with null property
+                        (op == 'put' && properties[field.name] == null) ||
+                        (op == 'update' && properties[field.name] === null))) {
+                    //  Validation will catch this
+                    continue
+                }
                 if (params.remove && !Array.isArray(params.remove)) {
                     params.remove = [params.remove]
                 } else {
@@ -1294,7 +1301,9 @@ export class Model {
             }
         }
         for (let field of Object.values(fields)) {
-            if (op == 'put' && properties[field.name] == null && field.required) {
+            //  If required and create, must be defined. If required and update, must not be null.
+            if (field.required && (
+                    (op == 'put' && properties[field.name] == null) || (op == 'update' && properties[field.name] === null))) {
                 validation[field.name] = `Value not defined for required field "${field.name}"`
             }
         }
@@ -1303,9 +1312,6 @@ export class Model {
             let error = new OneError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
                 {validation, code: 'Validation'}
             )
-            //  DEPRECATE
-            // error.details = validations
-            // Object.defineProperty(error, 'details', {enumerable: false})
             throw error
         }
     }
@@ -1545,8 +1551,7 @@ export class Model {
         /*
             Loop over plain objects and arrays only
         */
-        if (obj !== null && typeof obj == 'object' &&
-                (obj.constructor.name == 'Object' || obj.constructor.name == 'Array')) {
+        if (obj !== null && typeof obj == 'object' && (obj.constructor.name == 'Object' || obj.constructor.name == 'Array')) {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
                 if (value === '') {
