@@ -1415,6 +1415,11 @@ export class Model {
                 value = value.toString('base64')
             }
 
+        } else if (type == 'array') {
+            if (value != null && !Array.isArray(value)) {
+                value = [value]
+            }
+
         } else if (type == 'set' && Array.isArray(value)) {
             value = this.transformWriteSet(type, value)
 
