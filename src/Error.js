@@ -43,8 +43,8 @@ export class OneError extends Error {
 
 export class OneArgError extends Error {
     constructor(message, context) {
-        super(message)
+        super(message, context)
         init(this, message, context)
-        this.code = context.code || 'Arg'
+        this.code = context ? context.code : 'Arg'
     }
 }
