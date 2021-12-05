@@ -115,6 +115,9 @@ export class Table {
         if (params.metrics) {
             this.metrics = new Metrics(this, params.metrics, this.metrics)
         }
+        if (params.monitor) {
+            this.monitor = params.monitor
+        }
         this.params = params
     }
 
@@ -501,7 +504,7 @@ export class Table {
         let trace = {model, cmd, op, properties}
         let result
         try {
-            if (params.stats || this.metrics) {
+            if (params.stats || this.metrics || this.monitor) {
                 cmd.ReturnConsumedCapacity = params.capacity || 'INDEXES'
                 cmd.ReturnItemCollectionMetrics = 'SIZE'
             }
@@ -532,8 +535,13 @@ export class Table {
             }
 
         } finally {
-            if (result && this.metrics) {
-                this.metrics.add(model, op, result, params, mark)
+            if (result) {
+                if (this.metrics) {
+                    this.metrics.add(model, op, result, params, mark)
+                }
+                if (this.monitor) {
+                    await this.monitor(model, op, result, params, mark)
+                }
             }
         }
         if (typeof params.info == 'object') {
