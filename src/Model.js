@@ -435,7 +435,6 @@ export class Model {
                 return results
             }
         }
-
         return (op == 'find' || op == 'scan') ? items : items[0]
     }
 
@@ -1416,8 +1415,13 @@ export class Model {
             }
 
         } else if (type == 'array') {
+            //  Heursistics to accept legacy string values for array types. Note: TS would catch this also.
             if (value != null && !Array.isArray(value)) {
-                value = [value]
+                if (value == '') {
+                    value = []
+                } else {
+                    value = [value]
+                }
             }
 
         } else if (type == 'set' && Array.isArray(value)) {
