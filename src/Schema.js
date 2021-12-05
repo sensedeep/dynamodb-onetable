@@ -112,9 +112,9 @@ export class Schema {
         let fields = this.schemaModelFields = {
             [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
             format:         { type: 'string', required: true },
-            indexes:        { type: 'object',  required: true },
+            indexes:        { type: 'object', required: true },
             name:           { type: 'string', required: true },
-            models:         { type: 'array',  required: true },
+            models:         { type: 'object', required: true },
             params:         { type: 'object', required: true },
             queries:        { type: 'object', required: true },
             version:        { type: 'string', required: true },
@@ -259,7 +259,7 @@ export class Schema {
         if (primary.sort) {
             params[primary.sort] = `${SchemaKey}:Current`
         }
-        let schema = await this.table.getItem(params, {hidden: true, parse: true, log: true})
+        let schema = await this.table.getItem(params, {hidden: true, parse: true})
         return this.transformSchemaAfterRead(schema)
     }
 
