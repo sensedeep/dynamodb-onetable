@@ -26,7 +26,7 @@ const schema = {
 
             name:        { type: String },
             email:       { type: String },
-            id:          { type: String, uuid: "uuid" },
+            id:          { type: String, uuid: 'ulid' },
         }
     }
 }
