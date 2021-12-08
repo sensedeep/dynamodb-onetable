@@ -183,10 +183,17 @@ export class Model {
             /*
                 Handle nested schema (recursive)
             */
-            if (field.type == 'object' && field.schema) {
-                field.block = {deps: [], fields: {}}
-                this.prepModel(field.schema, field.block, name)
-                this.nested = true
+            if (field.schema) {
+                if (field.type == 'array') {
+                    throw new OneArgError(`Array types do not (yet) support nested schemas for field "${field.name}" in model "${this.name}"`)
+                }
+                if (field.type == 'object') {
+                    field.block = {deps: [], fields: {}}
+                    this.prepModel(field.schema, field.block, name)
+                    this.nested = true
+                } else {
+                    throw new OneArgError(`Nested scheme not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`)
+                }
             }
         }
         if (Object.values(fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
