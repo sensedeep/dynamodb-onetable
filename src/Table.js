@@ -522,7 +522,7 @@ export class Table {
             } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
                 //  Not a hard error -- typically part of normal operation
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
-                throw new OneError(`Conditional create failed for "${model}`, {code: 'Condition', trace, err})
+                throw new OneError(`Conditional create failed for "${model}"`, {code: 'Condition', trace, err})
 
             } else {
                 result = result || {}
@@ -595,7 +595,16 @@ export class Table {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return {}
         }
-        return await this.execute(GenericModel, 'batchWrite', batch, params)
+        let more
+        do {
+            more = false
+            let response = await this.execute(GenericModel, 'batchWrite', batch, params)
+            let data = response.data
+            if (data && data.UnprocessedItems && Object.keys(data.UnprocessedItems).length) {
+                batch.RequestItems = data.UnprocessedItems
+                more = true
+            }
+        } while (more)
     }
 
     async deleteItem(properties, params) {
