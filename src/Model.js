@@ -1427,7 +1427,9 @@ export class Model {
                 if (value == '') {
                     value = []
                 } else {
-                    value = [value]
+                    //  FUTURE: should be moved to validations
+                    throw new OneArgError(`Invalid data type for Array field "${field.name}" in "${this.name}"`)
+                    // value = [value]
                 }
             }
 
