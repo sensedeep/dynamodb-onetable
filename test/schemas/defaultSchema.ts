@@ -7,6 +7,7 @@ export default {
         primary: { hash: 'pk', sort: 'sk' },
         gs1: { hash: 'gs1pk', sort: 'gs1sk', project: 'all' },
         gs2: { hash: 'gs2pk', sort: 'gs2sk', project: 'all' },
+        gs3: { hash: 'gs3pk', sort: 'gs3sk', project: 'all' },
     },
     models: {
         User: {
@@ -28,6 +29,10 @@ export default {
             //  Find by type
             gs2pk:      { type: String, value: 'type:${_type}' },
             gs2sk:      { type: String, value: '${_type}#${id}' },
+
+            //  List by status
+            gs3pk:      { type: String, value: '${_type}#${status}' },
+            gs3sk:      { type: String, value: '${_type}#${name}' },
         }
     }
 }

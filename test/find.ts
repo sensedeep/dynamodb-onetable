@@ -82,6 +82,16 @@ test('Find with where clause', async() => {
     expect(items.length).toBe(1)
 })
 
+test('List with begins_with', async() => {
+    let items = await User.find({
+        status: 'active',
+        gs3sk: { begins_with: 'User#Pa' }
+    }, {
+        index: 'gs3'
+    })
+    expect(items.length).toBe(1)
+})
+
 test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)

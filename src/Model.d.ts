@@ -135,6 +135,29 @@ type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
  */
 export type EntityParameters<Entity> = Partial<Entity>
 
+export type EntityParametersForFind<T> = {
+    [K in keyof T]: T[K]
+        | Begins<T, K>
+        | BeginsWith<T, K>
+        | Between<T, K>
+        | LessThan<T, K>
+        | LessThanOrEqual<T, K>
+        | Equal<T, K>
+        | NotEqual<T, K>
+        | GreaterThanOrEqual<T, K>
+        | GreaterThan<T, K>
+}
+
+export type Begins<T, K extends keyof T> = { begins: T[K] }
+export type BeginsWith<T, K extends keyof T> = { begins_with: T[K] }
+export type Between<T, K extends keyof T> = { between: [T[K], T[K]] }
+export type LessThan<T, K extends keyof T> = { '<': T[K] }
+export type LessThanOrEqual<T, K extends keyof T> = { '<=': T[K] }
+export type Equal<T, K extends keyof T> = { '=': T[K] }
+export type NotEqual<T, K extends keyof T> = { '<>': T[K] }
+export type GreaterThanOrEqual<T, K extends keyof T> = { '>=': T[K] }
+export type GreaterThan<T, K extends keyof T> = { '>': T[K] }
+
 /*
     Any entity. Essentially untyped.
  */
@@ -220,7 +243,7 @@ export type AnyModel = {
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
-    find(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
+    find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<void>;
