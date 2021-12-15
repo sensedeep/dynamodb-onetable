@@ -1275,7 +1275,7 @@ The `params.where` clause may be used to define a filter expression. This will d
 <a name="model-init"></a>
 #### async init(properties, params = {})
 
-Return a constructed model item without writing to the database.
+Return a constructed model item without writing to the database. This will return an object with all the model properties set to null including default properties, UUID properties and value template properties. Be careful using these objects with create() as you should define values for all attributes.
 
 <a name="model-remove"></a>
 #### async remove(properties, params = {})

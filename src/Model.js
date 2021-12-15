@@ -841,7 +841,7 @@ export class Model {
                 [att, sub] = field.attribute
             }
             let value = raw[att]
-            if (value == undefined) {
+            if (value === undefined) {
                 continue
             }
             if (sub) {
@@ -1135,7 +1135,7 @@ export class Model {
 
                 //  Set defaults and uuid fields
                 if (value === undefined && !field.value) {
-                    if (field.default != null) {
+                    if (field.default !== undefined) {
                         value = field.default
 
                     } else if (op == 'init') {
