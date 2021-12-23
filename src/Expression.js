@@ -246,8 +246,8 @@ export class Expression {
             return `:_${index}`
         })
 
-        //  Expand value references and make attribute values
-        where = where.replace(/{(.*?)}/g, (match, value) => {
+        //  Expand value references and make attribute values. Allow new-lines in values.
+        where = where.replace(/{(.*?)}/sg, (match, value) => {
             let index
             if (value.match(/^[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/)) {
                 index = this.addValue(+value)
