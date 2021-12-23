@@ -113,9 +113,13 @@ export class Expression {
         }
         if (params.fields) {
             for (let name of params.fields) {
-                //  BatchGet params.project must provide attributes not properties
-                let att = (op == 'batchGet') ? name : fields[name].attribute[0]
-                this.project.push(`#_${this.addName(att)}`)
+                if (op == 'batchGet') {
+                    //  BatchGet params.project must provide attributes not properties
+                    this.project.push(`#_${this.addName(name)}`)
+                } else if (fields[name]) {
+                    let att = fields[name].attribute[0]
+                    this.project.push(`#_${this.addName(att)}`)
+                }
             }
         }
     }
