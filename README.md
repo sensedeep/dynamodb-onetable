@@ -7,9 +7,11 @@
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
 
-## The Easiest Way to Create DynamoDB Single Table Designs!
+## The Easiest Way to Create DynamoDB Single Table Designs.
 
-OneTable is the most evolved API for DynamoDB. It provides a high-level, elegant dry syntax while still enabling full access to DynamoDB API. OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
+OneTable is the most evolved API for DynamoDB. It provides a high-level, elegant dry syntax while still enabling full access to DynamoDB API.
+
+OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
 
 Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions) and learn about the growing set of extentions for migrations, CLI and graphical monitoring tools for your single-table designs.
 
