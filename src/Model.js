@@ -21,7 +21,7 @@ const ReadWrite = {
 const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
-const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
+const ValidTypes = [ 'array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -122,6 +122,7 @@ export class Model {
             field.pathname = pathname
             field.name = name
             fields[name] = field
+            field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates
 
             field.type = this.checkType(field)
 
@@ -788,7 +789,8 @@ export class Model {
             let now = new Date()
             properties[this.updatedField] = now
             if (params.exists == null) {
-                let when = (this.table.isoDates) ? now.toISOString() : now.getTime()
+                let field = this.block.fields[this.createdField] || this.table
+                let when = (field.isoDates) ? now.toISOString() : now.getTime()
                 params.set = { [this.createdField]: `if_not_exists(\${${this.createdField}}, {${when}})` }
             }
         }
@@ -1088,7 +1090,7 @@ export class Model {
                 if (rec[name] === undefined) {
                     //  Cannot do all type transformations - don't have enough info without fields
                     if (value instanceof Date) {
-                        if (this.table.isoDates) {
+                        if (this.isoDates) {
                             rec[name] = value.toISOString()
                         } else {
                             rec[name] = value.getTime()
@@ -1239,7 +1241,7 @@ export class Model {
             let v = this.getPropValue(properties, name)
             if (v != null) {
                 if (v instanceof Date) {
-                    v = this.transformWriteDate(v)
+                    v = this.transformWriteDate(field, v)
                 }
                 if (len) {
                     //  Add leading padding for sorting numerics
@@ -1396,7 +1398,7 @@ export class Model {
             value = this.transformNestedWriteFields(field, value)
 
         } else if (type == 'date') {
-            value = this.transformWriteDate(value)
+            value = this.transformWriteDate(field, value)
 
         } else if (type == 'number') {
             let num = Number(value)
@@ -1450,7 +1452,7 @@ export class Model {
         for (let [key, value] of Object.entries(obj)) {
             let type = field.type
             if (value instanceof Date) {
-                obj[key] = this.transformWriteDate(value)
+                obj[key] = this.transformWriteDate(field, value)
 
             } else if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
@@ -1510,7 +1512,7 @@ export class Model {
                 value = (new Date(value)).toISOString()
             }
         } else {
-            //  Convert dates to unix epoch
+            //  Convert dates to unix epoch in milliseconds
             if (value instanceof Date) {
                 value = value.getTime()
             } else if (typeof value == 'string') {
