@@ -11,7 +11,7 @@ const UniqueModel = '_Unique'
 const MigrationKey = '_migration'
 const SchemaKey = '_schema'
 const UniqueKey = '_unique'
-const SchemaFormat = 'onetable:1.0.0'
+const SchemaFormat = 'onetable:1.1.0'
 
 export class Schema {
 

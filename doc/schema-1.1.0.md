@@ -1,8 +1,6 @@
 # OneTable Schema Specification
 
-## Version 1.0.0
-
-This version is superseded by version [1.1.0](./schema-1.1.0.md).
+## Version 1.1.0
 
 ## Summary
 
@@ -25,7 +23,7 @@ Schemas may be stored in the data table and thus the table becomes self-describi
 ```json
 {
     "version": "0.1.0",
-    "format": "onetable:1.0.0",
+    "format": "onetable:1.1.0",
     "indexes": {
         "primary": { "hash": "PK", "sort": "SK" },
         "GSI1": { "hash": "GS1PK", "sort": "GS1SK" }
@@ -52,7 +50,26 @@ Schemas may be stored in the data table and thus the table becomes self-describi
             "message":     { "type": "string" },
             "email":       { "type": "string" }
         }
-    }
+    },
+    "queries": {
+        "Get photos liked by a user": {
+            "limit": 100,
+            "index": "gs1",
+            "model": "Like",
+            "filters": [ {
+                "field": "username",
+                "type": "string",
+                "operation": "Equal",
+                "value": "ashley",
+                "combine": "And"
+            } ],
+            "operation": "Begins with",
+            "schema": "Current",
+            "type": "Entity"
+        }
+    },
+    "items": [
+    ]
 }
 ```
 
@@ -72,11 +89,13 @@ A OneTable schema MUST have the following top-level properties:
 
 * format
 * indexes
+* items
 * models
 * params
+* queries
 * version
 
-The `format` property MUST be set to 'onetable:1.0.0' for compatibility with this specification. The version portion of the format property is a [SemVer](https://semver.org/) compatible version number and MUST be used according to SemVer when loading schemas to assess the compatibility of the schema contents.
+The `format` property MUST be set to 'onetable:1.1.0' for compatibility with this specification. The version portion of the format property is a [SemVer](https://semver.org/) compatible version number and MUST be used according to SemVer when loading schemas to assess the compatibility of the schema contents.
 
 The `version` property MUST be [SemVer](https://semver.org/) compatible version number that describes the schema contents version.
 
@@ -228,7 +247,6 @@ All other values in the params collection MUST be considered RESERVED.
 * nulls
 * unique
 
-<!--
 ## Queries
 
 The `queries` map contains saved DynamoDB queries.  Each property in the `queries` map is the name of a saved query.
@@ -246,7 +264,7 @@ The `hash` property defines the partition key value for the query.
 
 The `index` property defines the name of the index utilized by the query. It MUST be the name of a property in the `indexes` map.
 
-The `limit` property specifies the maximum number of items for the query to return. It MUST be set to a postitive integer value.
+The `limit` property specifies the maximum number of items for the query to return. It MUST be set to a positive integer value.
 
 The `operation` property specifies a sort key comparison operation for the query. It MUST be set to one of the following string values:
 
@@ -268,6 +286,10 @@ Each query MAY contain the follow properties:
 * filters
 * model
 
+All other properties are RESERVED.
+
+The `model` property MUST be present if the query `type` is 'Entity'. The `model` MUST be set to a string with the name of a defined application entity model in `models`.
+
 The `filters` property specifies OPTIONAL additional query or scan filter expressions. If present, it MUST be set to an array of filter objects. Each filter MUST contain the following properties
 
 * field
@@ -276,8 +298,10 @@ The `filters` property specifies OPTIONAL additional query or scan filter expres
 * type
 * value
 
-
-The `model` property MUST be present of the query `type` is 'Entity'. The `model` MUST be set to a string with the name of an application entity model.
+The `field` property MUST be the name of a table attribute. The `operation` MUST be one of the set of operations: `Equal`, `Not equal`, `Less than`, `Less than or equal`,
+              `Greater than or equal`, `Greater than`, `Between`, `Begins with`,
+              `Existing`, `Not Existing`, `Contains`, `Does not contain`.
+The `combine` property must be set to `And` or `Or` and stipulates the boolean operation to combine with the prior filter. The `type` MUST be set to a Dynamo type from the set: `array`, `binary`, `boolean`, `buffer`, `date`, `number`, `object`, `set`, `string`. The `value` MUST be set to the filter comparision value.
 
 ## Example Queries
 
@@ -299,12 +323,10 @@ The `model` property MUST be present of the query `type` is 'Entity'. The `model
         "name": "test",
         "operation": "Equal",
         "schema": "Current",
-        "sort": "cloud:d5cafc5f2bf2213fbbe414c0f18f2600",
         "type": "Query"
     }
 }
 ```
--->
 
 ## Data Items
 
