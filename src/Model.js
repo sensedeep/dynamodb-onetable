@@ -1491,8 +1491,17 @@ export class Model {
     /*
         Handle dates. Supports epoch and ISO date transformations.
     */
-    transformWriteDate(value) {
-        if (this.table.isoDates) {
+    transformWriteDate(field, value) {
+        if (field.ttl) {
+            //  Convert dates to unix epoch in seconds
+            if (value instanceof Date) {
+                value = value.getTime()
+            } else if (typeof value == 'string') {
+                value = (new Date(Date.parse(value))).getTime()
+            }
+            value = Math.ceil(value / 1000)
+
+        } else if (field.isoDates) {
             if (value instanceof Date) {
                 value = value.toISOString()
             } else if (typeof value == 'string') {

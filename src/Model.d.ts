@@ -48,6 +48,7 @@ export type OneField = {
     validate?: RegExp | string | boolean,
     value?: boolean | string,
     schema?: OneModelSchema,
+    ttl?: boolean,
 }
 
 /*
