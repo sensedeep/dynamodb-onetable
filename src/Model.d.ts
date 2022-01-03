@@ -26,7 +26,7 @@ export type OneIndexSchema = {
     hash?: string,
     sort?: string,
     description?: string,
-    project?: string | string[],
+    project?: string | readonly string[],
     follow?: boolean,
 };
 
@@ -36,7 +36,7 @@ export type OneIndexSchema = {
 export type OneField = {
     crypt?: boolean,
     default?: string | number | boolean | object,
-    enum?: string[],
+    enum?: readonly string[],
     filter?: boolean,
     hidden?: boolean,
     map?: string,
