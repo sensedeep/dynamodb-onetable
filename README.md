@@ -886,6 +886,7 @@ begins or begins_with
 between
 ```
 
+<!---
 For TypeScript, the OneTable creates strict typings on properties and so special steps are required for {beings}, {between} etc. For TypeScript, OneTable supports tunneling such values via the params. Alternatively, use the `Where Clause` formulation described below. For example:
 
 ```typescript
@@ -893,6 +894,7 @@ let user = await table.queryItems({pk}, {tunnel: {begins: {sk: 'user:john'}}})
 let tickets = await table.queryItems({pk}, {tunnel: {between: {sk: [1000, 2000]}}})
 let invoices = await table.queryItems({pk}, {tunnel: {'<=': {sk: 1000}}})
 ```
+-->
 
 **Filter Expressions**
 

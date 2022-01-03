@@ -18,8 +18,7 @@ module.exports = async () => {
             args,
         })
 
-        // Docker errors will be forwarded to the local terminal with
-        // stdio: inherit
+        // Docker errors will be forwarded to the local terminal with stdio: inherit
         dynamodb = spawn(`docker`, args, {
             cwd: __dirname,
             stdio: 'inherit',
@@ -34,7 +33,7 @@ module.exports = async () => {
     await waitPort({
         host: '0.0.0.0',
         port: PORT,
-        timeout: 3000,
+        timeout: 10000,
     })
 
     console.info('DynamoDB is ready')

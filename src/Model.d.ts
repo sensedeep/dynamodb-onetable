@@ -132,11 +132,14 @@ type Merge<A extends any, B extends any> = {
 type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
 
 /*
-    Entity Parameters are partial Entities.  Useful for search, update parameters.
+    Entity Parameters are partial Entities.
  */
 export type EntityParameters<Entity> = Partial<Entity>
 
-export type EntityParametersForFind<T> = {
+/*
+    Special case for find to allow query operators
+*/
+export type EntityParametersForFind<T> = Partial<{
     [K in keyof T]: T[K]
         | Begins<T, K>
         | BeginsWith<T, K>
@@ -147,7 +150,7 @@ export type EntityParametersForFind<T> = {
         | NotEqual<T, K>
         | GreaterThanOrEqual<T, K>
         | GreaterThan<T, K>
-}
+}>
 
 export type Begins<T, K extends keyof T> = { begins: T[K] }
 export type BeginsWith<T, K extends keyof T> = { begins_with: T[K] }
