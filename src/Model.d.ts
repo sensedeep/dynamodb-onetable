@@ -85,6 +85,9 @@ type OneTypedModel = Record<string, OneField>;
     Entity field signature generated from the schema
  */
 type EntityField<T extends OneField> =
+    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : EntityFieldFromType<T>;
+
+type EntityFieldFromType<T extends OneField> =
       T['type'] extends (ArrayConstructor | 'array') ? any[]
     : T['type'] extends (BooleanConstructor | 'boolean') ? boolean
     : T['type'] extends (NumberConstructor | 'number') ? number
