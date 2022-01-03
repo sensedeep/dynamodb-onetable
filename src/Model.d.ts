@@ -63,7 +63,7 @@ export type OneModelSchema = {
  */
 export type OneSchema = {
     name?: string,
-    version?: string,
+    version: string,
     format?: string,
     params?: {
         [key: string]: any
