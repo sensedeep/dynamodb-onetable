@@ -26,7 +26,7 @@ export type OneIndexSchema = {
     hash?: string,
     sort?: string,
     description?: string,
-    project?: string | string[],
+    project?: string | readonly string[],
     follow?: boolean,
 };
 
@@ -36,7 +36,7 @@ export type OneIndexSchema = {
 export type OneField = {
     crypt?: boolean,
     default?: string | number | boolean | object,
-    enum?: string[],
+    enum?: readonly string[],
     filter?: boolean,
     hidden?: boolean,
     map?: string,
@@ -85,21 +85,16 @@ type OneTypedModel = Record<string, OneField>;
     Entity field signature generated from the schema
  */
 type EntityField<T extends OneField> =
-      T['type'] extends ArrayConstructor ? any[]
-    : T['type'] extends BooleanConstructor ? boolean
-    : T['type'] extends NumberConstructor ? number
-    : T['type'] extends ObjectConstructor ? object
-    : T['type'] extends DateConstructor ? Date
-    : T['type'] extends StringConstructor ? string
-    : T['type'] extends SetConstructor ? Set<T>
+    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : EntityFieldFromType<T>;
 
-    : T['type'] extends 'array' ? any[]
-    : T['type'] extends 'boolean' ? boolean
-    : T['type'] extends 'number' ? number
-    : T['type'] extends 'object' ? object
-    : T['type'] extends 'date' ? Date
-    : T['type'] extends 'string' ? string
-    : T['type'] extends 'set' ? Set<T>
+type EntityFieldFromType<T extends OneField> =
+      T['type'] extends (ArrayConstructor | 'array') ? any[]
+    : T['type'] extends (BooleanConstructor | 'boolean') ? boolean
+    : T['type'] extends (NumberConstructor | 'number') ? number
+    : T['type'] extends (ObjectConstructor | 'object') ? object
+    : T['type'] extends (DateConstructor | 'date') ? Date
+    : T['type'] extends (StringConstructor | 'string') ? string
+    : T['type'] extends (SetConstructor | 'set') ? Set<T>
     : never;
 
 /*
