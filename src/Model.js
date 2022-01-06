@@ -1055,7 +1055,7 @@ export class Model {
                     //  Attribute is not projected
                     omit = true
 
-                } else if (name == this.typeField && op == 'find') {
+                } else if (name == this.typeField && name != index.hash && name != index.sort && op == 'find') {
                     omit = true
                 }
             }
