@@ -17,7 +17,7 @@ A clear and complete description of what the bug is. Please explain in detail wh
 Steps to reproduce the behavior:
 
 1. Clone this repository
-2. Edit your reproducible, minimal, stand-alone test case into the test/debug.ts file.
+2. Edit your reproducible, MINIMAL, stand-alone test case into the test/debug.ts file.
 3. Run via `jest debug` or run VS code in the top level directory.
 
 If you don't edit debug.ts and provide snippets of code, then your issue may not receive priority.
@@ -27,6 +27,7 @@ Ensure that your debug.ts includes:
 1. Your OneTable schema (complete schema with indexes and models).
 2. Actual API code that is failing. Don't use code snippets. Add comments where helpful.
 3. Run API with params of {log: true} and include generated DynamoDB API calls
+4. The test case is a minimal as possible. Remove all unnecessary code and options.
 
 Check that:
 
