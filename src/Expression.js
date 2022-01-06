@@ -23,19 +23,20 @@ export class Expression {
         this.params = params
 
         this.table = model.table
-        this.already = {}           //  Fields already processed (index is property name)
-        this.conditions = []        //  Condition expressions
-        this.filters = []           //  Filter expressions
-        this.key = {}               //  Primary key attribute
-        this.keys = []              //  Key conditions
-        this.mapped = {}            //  Mapped fields
+        this.already = {}           //  Fields already processed (index is property name).
+        this.conditions = []        //  Condition expressions.
+        this.filters = []           //  Filter expressions.
+        this.key = {}               //  Primary key attribute.
+        this.keys = []              //  Key conditions.
+        this.mapped = {}            //  Mapped fields.
         this.names = {}             //  Expression names. Keys are the indexes.
         this.namesMap = {}          //  Expression names reverse map. Keys are the names.
-        this.project = []           //  Projection expressions
-        this.values = {}            //  Expression values. Keys are the indexes.
+        this.puts = {}              //  Put values
+        this.project = []           //  Projection expressions.
+        this.values = {}            //  Expression values. Keys are the value indexes.
         this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
-        this.nindex = 0             //  Next index into names
-        this.vindex = 0             //  Next index into values
+        this.nindex = 0             //  Next index into names.
+        this.vindex = 0             //  Next index into values.
         this.updates = {
             add: [],
             delete: [],
@@ -162,7 +163,7 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[att] = value
+                this.puts[att] = value
             }
 
         } else {
@@ -177,7 +178,7 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.values[att] = value
+                this.puts[att] = value
 
             } else if (op == 'update') {
                 this.addUpdate(field, value)
@@ -193,19 +194,19 @@ export class Expression {
         let {conditions, params} = this
         let {hash, sort} = this.index
         if (params.exists === true) {
-            conditions.push(`attribute_exists(${hash})`)
+            conditions.push(`attribute_exists(#_${this.addName(hash)})`)
             if (sort) {
-                conditions.push(`attribute_exists(${sort})`)
+                conditions.push(`attribute_exists(#_${this.addName(sort)})`)
             }
 
         } else if (params.exists === false) {
-            conditions.push(`attribute_not_exists(${hash})`)
+            conditions.push(`attribute_not_exists(#_${this.addName(hash)})`)
             if (sort) {
-                conditions.push(`attribute_not_exists(${sort})`)
+                conditions.push(`attribute_not_exists(#_${this.addName(sort)})`)
             }
         }
         if (params.type && sort) {
-            conditions.push(`attribute_type(${sort}, ${params.type})`)
+            conditions.push(`attribute_type(#_${this.addName(sort)}, ${params.type})`)
         }
         if (op == 'update') {
             this.addUpdates()
@@ -438,7 +439,7 @@ export class Expression {
         Create the Dynamo command parameters. Called from Model.run
      */
     command() {
-        let {conditions, filters, key, keys, hash, model, names, op, params, project, values} = this
+        let {conditions, filters, key, keys, hash, model, names, op, params, project, puts, values} = this
 
         if (key == null && values[hash] == null && op != 'scan') {
             throw new OneError(`Cannot find hash key for "${op}"`, {values})
@@ -451,6 +452,9 @@ export class Expression {
         let namesLen = Object.keys(names).length
         let valuesLen = Object.keys(values).length
 
+        if (op == 'put') {
+            puts = this.table.marshall(puts)
+        }
         values = this.table.marshall(values)
         key = this.table.marshall(key)
 
@@ -461,7 +465,7 @@ export class Expression {
             } else if (op == 'delete') {
                 args = { Key: key }
             } else if (op == 'put') {
-                args = { Item: values }
+                args = { Item: puts }
             } else {
                 throw new OneArgError(`Unsupported batch operation "${op}"`)
             }
@@ -497,7 +501,7 @@ export class Expression {
                 args.ReturnItemCollectionMetrics = 'SIZE'                   // SIZE | NONE
             }
             if (op == 'put') {
-                args.Item = values
+                args.Item = puts
                 args.ReturnValues = params.return || 'NONE'
 
             } else if (op == 'update') {
