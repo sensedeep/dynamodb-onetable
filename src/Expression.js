@@ -453,10 +453,10 @@ export class Expression {
         let valuesLen = Object.keys(values).length
 
         if (op == 'put') {
-            puts = this.table.marshall(puts)
+            puts = this.table.marshall(puts, params)
         }
-        values = this.table.marshall(values)
-        key = this.table.marshall(key)
+        values = this.table.marshall(values, params)
+        key = this.table.marshall(key, params)
 
         let args
         if (params.batch) {
@@ -531,7 +531,7 @@ export class Expression {
                 args.ScanIndexForward = (params.reverse == true ^ params.prev != null) ? false : true
 
                 if (params.next || params.prev) {
-                    args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev)
+                    args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev, params)
                 }
             }
             if (op == 'scan') {

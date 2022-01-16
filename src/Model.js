@@ -386,7 +386,7 @@ export class Model {
         */
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
-                items.next = this.table.unmarshall(result.LastEvaluatedKey)
+                items.next = this.table.unmarshall(result.LastEvaluatedKey, params)
                 Object.defineProperty(items, 'next', {enumerable: false})
             }
             if (params.count || params.select == 'COUNT') {
@@ -394,7 +394,7 @@ export class Model {
                 Object.defineProperty(items, 'count', {enumerable: false})
             }
             if (prev) {
-                items.prev = this.table.unmarshall(prev)
+                items.prev = this.table.unmarshall(prev, params)
                 Object.defineProperty(items, 'prev', {enumerable: false})
             }
             if (params.prev && op != 'scan') {
@@ -462,7 +462,7 @@ export class Model {
             //  Put requests do not return the item. So use the properties.
             items = [properties]
         } else {
-            items = table.unmarshall(items)
+            items = table.unmarshall(items, params)
         }
         for (let [index, item] of Object.entries(items)) {
             if (params.high && params.index == this.indexes.primary && item[this.typeField] != this.name) {

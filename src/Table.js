@@ -685,7 +685,7 @@ export class Table {
                 let items = []
                 for (let r of result.Responses) {
                     if (r.Item) {
-                        let item = this.unmarshall(r.Item)
+                        let item = this.unmarshall(r.Item, params)
                         let type = item[this.typeField] || '_unknown'
                         let model = this.schema.models[type]
                         if (model && model != this.schema.uniqueModel) {
@@ -808,8 +808,8 @@ export class Table {
     /*
         Marshall data into and out of DynamoDB format
     */
-    marshall(item) {
-        let client = this.client
+    marshall(item, params) {
+        let client = params.client || this.client
         if (client.V3) {
             let options = client.params.marshall
             if (Array.isArray(item)) {
@@ -822,10 +822,10 @@ export class Table {
         } else {
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
-                    item = this.marshallv2(item)
+                    item = this.marshallv2(item, params)
                 }
             } else {
-                item = this.marshallv2(item)
+                item = this.marshallv2(item, params)
             }
         }
         return item
@@ -834,9 +834,9 @@ export class Table {
     /*
         Marshall data out of DynamoDB format
     */
-    unmarshall(item) {
+    unmarshall(item, params) {
         if (this.V3) {
-            let client = this.client
+            let client = params.client || this.client
             let options = client.params.unmarshall
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
@@ -848,26 +848,27 @@ export class Table {
         } else {
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
-                    item[i] = this.unmarshallv2(item[i])
+                    item[i] = this.unmarshallv2(item[i], params)
                 }
             } else {
-                item = this.unmarshallv2(item)
+                item = this.unmarshallv2(item, params)
             }
 
         }
         return item
     }
 
-    marshallv2(item) {
+    marshallv2(item, params) {
+        let client = params.client || this.client
         for (let [key, value] of Object.entries(item)) {
             if (value instanceof Set) {
-                item[key] = this.client.createSet(Array.from(value))
+                item[key] = client.createSet(Array.from(value))
             }
         }
         return item
     }
 
-    unmarshallv2(item) {
+    unmarshallv2(item, params) {
         for (let [key, value] of Object.entries(item)) {
             if (value != null && typeof value == 'object' && value.wrapperName == 'Set' && Array.isArray(value.values)) {
                 let list = value.values
