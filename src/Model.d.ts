@@ -224,7 +224,6 @@ export type OneParams = {
     transaction?: object,
     type?: string,
     tunnel?: object,
-    updateIndexes?: boolean,
     where?: string,
 };
 
