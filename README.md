@@ -124,7 +124,11 @@ const MySchema = {
             gs1pk:       { type: String, value: 'user-email:${email}' },
             gs1sk:       { type: String, value: 'user:' },
         }
-    }
+    },
+    params: {
+        'isoDates': true,
+        'timestamps': true,
+    },
 }
 ```
 
@@ -535,15 +539,33 @@ The valid properties of the `schema` object are:
 
 | Property | Type | Description |
 | -------- | :--: | ----------- |
-| format | `string` | Reserved. Set to 'onetable:1.1.0' |
+| format | `string` | Reserved. Must be set to 'onetable:1.1.0' |
 | indexes | `object` | Hash of indexes used by the table. |
 | models | `object` | Hash of model entities describing the model keys, indexes and attributes. |
-| params | `object` | Hash of model entities describing the model keys, indexes and attributes. |
-| version | `string` | A Semver compatible version string. |
+| params | `object` | Hash of properties controlling how data is stored in the table. |
+| version | `string` | A SemVer compatible version string. |
+
+The `format` property must be set to `onetable:1.1.0`.
+
+The schema must contain a `version` property set to a [SemVer](https://semver.org/) compatible version string. This may be used by consumers of the schema to understand compatibility constraints for the schema and stored data.
+
+
+#### Params
+
+The `schema.params` is a hash map of properties that control how data is stored. It may contain the following properties:
+
+| createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
+| hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
+| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
+| nulls | `boolean` | Store nulls in database attributes vs remove attributes set to null. Default false. |
+| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
+| typeField | `string` | Name of the "type" attribute. Default "_type". |
+| updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
+
 
 #### Indexes
 
-The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Local Secondary Indexes (LSIs) if they only contain as `sort` key or if they set the hash key to the same value the primary index hash key. They will be treated as Global Secondary Indexes (GSIs) if they provide a unique hash key value.
+The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Global Secondary Indexes (GSIs) unless they are defined with a `type: local` property in which case they will be designated as Local Secondary Indexes (LSIs). An LSI index must not specify a hash attribute.
 
 ```javascript
 {

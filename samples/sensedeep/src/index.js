@@ -16,7 +16,6 @@ const client = new DynamoDB.DocumentClient({
  */
 const table = new Table({
     client,
-    hidden: false,
     name: `SenseDeep`,
     schema: Schema
 })

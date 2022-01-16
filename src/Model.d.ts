@@ -69,9 +69,7 @@ export type OneSchema = {
     name?: string,
     version: string,
     format?: string,
-    params?: {
-        [key: string]: any
-    },
+    params?: OneSchemaParams,
     models: {
         [key: string]: OneModelSchema
     },
@@ -79,6 +77,16 @@ export type OneSchema = {
         [key: string]: OneIndexSchema
     },
 };
+
+export type OneSchemaParams = {
+    createdField?: string,          //  Name of "created" timestamp attribute. Default to 'created'.
+    hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
+    isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings. Default false.
+    nulls?: boolean,                //  Store nulls in database attributes. Default false.
+    timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
+    typeField?: string,             //  Name of model type attribute. Default "_type".
+    updatedField?: string,          //  Name of "updated" timestamp attribute. Default 'updated'.
+}
 
 /*
     Schema Models with field properties that contain field signatures (above) including "type" and "required".

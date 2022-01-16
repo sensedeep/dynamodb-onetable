@@ -19,7 +19,7 @@ export class Schema {
         this.table = table
         table.schema = this
         Object.defineProperty(this, 'table', {enumerable: false})
-        this.params = table.getParams()
+        this.params = table.getSchemaParams()
         this.setSchemaInner(schema)
     }
 
@@ -47,7 +47,7 @@ export class Schema {
             this.indexes = indexes
             //  Must set before creating models
             if (params) {
-                this.table.setParams(params)
+                this.table.setSchemaParams(params)
             }
             for (let [name, model] of Object.entries(models)) {
                 if (name == SchemaModel || name == MigrationModel) continue
@@ -199,11 +199,30 @@ export class Schema {
         return indexes
     }
 
+    setDefaultParams(params) {
+        if (params.typeField == null) {
+            params.typeField = '_type'
+        }
+        if (params.isoDates == null) {
+            params.isoDates = false
+        }
+        if (params.nulls == null) {
+            params.nulls = false
+        }
+        if (params.hidden == null) {
+            params.hidden = false
+        }
+        if (params.timestamps == null) {
+            params.timestamps = false
+        }
+        return params
+    }
+
     /*
         Prepare for persisting the schema. Convert types and regexp to strings.
     */
     transformSchemaForWrite(schema) {
-        let params = schema.params || this.params
+        let params = this.setDefaultParams(schema.params || this.params)
         for (let [name, model] of Object.entries(schema.models)) {
             for (let [fname, field] of Object.entries(model)) {
                 if (field.validate && field.validate instanceof RegExp) {

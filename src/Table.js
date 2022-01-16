@@ -90,6 +90,13 @@ export class Table {
     }
 
     setParams(params) {
+        //  DEPRECATED - these should be supplied by the schema.params
+        if (params.createdField != null || this.hidden != null || this.isoDates != null || this.nulls != null ||
+                this.timestamps != null || this.typeField != null || this.updatedField != null) {
+            console.warn('OneTable: Using deprecated Table constructor parameters. Define in the schema.params instead.')
+            //  FUTURE 2.3
+            //  throw new OneArgError('Using deprecated Table constructor parameters. Define in the schema.params instead.')
+        }
         this.createdField = params.createdField || 'created'
         this.hidden = params.hidden != null ? params.hidden : true
         this.isoDates = params.isoDates || false
@@ -129,7 +136,17 @@ export class Table {
         this.params = params
     }
 
-    getParams() {
+    setSchemaParams(params) {
+        this.createdField = params.createdField || 'created'
+        this.hidden = params.hidden != null ? params.hidden : true
+        this.isoDates = params.isoDates || false
+        this.nulls = params.nulls || false
+        this.timestamps = params.timestamps != null ? params.timestamps : false
+        this.typeField = params.typeField || '_type'
+        this.updatedField = params.updatedField || 'updated'
+    }
+
+    getSchemaParams() {
         return {
             createdField: this.createdField,
             hidden: this.hidden,
@@ -208,6 +225,21 @@ export class Table {
             if (name == 'primary') {
                 keys = def.KeySchema
             } else {
+                if (index.hash == null || index.hash == indexes.primary.hash) {
+                    console.warn('Must use explicit "type": "local" in LSI index definitions')
+                }
+                //  FUTURE - if type == local must not specify a hash at all
+                if (index.type == 'local') {
+                    if (index.hash) {
+                        console.warn('Do not specify a "hash" property in a LSI index definition')
+                    }
+                    if (index.sort == null) {
+                        throw new OneArgError('LSIs must define a sort attribute')
+                    }
+                    if (index.hash != indexes.primary.hash) {
+                        throw new OneArgError(`LSI "${name}" should not define a hash attribute`)
+                    }
+                }
                 if (index.hash == null || index.hash == indexes.primary.hash || index.type == 'local') {
                     collection = 'LocalSecondaryIndexes'
                     if (index.project) {
@@ -705,8 +737,8 @@ export class Table {
         return new ULID().toString()
     }
 
-    setMakeID(fn) {
-        this.makeID = fn
+    setGenerate(fn) {
+        this.generate = fn
     }
 
     /*
@@ -898,6 +930,12 @@ export class Table {
             }
         }
         return dest
+    }
+
+    async delay(time) {
+        return new Promise(function(resolve, reject) {
+            setTimeout(() => resolve(true), time)
+        })
     }
 }
 

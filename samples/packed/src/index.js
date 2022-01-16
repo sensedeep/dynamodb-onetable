@@ -32,7 +32,6 @@ const client = new Dynamo({
 const table = new Table({
     name: 'TestCrud',
     client: client,
-    uuid: 'ulid',
     logger: true,
     schema: {
         version: '0.0.1',
@@ -44,7 +43,7 @@ const table = new Table({
             User: {
                 pk:          { type: String, value: 'user#${id}' },
                 sk:          { type: String, value: 'user#' },
-                id:          { type: String, uuid: true },
+                id:          { type: String, generate: 'ulid' },
                 name:        { type: String },
 
                 //  Properties packed into the "data" attribute projected to the gs1 secondary index
@@ -55,6 +54,10 @@ const table = new Table({
                 gs1pk:       { type: String, value: 'user#${name}' },
                 gs1sk:       { type: String, value: 'user#' },
             }
+        },
+        params: {
+            isoDates: true,
+            timestamps: true,
         }
     }
 })
