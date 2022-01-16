@@ -567,7 +567,7 @@ The `schema.params` is a hash map of properties that control how data is stored.
 
 #### Indexes
 
-The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Global Secondary Indexes (GSIs) unless they are defined with a `type: local` property in which case they will be designated as Local Secondary Indexes (LSIs). An LSI index must not specify a hash attribute.
+The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Global Secondary Indexes (GSIs) unless they are defined with a `type: local` property in which case they will be designated as Local Secondary Indexes (LSIs). An LSI index should not specify a hash attribute. If one is specified, it must equal that of the primary index.
 
 ```javascript
 {

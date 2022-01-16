@@ -28,6 +28,7 @@ export type OneIndexSchema = {
     description?: string,
     project?: string | readonly string[],
     follow?: boolean,
+    type?: string,
 };
 
 /*

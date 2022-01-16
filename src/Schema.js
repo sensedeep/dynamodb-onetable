@@ -3,6 +3,7 @@
  */
 
 import {Model} from './Model.js'
+import {OneError, OneArgError} from './Error.js'
 
 const GenericModel = '_Generic'
 const MigrationModel = '_Migration'
@@ -89,6 +90,31 @@ export class Schema {
         }
         if (gsis.length > 20) {
             throw new Error('Schema has too many GSIs')
+        }
+        for (let [name, index] of Object.entries(schema.indexes)) {
+            if (name != 'primary') {
+                if (index.type == 'local') {
+                    index.hash = primary.hash
+                    if (index.hash != indexes.primary.hash) {
+                        throw new OneArgError(`LSI "${name}" should not define a hash attribute that is different to the primary index`)
+                    }
+                } else if (index.hash == primary.hash) {
+                    index.type = 'local'
+                    console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
+
+                } else if (!index.hash) {
+                    index.type = 'local'
+                    console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
+                }
+                if (index.type == 'local') {
+                    if (index.sort == null) {
+                        throw new OneArgError('LSIs must define a sort attribute')
+                    }
+                    if (index.project) {
+                        throw new OneArgError('Unwanted project definition for LSI')
+                    }
+                }
+            }
         }
     }
 

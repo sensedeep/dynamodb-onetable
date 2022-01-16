@@ -6,8 +6,8 @@ export default {
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
-        ls1: { hash: 'pk', sort: 'ls1sk' },
-        ls2: { hash: 'pk', sort: 'ls2sk' },
+        ls1: { type: 'local', sort: 'ls1sk' },
+        ls2: { type: 'local', sort: 'ls2sk' },
     },
     models: {
         User: {

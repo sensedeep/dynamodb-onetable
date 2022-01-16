@@ -225,29 +225,7 @@ export class Table {
             if (name == 'primary') {
                 keys = def.KeySchema
             } else {
-                if (index.hash == null || index.hash == indexes.primary.hash) {
-                    console.warn('Must use explicit "type": "local" in LSI index definitions')
-                }
-                //  FUTURE - if type == local must not specify a hash at all
-                if (index.type == 'local') {
-                    if (index.hash) {
-                        console.warn('Do not specify a "hash" property in a LSI index definition')
-                    }
-                    if (index.sort == null) {
-                        throw new OneArgError('LSIs must define a sort attribute')
-                    }
-                    if (index.hash != indexes.primary.hash) {
-                        throw new OneArgError(`LSI "${name}" should not define a hash attribute`)
-                    }
-                }
-                if (index.hash == null || index.hash == indexes.primary.hash || index.type == 'local') {
-                    collection = 'LocalSecondaryIndexes'
-                    if (index.project) {
-                        throw new OneArgError('Unwanted project for LSI')
-                    }
-                } else {
-                    collection = 'GlobalSecondaryIndexes'
-                }
+                let collection = index.type == 'local' ? 'LocalSecondaryIndexes' : 'GlobalSecondaryIndexes'
                 keys = []
                 let project, projection
                 if (Array.isArray(index.project)) {

@@ -112,29 +112,27 @@ test('Create table with GSI and project keys', async() => {
 })
 
 test('Create table with LSI and project', async() => {
-    table = new Table({
-        name: TableName,
-        client: Client,
-        schema: {
-            version: '0.0.1',
-            indexes: {
-                primary: { hash: 'pk', sort: 'sk' },
-                //  Should fail -- projects not legal
-                ls1: { sort: 'email', project: 'keys' },
-            },
-            models: {
-                User: {
-                    pk:     { type: String, value: 'user#${email}' },
-                    sk:     { type: String, value: 'user#' },
-                    name:   { type: String },
-                    email:  { type: String },
+    await expect(async() => {
+        table = new Table({
+            name: TableName,
+            client: Client,
+            schema: {
+                version: '0.0.1',
+                indexes: {
+                    primary: { hash: 'pk', sort: 'sk' },
+                    //  Should fail -- projects not legal
+                    ls1: { type: 'local', sort: 'email', project: 'all' },
+                },
+                models: {
+                    User: {
+                        pk:     { type: String, value: 'user#${email}' },
+                        sk:     { type: String, value: 'user#' },
+                        name:   { type: String },
+                        email:  { type: String },
+                    }
                 }
             }
-        }
-    })
-    expect(table instanceof Table).toBe(true)
-    await expect(async() => {
-        await table.createTable()
+        })
     }).rejects.toThrow()
 })
 
@@ -146,7 +144,7 @@ test('Create table with LSI', async() => {
             version: '0.0.1',
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
-                ls1: { sort: 'email' },
+                ls1: { type: 'local', sort: 'email' },
                 gs1: { hash: 'name', sort: 'email' },
             },
             models: {
