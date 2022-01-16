@@ -101,7 +101,8 @@ test('Create table with GSI and project keys', async() => {
                     id: { type: String, generate: 'ulid' },
                     email: { type: String, required: true },
                 }
-            }
+            },
+            params: {}
         }
     })
     expect(table instanceof Table).toBe(true)
@@ -117,6 +118,7 @@ test('Create table with LSI and project', async() => {
             name: TableName,
             client: Client,
             schema: {
+                format: 'onetable:1.1.0',
                 version: '0.0.1',
                 indexes: {
                     primary: { hash: 'pk', sort: 'sk' },
@@ -130,7 +132,8 @@ test('Create table with LSI and project', async() => {
                         name:   { type: String },
                         email:  { type: String },
                     }
-                }
+                },
+                params: {}
             }
         })
     }).rejects.toThrow()
@@ -141,6 +144,7 @@ test('Create table with LSI', async() => {
         name: TableName,
         client: Client,
         schema: {
+            format: 'onetable:1.1.0',
             version: '0.0.1',
             indexes: {
                 primary: { hash: 'pk', sort: 'sk' },
@@ -154,7 +158,8 @@ test('Create table with LSI', async() => {
                     name:   { type: String },
                     email:  { type: String },
                 }
-            }
+            },
+            params: {}
         }
     })
     expect(table instanceof Table).toBe(true)
