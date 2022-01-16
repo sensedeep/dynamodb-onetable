@@ -636,20 +636,32 @@ export class Table {
         return result
     }
 
+    /*
+        AWS BatchWrite may throw an exception of no items can be processed. Otherwise it will retry (up to 11 times)
+        and return partial results in UnprocessedItems. Those will be handled here if possible.
+    */
     async batchWrite(batch, params = {}) {
         if (Object.getOwnPropertyNames(batch).length == 0) {
             return {}
         }
-        let more
+        let retries = 0, more
         do {
             more = false
             let response = await this.execute(GenericModel, 'batchWrite', batch, params)
             let data = response.data
             if (data && data.UnprocessedItems && Object.keys(data.UnprocessedItems).length) {
                 batch.RequestItems = data.UnprocessedItems
+                if (params.reprocess === false) {
+                    return false
+                }
+                if (retries > 11) {
+                    throw new Error(res.UnprocessedItems)
+                }
+                await this.delay(10 * (2 ** retries++))
                 more = true
             }
         } while (more)
+        return true
     }
 
     async deleteItem(properties, params) {
