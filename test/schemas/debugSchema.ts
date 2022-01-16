@@ -2,6 +2,7 @@
     Fully speced schema
  */
 export default {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -17,11 +18,12 @@ export default {
 
             name:        { type: String },
             email:       { type: String },
-            id:          { type: String, uuid: "uuid" },
+            id:          { type: String, generate: "ulid" },
             domain:      { type: String },
             nested:      { type: Object, schema: {
-                seq:     { type: String, uuid: "uuid" },
+                seq:     { type: String, generate: "ulid" },
             }}
         }
-    }
+    },
+    params: {},
 }

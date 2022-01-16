@@ -212,6 +212,10 @@ export class Schema {
                 let type = (typeof field.type == 'function') ? field.type.name : field.type
                 field.type = type.toLowerCase()
                 delete field[params.typeField]
+                if (field.uuid) {
+                    field.generate = field.generate || field.uuid
+                    delete field.uuid
+                }
             }
         }
         return schema
@@ -240,10 +244,20 @@ export class Schema {
                 mdef[updatedField] = {name: updatedField, type: 'date'}
             }
             mdef[params.typeField] = {name: params.typeField, type: 'string', required: true}
+
+            for (let [key,field] of Object.entries(mdef)) {
+                //  DEPRECATE
+                if (field.uuid) {
+                    console.warn(`OneTable: Using deprecated field "uuid". Use "generate" instead.`)
+                    field.generate = field.generate || field.uuid
+                }
+            }
         }
+        this.setDefaultParams(params)
+        /*
         if (params.typeField != this.table.typeField) {
             delete schema[this.table.typeField]
-        }
+        } */
         return schema
     }
 

@@ -61,7 +61,7 @@ test('Validate User model', () => {
 test('Create', async() => {
     user = await User.create(Properties)
     expect(user).toMatchObject(Properties)
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
 })
@@ -71,7 +71,7 @@ test('Get', async() => {
     expect(user).toMatchObject({
         name: 'Peter Smith',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Get by LS1 - by name', async() => {

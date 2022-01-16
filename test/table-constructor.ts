@@ -44,9 +44,6 @@ test('Create table with various params', async() => {
             console.log(JSON.stringify(context, null, 4) + '\n')
         },
         schema: DefaultSchema,
-        generic: true,
-        hidden: true,
-        uuid: 'uuid',
     })
     expect(table instanceof Table).toBe(true)
 })
@@ -101,7 +98,7 @@ test('Create table with GSI and project keys', async() => {
                 User: {
                     pk: { type: String, value: "user#${email}" },
                     sk: { type: String, value: "user#${email}" },
-                    id: { type: String, uuid: true },
+                    id: { type: String, generate: 'ulid' },
                     email: { type: String, required: true },
                 }
             }

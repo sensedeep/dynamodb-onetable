@@ -10,6 +10,7 @@ For example:
 
 ```typescript
 const schema = {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -19,6 +20,8 @@ const schema = {
             pk:     { type: String, value: 'account:${name}' },
             name:   { type: String },
         }
+    },
+    params: {
     }
 }
 

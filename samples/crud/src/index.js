@@ -30,9 +30,9 @@ const client = new Dynamo({
 const table = new Table({
     name: 'TestCrud',
     client: client,
-    uuid: 'ulid',
     logger: true,
     schema: {
+        format: 'onetable:1.1.0',
         version: '0.0.1',
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
@@ -42,7 +42,7 @@ const table = new Table({
             User: {
                 pk:          { type: String, value: 'user#${id}' },
                 sk:          { type: String, value: 'user#${id}' },
-                id:          { type: String, uuid: true },
+                id:          { type: String, generate: 'ulid' },
                 name:        { type: String, required: true },
                 status:      { type: String, default: 'active' },
                 zip:         { type: String },
@@ -50,6 +50,10 @@ const table = new Table({
                 gs1pk:       { type: String, value: 'sec#${name}' },
                 gs1sk:       { type: String, value: 'sec#${id}' },
             }
+        },
+        params: {
+            isoDates: true,
+            timestamps: true,
         }
     }
 })

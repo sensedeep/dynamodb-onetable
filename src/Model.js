@@ -36,7 +36,7 @@ export class Model {
         if (!table) {
             throw new OneArgError('Missing table argument')
         }
-        if (!table.typeField || !table.uuid) {
+        if (!table.typeField) {
             throw new OneArgError('Invalid table instance')
         }
         if (!name) {
@@ -123,6 +123,12 @@ export class Model {
             field.name = name
             fields[name] = field
             field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates
+
+            //  DEPRECATE 2.3
+            if (field.uuid) {
+                console.warn('The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead')
+                field.generate = field.generate || field.uuid
+            }
 
             field.type = this.checkType(field)
 
@@ -1141,19 +1147,19 @@ export class Model {
                         value = field.default
 
                     } else if (op == 'init') {
-                        if (!field.uuid) {
+                        if (!field.generate) {
                             //  Set non-default, non-uuid properties to null
                             value = null
                         }
 
-                    } else if (field.uuid) {
-                        if (field.uuid === true) {
-                            value = this.table.makeID()
+                    } else if (field.generate) {
+                        if (field.generate === true) {
+                            value = this.table.generate()
 
-                        } else if (field.uuid == 'uuid') {
+                        } else if (field.generate == 'uuid') {
                             value = this.table.uuid()
 
-                        } else if (field.uuid == 'ulid') {
+                        } else if (field.generate == 'ulid') {
                             value = this.table.ulid()
                         }
                     }

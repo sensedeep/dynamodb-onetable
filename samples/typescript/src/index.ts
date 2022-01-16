@@ -43,10 +43,7 @@ const table = new Table({
     name: 'TestOverview',
     client: client,
     crypto: Crypto,
-    uuid: 'ulid',
     logger: true,
-    timestamps: true,
-    isoDates: true,
     schema: Schema,
 })
 

@@ -31,7 +31,7 @@ test('Create', async() => {
     //  Status should have default value
     expect(user.status).toBe('idle')
     expect(user).toMatchObject(properties)
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Destroy Table', async() => {

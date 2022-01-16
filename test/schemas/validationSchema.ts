@@ -14,7 +14,7 @@ export default {
         User: {
             pk:         { type: String, value: 'user#${id}' },
             sk:         { type: String, value: 'user#' },
-            id:         { type: String, uuid: 'ulid', validate: Match.ulid },
+            id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email },
             address:    { type: String, validate: Match.address },
@@ -29,5 +29,6 @@ export default {
             status:     { type: String, required: true },
             age:        { type: Number },
         }
-    }
+    },
+    params: {},
 }

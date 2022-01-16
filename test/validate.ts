@@ -11,7 +11,6 @@ const table = new Table({
     client: Client,
     schema: ValidationSchema,
     logger: false,
-    uuid: 'ulid',
 })
 
 let User = null

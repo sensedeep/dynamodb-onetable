@@ -38,17 +38,21 @@ export type OneField = {
     default?: string | number | boolean | object,
     enum?: readonly string[],
     filter?: boolean,
+    generate?: string | boolean,
     hidden?: boolean,
     map?: string,
     nulls?: boolean,
+    reference?: string,
     required?: boolean,
     type: OneType,
     unique?: boolean,
-    uuid?: boolean | string,
     validate?: RegExp | string | boolean,
     value?: boolean | string,
     schema?: OneModelSchema,
     ttl?: boolean,
+
+    //  DEPRECATE 2.3
+    uuid?: boolean | string,
 }
 
 /*

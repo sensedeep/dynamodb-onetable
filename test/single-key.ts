@@ -41,7 +41,7 @@ test('Create', async() => {
     let params = Object.assign({unknown: 42}, properties)
     user = await User.create(params)
     expect(user).toMatchObject(properties)
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.unknown).toBeUndefined()
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
@@ -53,7 +53,7 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Get', async() => {
@@ -62,7 +62,7 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Find by ID', async() => {
@@ -81,7 +81,7 @@ test('Update', async() => {
         name: 'Peter Smith',
         status: 'inactive',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove item', async() => {

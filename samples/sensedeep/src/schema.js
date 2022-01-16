@@ -115,5 +115,8 @@ export default {
             viewIndex:      { type: Number },                       //  Default log view to display
             views:          { type: Array },                        //  Log views
         }
+    },
+    params: {
+        hidden: false
     }
 }

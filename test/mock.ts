@@ -20,7 +20,7 @@ const table = new Table({
             User: {
                 pk: { type: String, value: "user#${email}" },
                 sk: { type: String, value: "user#${email}" },
-                id: { type: String, uuid: true },
+                id: { type: String, generate: 'ulid' },
                 email: { type: String, required: true },
                 name: { type: String },
                 status: { type: String, default: "active" },

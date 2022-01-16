@@ -10,7 +10,6 @@ const table = new Table({
     name: 'TypescriptCountTestTable',
     client: Client,
     schema: TenantSchema,
-    uuid: 'ulid',
 })
 const accountId = table.uuid()
 

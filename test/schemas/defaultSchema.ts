@@ -2,6 +2,7 @@
     Default schema with a test User entity
  */
 export default {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -13,7 +14,7 @@ export default {
         User: {
             pk:         { type: String, value: '${_type}#${id}' },
             sk:         { type: String, value: '${_type}#' },
-            id:         { type: String, uuid: true },
+            id:         { type: String, generate: 'ulid' },
             name:       { type: String },
             email:      { type: String },
 
@@ -34,5 +35,9 @@ export default {
             gs3pk:      { type: String, value: '${_type}#${status}' },
             gs3sk:      { type: String, value: '${_type}#${name}' },
         }
-    }
+    },
+    params: {
+        isoDates: true,
+        timestamps: true,
+    },
 }

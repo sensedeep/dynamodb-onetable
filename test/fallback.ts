@@ -10,7 +10,6 @@ const table = new Table({
     name: 'FallbackTestTable',
     client: Client,
     schema: TenantSchema,
-    uuid: 'ulid',
 })
 const accountId = table.uuid()
 

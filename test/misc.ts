@@ -9,8 +9,6 @@ const table = new Table({
     client: Client,
     schema: DefaultSchema,
     logger: true,
-    timestamps: true,
-    uuid: 'ulid',
 })
 
 test('Dynamo empty constructor', async() => {

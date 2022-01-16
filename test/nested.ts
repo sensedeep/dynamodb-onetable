@@ -52,7 +52,7 @@ test('Create', async() => {
     let properties = Object.assign({unknown: 42, location: {unknown: 42}}, Properties)
     user = await User.create(properties)
     expect(user).toMatchObject(Properties)
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.balance).toBe(0)
     expect(user.unknown).toBeUndefined()
     expect(user.location).toMatchObject(Properties.location)

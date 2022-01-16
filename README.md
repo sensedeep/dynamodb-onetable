@@ -353,22 +353,25 @@ The Table constructor takes a parameter of type `object` with the following prop
 | -------- | :--: | ----------- |
 | client | `DocumentClient` | An AWS [DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html) instance. |
 | crypto | `object` | Optional properties defining a crypto configuration to encrypt properties. |
-| createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
-| hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
-| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
+| generate | `function` | Define a custom ID generator function that is used to create model IDs if required. |
 | logger | `boolean|object` | Set to true to log to the console or set to a logging function(type, message, properties). Type is info|error|trace|exception. Default is false. |
 | metrics | `object` | Configure metrics. Default null.|
 | name | `string` | The name of your DynamoDB table. |
-| nulls | `boolean` | Store nulls in database attributes vs remove attributes set to null. Default false. |
 | schema | `string` | Definition of your DynamoDB indexes and models. |
 | senselogs | `object` | Set to a SenseLogs logger instance instead `logger`. Default null. |
-| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | transform | `function` | Callback function to be invoked to format and parse the data before reading and writing. |
+| validate | `function` | Function to validate properties before issuing an API.|
+| value | `function` | Function to evaluate value templates. Default null. |
+
+In previous versions the following properties could be specified via the table constructor options. They should now be supplied via the schema.params. The deprecated options and their defaults are:
+
+| createdField | `string` | Name of the "created" timestamp attribute. Defaults to "created". |
+| hidden | `boolean` | Hide templated (value) attributes in Javascript properties. Default true. |
+| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. Default false. |
+| nulls | `boolean` | Store nulls in database attributes vs remove attributes set to null. Default false. |
+| timestamps | `boolean` | Make "created" and "updated" timestamps in items. Default false. |
 | typeField | `string` | Name of the "type" attribute. Default "_type". |
 | updatedField | `string` | Name of the "updated" timestamp attribute. Default "updated". |
-| uuid | `string` or function | Create a UUID, ULID or custom ID if the schema model requires and the property is not already defined. Set to `uuid` or `ulid` for the internal UUID or ULID implementations. A ULID is a time-based sortable unique ID. Otherwise set to a function for a custom implementation. If not defined, the internal UUID implementation is used by default when required. |
-| validate | `function | Function to validate properties before issuing an API.|
-| value | `function | Function to evaluate value templates. Default null. |
 
 The `client` property must be an initialized [AWS DocumentClient](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB/DocumentClient.html). The DocumentClient API is currently supported by the AWS v2 API. The recently released AWS v3 API does not yet support the DocumentClient API (stay tuned - See [Issue](https://github.com/sensedeep/dynamodb-onetable/issues/2)).
 
@@ -616,17 +619,17 @@ The following attribute properties are supported:
 | default | `string` | Default value to use when creating model items or when reading items without a value.|
 | enum | `array` | List of valid string values for the attribute. |
 | filter | `boolean` | Enable a field to be used in a filter expression. Default true. |
-| hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to false. |
-| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. If unset, the field will use the table default value for isoDates. Default null. |
+| generate | `string|boolean` | Set to 'ulid' or 'uuid' to automatically create a new ID value for the attribute when creating new items. Set to true to use a custom ID generator defined via the Table params.generate option. Default to null. |
+| hidden | `boolean` | Set to true to omit the attribute in the returned Javascript results. Attributes with a "value" template defined will by hidden by default. Default to the schema params value. |
+| isoDates | `boolean` | Set to true to store dates as Javascript ISO strings vs epoch numerics. If unset, the field will use the table default value for isoDates. Default to the schema params value. |
 | map | `string` | Map the field value to a different attribute name when storing in the database. Can be a simple attribute name or a compound "obj.name" where multiple fields can be stored in a single attribute containing an object with all the fields. |
 | nulls | `boolean` | Set to true to store null values or false to remove attributes set to null. Default false. |
-| required | `boolean` | Set to true if the attribute is required. Default false. |
+| required | `boolean` | Set to true if the attribute is required. Default to the schema params value. |
 | reference | `string` | Describes a reference to another entity item. Format is: model:index:attribute=src-attribute,... |
 | schema | `object` | Nested schema. |
 | ttl | `boolean` | Set to true to store the date value as a Unix epoch in seconds suitable for use as a DynamoDB TTL attribute. |
 | type | `Type or string` | Type to use for the attribute. |
 | unique | `boolean` | Set to true to enforce uniqueness for this attribute. Default false. |
-| uuid | `boolean` or `string` | Set to true to automatically create a new UUID value for the attribute when creating new items. This uses the default Table UUID setting if set to true. Set to 'uuid' or 'ulid' to select the internal UUID or ULID implementations. Default false. |
 | validate | `RegExp` | Regular expression to use to validate data before writing. |
 | value | `string` | Template to derive the value of the attribute. These attributes are "hidden" by default. |
 
@@ -998,10 +1001,6 @@ Set the current schema for the table instance. This will reset the current schem
 
 If the schema property is null, the current schema will be removed.
 
-If the current table params contained function callbacks for `uuid`, `transform` or `metrics.properties` these will be retained when the new schema is applied.
-
-Note: This will not persist the schema to the table (Use `saveSchema` for that).
-
 
 #### async transact(operation, transaction, params = {})
 
@@ -1074,12 +1073,14 @@ await table.updateTable({remove: {
 
 #### uuid()
 
-Generate a simple, fast non-cryptographic UUID string.
+Internal routine to generate a simple, fast non-cryptographic UUID string. This routine is provided for use in the browser where Node crypto is not availble. The uuid function will generate IDs that have the same format as a UUID v4 string. However they are not crypto-grade in terms of uniqueness nor are they fully compliant in the composition of the UUID sub-components. In general, use `ulid` in preference to `uuid`.
+
+This routine
 
 
 #### ulid()
 
-Generate a [ULID](https://github.com/ulid/spec). Useful when you need a time-based sortable, cryptographic, unique sequential number.
+Generate a [ULID](https://github.com/ulid/spec). Useful when you need a time-based sortable, cryptographic, unique sequential number. This is preferable to using `uuid`.
 
 
 ## Model Class

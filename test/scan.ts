@@ -8,7 +8,6 @@ const table = new Table({
     name: 'ScanTable',
     client: Client,
     schema: DefaultSchema,
-    uuid: 'ulid',
 })
 
 test('Create Table', async() => {

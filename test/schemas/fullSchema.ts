@@ -2,6 +2,7 @@
     Fully speced schema
  */
 export default {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -11,7 +12,7 @@ export default {
         User: {
             pk:          { type: String, value: '${_type}#${id}' },
             sk:          { type: String, value: '${_type}#' },
-            id:          { type: String, uuid: true },
+            id:          { type: String, generate: 'ulid' },
             name:        { type: String },
 
             //  Properties packed into the "data" attribute projected to the gs3 secondary index
@@ -22,5 +23,6 @@ export default {
             gs1pk:       { type: String, value: '${_type}#${name}' },
             gs1sk:       { type: String, value: '${_type}#' },
         }
-    }
+    },
+    params: {},
 }

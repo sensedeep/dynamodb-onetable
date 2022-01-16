@@ -10,7 +10,7 @@ export default {
         User: {
             pk:          { type: String, value: '${_type}#${id}' },
             sk:          { type: String, value: '${_type}#' },
-            id:          { type: String, uuid: true },
+            id:          { type: String, generate: 'ulid' },
             accountId:   { type: String },
             name:        { type: String },
             email:       { type: String },
@@ -24,5 +24,6 @@ export default {
                 zip:     { type: String },
             }}
         }
-    }
+    },
+    params: {},
 }

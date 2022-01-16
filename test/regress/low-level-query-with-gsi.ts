@@ -10,6 +10,7 @@ const table = new Table({
     client: Client,
     logger: true,
     schema: {
+        format: 'onetable:1.1.0',
         version: '0.0.1',
         indexes: {
             primary: { hash: 'pk', sort: 'sk' },
@@ -19,14 +20,15 @@ const table = new Table({
             User: {
                 pk: { type: String, value: "user#${email}" },
                 sk: { type: String, value: "user#${email}" },
-                id: { type: String, uuid: true },
+                id: { type: String, generate: 'ulid' },
                 email: { type: String, required: true },
                 name: { type: String },
                 status: { type: String, default: "active" },
                 zip: { type: String },
             }
-        }
-    }
+        },
+        params: {},
+    },
 })
 
 let User: any

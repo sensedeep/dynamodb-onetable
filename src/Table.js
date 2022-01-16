@@ -98,20 +98,28 @@ export class Table {
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
 
-        /*
-            Preserve prior values for items that may have callback functions (metrics.properties, uuid)
-            If a schema loads new params, then need to preserve these callback functions.
-        */
-        this.name = params.name || this.name
-
-        if (params.uuid == 'uuid') {
-            this.makeID = this.uuid
-        } else if (params.uuid == 'ulid') {
-            this.makeID = this.ulid
-        } else if (!this.makeID) {
-            //  Need to have uuid the default so browsers will resolve without node:crypto
-            this.makeID = params.uuid || this.makeID || this.uuid
+        if (params.uuid) {
+            console.warn('OneTable: Using deprecated Table constructor "uuid" parameter. Use a "generate" function instead or ' +
+                         'Set schema models to use "generate: uuid|ulid" explicitly.')
+            params.generate = params.generate | params.uuid
         }
+
+        if (typeof params.generate == 'function') {
+            this.generate = params.generate || this.uuid
+        } else if (params.generate) {
+            //  FUTURE throw exception
+            console.warn('OneTable: Generate can only be a function')
+            if (params.generate == 'uuid') {
+                this.generate = this.uuid
+            } else if (params.generate == 'ulid') {
+                this.generate = this.ulid
+            } else {
+                this.generate = this.uuid
+            }
+        }
+
+        this.name = params.name
+
         if (params.metrics) {
             this.metrics = new Metrics(this, params.metrics, this.metrics)
         }
@@ -130,7 +138,6 @@ export class Table {
             timestamps: this.timestamps,
             typeField: this.typeField,
             updatedField: this.updatedField,
-            uuid: this.uuid,
         }
     }
 

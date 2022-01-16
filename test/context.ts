@@ -10,7 +10,6 @@ const table = new Table({
     name: 'ContextTestTable',
     client: Client,
     schema: TenantSchema,
-    uuid: 'ulid',
     logger: true,
 })
 const accountId = table.uuid()

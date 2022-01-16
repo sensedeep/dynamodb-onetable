@@ -28,9 +28,6 @@ const table = new Table({
     name: 'V2TestTable',
     client: client,
     schema: DefaultSchema,
-    timestamps: true,
-    isoDates: true,
-    uuid: 'ulid',
     logger: (level, message, context) => {
         if (level == 'trace' || level == 'data') return
         console.log(`${new Date().toLocaleString()}: ${level}: ${message}`)

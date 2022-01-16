@@ -14,7 +14,6 @@ const table = new Table({
     name: 'TypescriptExtrasTestTable',
     client: Client,
     schema: TenantSchema,
-    uuid: 'ulid',
 })
 
 test('Create Table', async() => {

@@ -39,7 +39,7 @@ test('Get', async() => {
         name: 'Peter Smith',
         status: 'active',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Get including hidden', async() => {
@@ -51,7 +51,7 @@ test('Get including hidden', async() => {
         gs1pk: 'User#Peter Smith',
         gs1sk: 'User#',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toMatch(/^User#/)
 })
 
@@ -81,7 +81,7 @@ test('Update', async() => {
         name: 'Peter Smith',
         status: 'inactive',
     })
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove attribute', async() => {
@@ -100,7 +100,7 @@ test('Remove attribute 2', async() => {
     })
     expect(user.gs1pk).toBeUndefined()
     expect(user.gs1sk).toBeUndefined()
-    expect(user.id).toMatch(Match.uuid)
+    expect(user.id).toMatch(Match.ulid)
 })
 
 test('Remove item', async() => {

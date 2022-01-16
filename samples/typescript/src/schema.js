@@ -22,7 +22,7 @@ export default {
         Account: {
             pk:         { type: String, value: 'account#${id}' },
             sk:         { type: String, value: 'account#' },
-            id:         { type: String, uuid: true, validate: Match.ulid },
+            id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true, unique: true, validate: Match.name },
             balance:    { type: Number, default: 0 },
 
@@ -35,7 +35,7 @@ export default {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'user#${email}' },
             accountId:  { type: String, required: true },
-            id:         { type: String, uuid: true, validate: Match.ulid },
+            id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email, crypt: true },
 
@@ -56,7 +56,7 @@ export default {
         Product: {
             pk:         { type: String, value: 'product#${id}' },
             sk:         { type: String, value: 'product#' },
-            id:         { type: String, uuid: true, validate: Match.ulid },
+            id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true },
             price:      { type: Number, required: true },
 
@@ -71,7 +71,7 @@ export default {
 
             accountId:  { type: String, required: true },
             date:       { type: Date },
-            id:         { type: String, uuid: true },
+            id:         { type: String, generate: 'ulid' },
             product:    { type: String },
             count:      { type: Number },
             total:      { type: Number },
@@ -80,5 +80,9 @@ export default {
             gs1pk:      { type: String, value: 'invoice#' },
             gs1sk:      { type: String, value: 'invoice#${date}#${id}' },
         }
+    },
+    params: {
+        timestamps: true,
+        isoDates: true,
     }
 }

@@ -17,7 +17,6 @@ const table = new Table({
     crypto: Crypto,
     schema: CryptoSchema,
     logger: true,
-    uuid: 'ulid',
 })
 
 let User = null

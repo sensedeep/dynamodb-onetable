@@ -2,6 +2,7 @@
     Unique schema with unique properties
  */
 export default {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -15,5 +16,6 @@ export default {
             age:          { type: Number },
             interpolated: { type: String, value: '${name}#${email}', unique: true },
         }
-    }
+    },
+    params: {},
 }

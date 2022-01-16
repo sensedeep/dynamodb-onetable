@@ -8,7 +8,6 @@ const table = new Table({
     name: 'LowLevelTableApiTestTable',
     client: Client,
     schema: DefaultSchema,
-    uuid: 'ulid',
 })
 
 const Properties = {

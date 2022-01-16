@@ -5,6 +5,7 @@
     This makes the raw table harder to read, but uses less RCU/WCU in writing the attribute names.
  */
 export default {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: {
@@ -21,7 +22,7 @@ export default {
         User: {
             primaryHash: { type: String, value: 'us#${id}', map: 'pk' },
             primarySort: { type: String, value: 'us#', map: 'sk' },
-            id:          { type: String, uuid: 'ulid' },
+            id:          { type: String, generate: 'ulid' },
             name:        { type: String, map: 'nm' },
             email:       { type: String, map: 'em' },
             status:      { type: String, map: 'st' },
@@ -35,5 +36,6 @@ export default {
             gs1pk:     { type: String, value: 'ty#us', map: 'pk1' },
             gs1sk:     { type: String, value: 'us#${email}', map: 'sk1' },
         }
-    }
+    },
+    params: {},
 }
