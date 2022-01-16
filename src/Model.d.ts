@@ -211,6 +211,7 @@ export type OneParams = {
     postFormat?: (model: AnyModel, cmd: {}) => {},
     prev?: object,
     remove?: string[],
+    reprocess?: boolean,
     return?: string,
     reverse?: boolean,
     segment?: number,

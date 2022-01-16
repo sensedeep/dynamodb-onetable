@@ -544,8 +544,7 @@ export class Table {
 
             } else if (err.code == 'ProvisionedThroughputExceededException') {
                 throw err
-                //  MOB - the code is getting Error added which messes things up
-                // throw new OneTableError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
+                // FUTURE throw new OneTableError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
 
             } else {
                 result = result || {}

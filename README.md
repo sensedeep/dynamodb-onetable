@@ -1427,6 +1427,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | add | `object` | Used to atomically add a value to an attribute. Set to an object containing the attribute name and value to add. Example: add: {balance: 1}|
 | batch | `object` | Accumulated batched API calls. Invoke with `Table.batch*`|
 | capacity | `string` | Set to `INDEXES`, `TOTAL`  or `NONE` to control the capacity metric. Returned in items.capacity|
+| client | `object` | Set to a DynamoDB DocumentClient instance to overide the table default client. Defaults to null|
 | consistent | `boolean` | Set to true to stipulate that consistent reads are required.|
 | context | `object` | Optional context hash of properties to blend with API properties when creating or updating items. This overrides the Table.context. Setting to `{}` is a useful one-off way to ignore the context for this API. |
 | count | `boolean` | Return a count of matching items instead of the result set for a find/query. The count is returned as a `count` property in the returned items array. Default false. |
@@ -1444,6 +1445,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
+| reprocess | `boolean` | Set to true to enable batchWrite to retry unprocessed items. Defaults to true|
 | return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
