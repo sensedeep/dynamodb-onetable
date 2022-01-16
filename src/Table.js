@@ -543,15 +543,16 @@ export class Table {
         let trace = {model, cmd, op, properties}
         let result
         try {
+            let client = params.client || this.client
             if (params.stats || this.metrics || this.monitor) {
                 cmd.ReturnConsumedCapacity = params.capacity || 'INDEXES'
                 cmd.ReturnItemCollectionMetrics = 'SIZE'
             }
             this.log[params.log ? 'info' : 'trace'](`OneTable "${op}" "${model}"`, {trace})
             if (this.V3) {
-                result = await this.client[op](cmd)
+                result = await client[op](cmd)
             } else {
-                result = await this.client[DocumentClientMethods[op]](cmd).promise()
+                result = await client[DocumentClientMethods[op]](cmd).promise()
             }
 
         } catch (err) {
