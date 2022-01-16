@@ -1119,7 +1119,7 @@ Models define attributes in the database which may overlap with the attributes o
 
 A model instance is typically created via a model constructor or via the `Table` factory.
 
-Errors will thow an instance of the `OneError` error class. See [Error Handling](#error-handling) for more details.
+Errors will thow an instance of the `OneTableError` error class. See [Error Handling](#error-handling) for more details.
 
 ### Model Examples
 
@@ -1529,11 +1529,13 @@ See the [AWS Comparison Expression Reference](https://docs.aws.amazon.com/amazon
 
 #### Error Handling
 
-API errors will throw an instance of the `OneError` class. This instance has the following properties:
+API errors will throw an instance of the `OneTableError` class. This instance has the following properties:
 
 * message &mdash; Text error message.
+* name &mdash; Error class name.
 * code &mdash; Set to a string error code indicating the class of error.
 * context &mdash; Map of additional context information.
+* stack &mdash; Stack backtrace information.
 
 
 #### Using `postFormat` to customize the final API request

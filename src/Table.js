@@ -10,7 +10,7 @@ import ULID from './ULID.js'
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
-import {OneError, OneArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error.js'
 
 /*
     AWS V2 DocumentClient methods
@@ -60,7 +60,7 @@ export class Table {
 
     constructor(params = {}) {
         if (!params.name) {
-            throw new OneArgError('Missing "name" property')
+            throw new OneTableArgError('Missing "name" property')
         }
         this.context = {}
 
@@ -95,7 +95,7 @@ export class Table {
                 this.timestamps != null || this.typeField != null || this.updatedField != null) {
             console.warn('OneTable: Using deprecated Table constructor parameters. Define in the schema.params instead.')
             //  FUTURE 2.3
-            //  throw new OneArgError('Using deprecated Table constructor parameters. Define in the schema.params instead.')
+            //  throw new OneTableArgError('Using deprecated Table constructor parameters. Define in the schema.params instead.')
         }
         this.createdField = params.createdField || 'created'
         this.hidden = params.hidden != null ? params.hidden : true
@@ -218,7 +218,7 @@ export class Table {
         let {indexes, models} = this.schema
 
         if (!indexes) {
-            throw new OneArgError('Cannot create table without schema indexes')
+            throw new OneTableArgError('Cannot create table without schema indexes')
         }
         for (let [name, index] of Object.entries(indexes)) {
             let collection, keys
@@ -305,7 +305,7 @@ export class Table {
                 await this.service.deleteTable({TableName: this.name}).promise()
             }
         } else {
-            throw new OneArgError(`Missing required confirmation "${ConfirmRemoveTable}"`)
+            throw new OneTableArgError(`Missing required confirmation "${ConfirmRemoveTable}"`)
         }
     }
 
@@ -326,12 +326,12 @@ export class Table {
         }
         let indexes = this.schema.indexes
         if (!indexes) {
-            throw new OneArgError('Cannot update table without schema indexes')
+            throw new OneTableArgError('Cannot update table without schema indexes')
         }
         let create = params.create
         if (create) {
             if (create.hash == null || create.hash == indexes.primary.hash || create.type == 'local') {
-                throw new OneArgError('Cannot update table to create an LSI')
+                throw new OneTableArgError('Cannot update table to create an LSI')
             }
             let keys = []
             let projection, project
@@ -540,12 +540,12 @@ export class Table {
             } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
                 //  Not a hard error -- typically part of normal operation
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
-                throw new OneError(`Conditional create failed for "${model}"`, {code: 'Condition', trace, err})
+                throw new OneTableError(`Conditional create failed for "${model}"`, {code: 'ConditionError', trace, err})
 
             } else if (err.code == 'ProvisionedThroughputExceededException') {
                 throw err
                 //  MOB - the code is getting Error added which messes things up
-                // throw new OneError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
+                // throw new OneTableError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
 
             } else {
                 result = result || {}
@@ -554,7 +554,7 @@ export class Table {
                 if (params.log != false) {
                     this.log.error(`OneTable exception in "${op}" on "${model}"`, {err, trace})
                 }
-                throw new OneError(`OneTable execute failed "${op}" for "${model}. ${err.message}`, {err})
+                throw new OneTableError(`OneTable execute failed "${op}" for "${model}. ${err.message}`, {err})
             }
 
         } finally {
@@ -764,11 +764,11 @@ export class Table {
     encrypt(text, name = 'primary', inCode = 'utf8', outCode = 'base64') {
         if (text) {
             if (!this.crypto) {
-                throw new OneArgError('No database secret or cipher defined')
+                throw new OneTableArgError('No database secret or cipher defined')
             }
             let crypto = this.crypto[name]
             if (!crypto) {
-                throw new OneArgError(`Database crypto not defined for ${name}`)
+                throw new OneTableArgError(`Database crypto not defined for ${name}`)
             }
             let iv = Crypto.randomBytes(IV_LENGTH)
             let crypt = Crypto.createCipheriv(crypto.cipher, crypto.secret, iv)
@@ -786,11 +786,11 @@ export class Table {
                 return text
             }
             if (!this.crypto) {
-                throw new OneArgError('No database secret or cipher defined')
+                throw new OneTableArgError('No database secret or cipher defined')
             }
             let crypto = this.crypto[name]
             if (!crypto) {
-                throw new OneArgError(`Database crypto not defined for ${name}`)
+                throw new OneTableArgError(`Database crypto not defined for ${name}`)
             }
             iv = Buffer.from(iv, 'hex')
             let crypt = Crypto.createDecipheriv(crypto.cipher, crypto.secret, iv)
@@ -893,7 +893,7 @@ export class Table {
 
     assignInner(dest, src, recurse = 0) {
         if (recurse++ > 20) {
-            throw new OneError('Recursive merge', {code: 'Runtime'})
+            throw new OneTableError('Recursive merge', {code: 'RuntimeError'})
         }
         if (!src || !dest || typeof src != 'object') {
             return

@@ -4,7 +4,7 @@
     A model represents a DynamoDB single-table entity.
 */
 import {Expression} from './Expression.js'
-import {OneError, OneArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error.js'
 
 /*
     Ready / write tags for interceptions
@@ -34,13 +34,13 @@ export class Model {
      */
     constructor(table, name, options = {}) {
         if (!table) {
-            throw new OneArgError('Missing table argument')
+            throw new OneTableArgError('Missing table argument')
         }
         if (!table.typeField) {
-            throw new OneArgError('Invalid table instance')
+            throw new OneTableArgError('Invalid table instance')
         }
         if (!name) {
-            throw new OneArgError('Missing name of model')
+            throw new OneTableArgError('Missing name of model')
         }
         this.table = table
         this.name = name
@@ -76,7 +76,7 @@ export class Model {
         this.indexes = this.schema.indexes
 
         if (!this.indexes) {
-            throw new OneArgError('Indexes must be defined on the Table before creating models')
+            throw new OneTableArgError('Indexes must be defined on the Table before creating models')
         }
         this.indexProperties = this.getIndexProperties(this.indexes)
 
@@ -117,7 +117,7 @@ export class Model {
             let pathname = prefix ? `${prefix}.${name}` : name
 
             if (!field.type) {
-                throw new OneArgError(`Missing field type for ${pathname}`)
+                throw new OneTableArgError(`Missing field type for ${pathname}`)
             }
             field.pathname = pathname
             field.name = name
@@ -141,16 +141,16 @@ export class Model {
                 mapTargets[att] = mapTargets[att] || []
                 if (sub) {
                     if (map[name] && !Array.isArray(map[name])) {
-                        throw new OneArgError(`Map already defined as literal for ${this.name}.${name}`)
+                        throw new OneTableArgError(`Map already defined as literal for ${this.name}.${name}`)
                     }
                     field.attribute = map[name] = [att, sub]
                     if (mapTargets[att].indexOf(sub) >= 0) {
-                        throw new OneArgError(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
+                        throw new OneTableArgError(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
                     }
                     mapTargets[att].push(sub)
                 } else {
                     if (mapTargets[att].length > 1) {
-                        throw new OneArgError(`Multiple attributes in ${this.name} mapped to the target ${to}`)
+                        throw new OneTableArgError(`Multiple attributes in ${this.name} mapped to the target ${to}`)
                     }
                     field.attribute = map[name] = [att]
                     mapTargets[att].push(true)
@@ -169,7 +169,7 @@ export class Model {
             if (index && !prefix) {
                 field.isIndexed = true
                 if (field.attribute.length > 1) {
-                    throw new OneArgError(`Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
+                    throw new OneTableArgError(`Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
                 }
                 if (index == 'primary') {
                     field.required = true
@@ -192,14 +192,14 @@ export class Model {
             */
             if (field.schema) {
                 if (field.type == 'array') {
-                    throw new OneArgError(`Array types do not (yet) support nested schemas for field "${field.name}" in model "${this.name}"`)
+                    throw new OneTableArgError(`Array types do not (yet) support nested schemas for field "${field.name}" in model "${this.name}"`)
                 }
                 if (field.type == 'object') {
                     field.block = {deps: [], fields: {}}
                     this.prepModel(field.schema, field.block, name)
                     this.nested = true
                 } else {
-                    throw new OneArgError(`Nested scheme not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`)
+                    throw new OneTableArgError(`Nested scheme not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`)
                 }
             }
         }
@@ -223,7 +223,7 @@ export class Model {
         }
         type = type.toLowerCase()
         if (ValidTypes.indexOf(type) < 0) {
-            throw new OneArgError(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
+            throw new OneTableArgError(`Unknown type "${type}" for field "${field.name}" in model "${this.name}"`)
         }
         return type
     }
@@ -283,7 +283,7 @@ export class Model {
         let t = params.transaction
         if (t) {
             if (params.batch) {
-                throw new OneArgError('Cannot have batched transactions')
+                throw new OneTableArgError('Cannot have batched transactions')
             }
             let top = TransactOps[op]
             if (top) {
@@ -292,7 +292,7 @@ export class Model {
                 items.push({[top]: cmd})
                 return this.transformReadItem(op, properties, properties, params)
             } else {
-                throw new OneArgError(`Unknown transaction operation ${op}`)
+                throw new OneTableArgError(`Unknown transaction operation ${op}`)
             }
         }
         /*
@@ -501,7 +501,7 @@ export class Model {
      */
     async createUnique(properties, params) {
         if (params.batch) {
-            throw new OneArgError('Cannot use batch with unique properties which require transactions')
+            throw new OneTableArgError('Cannot use batch with unique properties which require transactions')
         }
         let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
@@ -533,9 +533,9 @@ export class Model {
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
-                throw new OneError(`Cannot create unqiue attributes "${names}" for "${this.name}", ` +
+                throw new OneTableError(`Cannot create unqiue attributes "${names}" for "${this.name}", ` +
                                    `an item of the same name already exists.`,
-                                   {properties, transaction, code: 'Unique'})
+                                   {properties, transaction, code: 'UniqueError'})
             }
             throw err
         }
@@ -556,7 +556,7 @@ export class Model {
             params.limit = 2
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                throw new OneError('Get without sort key returns more than one result', {properties, code: 'NonUnique'})
+                throw new OneTableError('Get without sort key returns more than one result', {properties, code: 'NonUniqueError'})
             }
             return items[0]
         }
@@ -590,14 +590,14 @@ export class Model {
      */
     async removeByFind(properties, params) {
         if (params.retry) {
-            throw new OneArgError('Remove cannot retry', {properties})
+            throw new OneTableArgError('Remove cannot retry', {properties})
         }
         params.parse = true
         let items = await this.find(properties, params)
         if (items.length > 1 && !params.many) {
-            throw new OneError(`Removing multiple items from "${this.name}". Use many:true to enable.`, {
+            throw new OneTableError(`Removing multiple items from "${this.name}". Use many:true to enable.`, {
                 properties,
-                code: 'NonUnique',
+                code: 'NonUniqueError',
             })
         }
         for (let item of items) {
@@ -621,7 +621,7 @@ export class Model {
 
         for (let field of fields) {
             if (!properties[field.name]) {
-                throw new OneArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, {properties})
+                throw new OneTableArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, {properties})
             }
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
@@ -655,7 +655,7 @@ export class Model {
      */
     async updateUnique(properties, params) {
         if (params.batch) {
-            throw new OneArgError('Cannot use batch with unique properties which require transactions')
+            throw new OneTableArgError('Cannot use batch with unique properties which require transactions')
         }
         let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
@@ -671,7 +671,7 @@ export class Model {
         if (prior) {
             prior = this.prepareProperties('update', prior)
         } else if (params.exists === undefined || params.exists == true) {
-            throw new OneError('Cannot find existing item to update', {properties, code: 'NotFound'})
+            throw new OneTableError('Cannot find existing item to update', {properties, code: 'NotFoundError'})
         }
         /*
             Create all required unique properties. Remove prior unique properties if they have changed.
@@ -713,9 +713,9 @@ export class Model {
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
-                throw new OneError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
+                throw new OneTableError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
                                    `an item of the same name already exists.`,
-                                   {properties, transaction, code: 'Unique'})
+                                   {properties, transaction, code: 'UniqueError'})
             }
             throw err
         }
@@ -929,8 +929,8 @@ export class Model {
         }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
             this.table.log.error(`Empty hash key`, {properties, params, op})
-            throw new OneError(`Empty hash key. Check hash key and any value template variable references.`, {
-                properties, rec, code: 'Missing',
+            throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
+                properties, rec, code: 'MissingError',
             })
         }
         if (this.table.params.transform && ReadWrite[op] == 'write') {
@@ -943,7 +943,7 @@ export class Model {
     needsFallback(op, index, params) {
         if (index != this.indexes.primary && op != 'find' && op != 'scan') {
             if (params.low) {
-                throw new OneArgError('Cannot use non-primary index for "${op}" operation')
+                throw new OneTableArgError('Cannot use non-primary index for "${op}" operation')
             }
             return true
         }
@@ -973,7 +973,7 @@ export class Model {
         if (params.index && params.index != 'primary') {
             index = this.indexes[params.index]
             if (!index) {
-                throw new OneError(`Cannot find index ${params.index}`, {code: 'Missing'})
+                throw new OneTableError(`Cannot find index ${params.index}`, {code: 'MissingError'})
             }
         } else {
             index = this.indexes.primary
@@ -1043,7 +1043,7 @@ export class Model {
                 //  Missing sort key on a high-level API for get/delete
                 if (properties[name] == null && attribute == index.sort && params.high && KeysOnly[op]) {
                     if (op == 'delete' && !params.many) {
-                        throw new OneError('Missing sort key', {code: 'Missing'})
+                        throw new OneTableError('Missing sort key', {code: 'MissingError'})
                     }
                     /*
                         Missing sort key for high level get, or delete without "any".
@@ -1260,7 +1260,7 @@ export class Model {
                 v = match
             }
             if (typeof v == 'object' && v.toString() == '[object Object]') {
-                throw new OneError(`Value for "${field.pathname}" is not a primitive value`, {code: 'Type'})
+                throw new OneTableError(`Value for "${field.pathname}" is not a primitive value`, {code: 'TypeError'})
             }
             return v
         })
@@ -1293,7 +1293,7 @@ export class Model {
         let fields = this.block.fields
         let field = fields[name]
         if (!field) {
-            throw new OneError('Cannot find field', {name})
+            throw new OneTableError('Cannot find field', {name})
         }
         return this.runTemplate('find', null, properties, params)
     }
@@ -1323,8 +1323,8 @@ export class Model {
         }
 
         if (Object.keys(validation).length > 0) {
-            let error = new OneError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
-                {validation, code: 'Validation'}
+            let error = new OneTableError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
+                {validation, code: 'ValidationError'}
             )
             throw error
         }
@@ -1409,7 +1409,7 @@ export class Model {
         } else if (type == 'number') {
             let num = Number(value)
             if (isNaN(num)) {
-                throw new OneError(`Invalid value "${value}" provided for field "${field.name}"`, {code: 'Validation'})
+                throw new OneTableError(`Invalid value "${value}" provided for field "${field.name}"`, {code: 'ValidationError'})
             }
             value = num
 
@@ -1436,7 +1436,7 @@ export class Model {
                     value = []
                 } else {
                     //  FUTURE: should be moved to validations
-                    throw new OneArgError(`Invalid data type for Array field "${field.name}" in "${this.name}"`)
+                    throw new OneTableArgError(`Invalid data type for Array field "${field.name}" in "${this.name}"`)
                     // value = [value]
                 }
             }
@@ -1479,7 +1479,7 @@ export class Model {
 
     transformWriteSet(type, value) {
         if (!Array.isArray(value)) {
-            throw new OneError('Set values must be arrays', {code: 'Type'})
+            throw new OneTableError('Set values must be arrays', {code: 'TypeError'})
         }
         if (type == Set || type == 'Set') {
             let v = value.values().next().value
@@ -1491,7 +1491,7 @@ export class Model {
                 value = value.map(v => v.toString('base64'))
             }
         } else {
-            throw new OneError('Unknown type', {code: 'Type'})
+            throw new OneTableError('Unknown type', {code: 'TypeError'})
         }
         return value
     }
@@ -1564,10 +1564,10 @@ export class Model {
             return {properties, params}
         }
         if (!properties) {
-            throw new OneArgError('Missing properties')
+            throw new OneTableArgError('Missing properties')
         }
         if (typeof params != 'object') {
-            throw new OneError('Invalid type for params', {code: 'Type'})
+            throw new OneTableError('Invalid type for params', {code: 'TypeError'})
         }
         //  Must not use merge as we need to modify the callers batch/transaction objects
         params = Object.assign(overrides, params)

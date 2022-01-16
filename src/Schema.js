@@ -3,7 +3,7 @@
  */
 
 import {Model} from './Model.js'
-import {OneError, OneArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error.js'
 
 const GenericModel = '_Generic'
 const MigrationModel = '_Migration'
@@ -96,7 +96,7 @@ export class Schema {
                 if (index.type == 'local') {
                     index.hash = primary.hash
                     if (index.hash != indexes.primary.hash) {
-                        throw new OneArgError(`LSI "${name}" should not define a hash attribute that is different to the primary index`)
+                        throw new OneTableArgError(`LSI "${name}" should not define a hash attribute that is different to the primary index`)
                     }
                 } else if (index.hash == primary.hash) {
                     index.type = 'local'
@@ -108,10 +108,10 @@ export class Schema {
                 }
                 if (index.type == 'local') {
                     if (index.sort == null) {
-                        throw new OneArgError('LSIs must define a sort attribute')
+                        throw new OneTableArgError('LSIs must define a sort attribute')
                     }
                     if (index.project) {
-                        throw new OneArgError('Unwanted project definition for LSI')
+                        throw new OneTableArgError('Unwanted project definition for LSI')
                     }
                 }
             }

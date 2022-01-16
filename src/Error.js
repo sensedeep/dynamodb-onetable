@@ -8,7 +8,7 @@ function init(self, message, context) {
     if (context) {
         self.context = context
         if (context.code) {
-            self.code = `${context.code}Error`
+            self.code = context.code
             delete context.code
         }
     }
@@ -20,7 +20,7 @@ function init(self, message, context) {
     }
 }
 
-export class OneError extends Error {
+export class OneTableError extends Error {
     constructor(message, context) {
         super(message)
         init(this, message, context)
@@ -34,19 +34,14 @@ export class OneError extends Error {
         if (this.context) {
             buf.push(`context: ${JSON.stringify(this.context, null, 4)}`)
         }
-        //  Remove stack from toString
-        /*
-        if (this.stack) {
-            buf.push(`stack: ${this.stack}`)
-        } */
         return buf.join('\n')
     }
 }
 
-export class OneArgError extends Error {
+export class OneTableArgError extends Error {
     constructor(message, context) {
         super(message, context)
         init(this, message, context)
-        this.code = context ? context.code : 'Arg'
+        this.code = context.code || 'ArgumentError'
     }
 }

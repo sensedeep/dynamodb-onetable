@@ -4,7 +4,7 @@
     This module converts API requests into DynamoDB commands.
 */
 
-import {OneError, OneArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error.js'
 
 //  Operators used on sort keys for get/delete
 const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
@@ -58,7 +58,7 @@ export class Expression {
         this.sort = this.index.sort
 
         if (!this.table.client) {
-            throw new OneArgError('Table has not yet defined a "client" instance')
+            throw new OneTableArgError('Table has not yet defined a "client" instance')
         }
     }
 
@@ -105,7 +105,7 @@ export class Expression {
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
-                    throw new OneArgError(`Missing properties for mapped data field "${att}" in model "${this.model.name}"`)
+                    throw new OneTableArgError(`Missing properties for mapped data field "${att}" in model "${this.model.name}"`)
                 }
             }
             for (let [k,v] of Object.entries(this.mapped)) {
@@ -233,7 +233,7 @@ export class Expression {
             const {substitutions} = this.params
             let name = value.replace(/^\.\.\./, '')
             if (!substitutions || !substitutions[name]) {
-                throw new OneError(`Missing substitutions for attribute value "${name}"`, {
+                throw new OneTableError(`Missing substitutions for attribute value "${name}"`, {
                     expr,
                     substitutions,
                     properties: this.properties,
@@ -300,7 +300,7 @@ export class Expression {
             if (att == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
                 let [action,vars] = Object.entries(value)[0]
                 if (KeyOperators.indexOf(action) < 0) {
-                    throw new OneArgError(`Invalid KeyCondition operator "${action}"`)
+                    throw new OneTableArgError(`Invalid KeyCondition operator "${action}"`)
                 }
                 if (action == 'begins_with' || action == 'begins') {
                     keys.push(`begins_with(#_${this.addName(att)}, :_${this.addValue(vars)})`)
@@ -349,7 +349,7 @@ export class Expression {
             //  keys are property names not attributes
             for (let [key, value] of Object.entries(params.add)) {
                 if (key == this.hash || key == this.sort) {
-                    throw new OneArgError('Cannot add to hash or sort')
+                    throw new OneTableArgError('Cannot add to hash or sort')
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
@@ -359,7 +359,7 @@ export class Expression {
         if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
                 if (key == this.hash || key == this.sort) {
-                    throw new OneArgError('Cannot delete hash or sort')
+                    throw new OneTableArgError('Cannot delete hash or sort')
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
@@ -373,10 +373,10 @@ export class Expression {
             let fields = this.model.block.fields
             for (let key of params.remove) {
                 if (key == this.hash || key == this.sort) {
-                    throw new OneArgError('Cannot remove hash or sort')
+                    throw new OneTableArgError('Cannot remove hash or sort')
                 }
                 if (fields.required) {
-                    throw new OneArgError('Cannot remove required field')
+                    throw new OneTableArgError('Cannot remove required field')
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
@@ -386,7 +386,7 @@ export class Expression {
         if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
                 if (key == this.hash || key == this.sort) {
-                    throw new OneArgError('Cannot set hash or sort')
+                    throw new OneTableArgError('Cannot set hash or sort')
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
@@ -442,7 +442,7 @@ export class Expression {
         let {conditions, filters, key, keys, hash, model, names, op, params, project, puts, values} = this
 
         if (key == null && values[hash] == null && op != 'scan') {
-            throw new OneError(`Cannot find hash key for "${op}"`, {values})
+            throw new OneTableError(`Cannot find hash key for "${op}"`, {values})
         }
         if (op == 'get' || op == 'delete' || op == 'update') {
             if (key == null) {
@@ -467,10 +467,10 @@ export class Expression {
             } else if (op == 'put') {
                 args = { Item: puts }
             } else {
-                throw new OneArgError(`Unsupported batch operation "${op}"`)
+                throw new OneTableArgError(`Unsupported batch operation "${op}"`)
             }
             if (filters.length) {
-                throw new OneArgError('Invalid filters with batch operation')
+                throw new OneTableArgError('Invalid filters with batch operation')
             }
 
         } else {
@@ -486,13 +486,13 @@ export class Expression {
             if (params.select) {
                 //  Select: ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
                 if (project.length && params.select != 'SPECIFIC_ATTRIBUTES') {
-                    throw new OneArgError('Select must be SPECIFIC_ATTRIBUTES with projection expressions')
+                    throw new OneTableArgError('Select must be SPECIFIC_ATTRIBUTES with projection expressions')
                 }
                 args.Select = params.select
 
             } else if (params.count) {
                 if (project.length) {
-                    throw new OneArgError('Cannot use select and count together')
+                    throw new OneTableArgError('Cannot use select and count together')
                 }
                 args.Select = 'COUNT'
             }
