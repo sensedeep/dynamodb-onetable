@@ -151,14 +151,14 @@ The `all` value indicates that all attributes are projected to the GSI. The `key
 
 ## Params
 
-The `params` map contains schema configuration that is vital to interpret table data. The `params` map MUST include the following properties:
+The `params` map contains schema configuration that is vital to interpret table data. The `params` map MAY include the following properties:
 
 * typeField
 * isoDates
 
-The `typeField` property MUST be set to a string that contains the name of the DynamoDB attribute that specifies the application entity model name. This name is used an index into the `models` map when interpreting table data. A typical `typeField` value is `_type`.
+The `typeField` property MAY be set to a string that contains the name of the DynamoDB attribute that specifies the application entity model name. This name is used an index into the `models` map when interpreting table data. If unset, this defaults to `_type`.
 
-The `isoDates` property MAY be set to true to specify that dates will be stored in the datbase as ISO date strings. If unset, isoDates defaults to be true. If set to false, dates are stored as a number of seconds since Jan 1 1970 (Unix epoch date format).
+The `isoDates` property MAY be set to true to specify that dates will be stored in the datbase as ISO date strings. If set to false, dates are stored as a number of seconds since Jan 1 1970 (Unix epoch date format). If unset, isoDates defaults to be false.
 
 The `params` map MAY contain the following optional properties that are used by the OneTable library and MUST be considered RESERVED. All other values in the params collection MUST be considered RESERVED.
 
@@ -245,6 +245,7 @@ All other values in the params collection MUST be considered RESERVED.
 * hidden
 * map
 * nulls
+* reference
 * unique
 
 ## Queries
