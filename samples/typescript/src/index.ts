@@ -9,11 +9,13 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 //  For AWS V3
 // import Dynamo from 'dynamodb-onetable/Dynamo'
-// import { Table } from 'dynamodb-onetable'
+// import { OneError, OneArgError, Table} from 'dynamodb-onetable'
+
 
 //  To debug locally
 import Dynamo from '../../../dist/mjs/Dynamo.js'
-import { Entity, Table } from '../../../dist/mjs/index.js'
+import { Entity, OneArgError, OneError, Table } from '../../../dist/mjs/index.js'
+
 
 import Schema from './schema.js'
 
