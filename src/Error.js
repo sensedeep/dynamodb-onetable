@@ -34,9 +34,11 @@ export class OneError extends Error {
         if (this.context) {
             buf.push(`context: ${JSON.stringify(this.context, null, 4)}`)
         }
+        //  Remove stack from toString
+        /*
         if (this.stack) {
             buf.push(`stack: ${this.stack}`)
-        }
+        } */
         return buf.join('\n')
     }
 }
