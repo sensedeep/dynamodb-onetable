@@ -1193,6 +1193,8 @@ For create, the params.exists will default to a false value to ensure an item of
 
 If the schema specifies that an attribute must be unique, OneTable will create a special item in the database to enforce the uniqueness. This item will be an instance of the Unique model with the primary key set to `_unique:Model:Attribute:Value`. The created item and the unique item will be created in a transparent transaction so that the item will be created only if all the unique fields are truly unique.  The `remove` API will similarly remove the special unique item.
 
+When a unique field for an item is updated, the prior item value must be read first so that the unique item can be deleted. If you do an update and do not specify params.return == 'NONE', the update API must return the full updated item. This incurs an additional `get` request to fetch the updated values as DynamoDB transactions do not return item values. There is thus additional I/O and overhead for unique items, so take care when designating attributes as unique in high update volume items.
+
 The optional params are described in [Model API Params](#model-api-params).
 
 <a name="model-find"></a>

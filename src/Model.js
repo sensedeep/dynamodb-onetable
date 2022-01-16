@@ -661,13 +661,15 @@ export class Model {
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
 
+        let originalParams = Object.assign({}, params)
+        let getProperties = this.prepareProperties('get', properties, params)
         params.prepared = properties = this.prepareProperties('update', properties, params)
 
         /*
             Get the prior item so we know the previous unique property values so they can be removed.
             This must be run here, even if part of a transaction.
         */
-        let prior = await this.get(properties, {hidden:true})
+        let prior = await this.get(getProperties, {hidden:true})
         if (prior) {
             prior = this.prepareProperties('update', prior)
         } else if (params.exists === undefined || params.exists == true) {
@@ -707,7 +709,6 @@ export class Model {
         /*
             Perform all operations in a transaction so update will only be applied if the unique properties can be created.
         */
-        let expression = params.expression
         try {
             await this.table.transact('write', params.transaction, params)
         } catch (err) {
@@ -719,8 +720,21 @@ export class Model {
             }
             throw err
         }
-        let items = this.parseResponse('put', expression)
-        return items[0]
+        if (params.return != 'NONE') {
+            let index = params.expression.index
+            let keys = {
+                [index.hash]: properties[index.hash]
+            }
+            if (index.sort) {
+                keys[index.sort] = properties[index.sort]
+            }
+            return await this.get(keys, {
+                hidden: params.hidden,
+                log: params.log,
+                parse: params.parse,
+            })
+        }
+        return null
     }
 
     //  Low level API
