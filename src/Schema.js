@@ -36,9 +36,7 @@ export class Schema {
         this.models = {}
         this.indexes = null
         if (schema) {
-            if (!schema.version) {
-                throw new Error('Schema is missing a version')
-            }
+            this.validateSchema(schema)
             this.definition = schema
             let {models, indexes, params} = schema
             if (!models) {
@@ -68,6 +66,30 @@ export class Schema {
             await this.getKeys()
         }
         return this.indexes
+    }
+
+    //  Start of a function to better validate schemas. More to do.
+    validateSchema(schema) {
+        let {indexes} = schema
+        if (!schema.version) {
+            throw new Error('Schema is missing a version')
+        }
+        if (!schema.indexes) {
+            throw new Error('Schema is missing indexes')
+        }
+        let primary = schema.indexes.primary
+        if (!primary) {
+            throw new Error('Schema is missing a primary index')
+        }
+        let hash = primary.hash
+        let gsis = Object.values(indexes).filter(i => i.hash != hash)
+        let lsis = Object.values(indexes).filter(i => i.hash == hash)
+        if (lsis.length > 5) {
+            throw new Error('Schema has too many LSIs')
+        }
+        if (gsis.length > 20) {
+            throw new Error('Schema has too many GSIs')
+        }
     }
 
     createStandardModels() {

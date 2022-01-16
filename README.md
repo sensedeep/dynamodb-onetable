@@ -95,16 +95,18 @@ Schemas define how items will be stored in your database and look like this:
 
 ```javascript
 const MySchema = {
+    format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
         gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
+        ls1:     { sort: 'id', local: true },
     },
     models: {
         Account: {
             pk:          { type: String, value: 'account:${name}' },
             sk:          { type: String, value: 'account:' },
-            id:          { type: String, uuid: 'ulid', validate: /^[0-9A-F]{32}$/i },
+            id:          { type: String, generate: 'ulid', validate: /^[0-9A-F]{32}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
@@ -580,6 +582,10 @@ The `schema.indexes` property can contain one or more indexes and must contain t
         project: 'all',
         follow: true,
     },
+    ls1: {
+        local: true,
+        sort: 'id',
+    }
     ...
 }
 ```

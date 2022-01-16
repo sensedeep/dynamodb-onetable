@@ -619,7 +619,7 @@ export class Table {
             result = []
             for (let items of Object.values(response)) {
                 for (let item of items) {
-                    item = this.unmarshall(item)
+                    item = this.unmarshall(item, params)
                     let type = item[this.typeField] || '_unknown'
                     let model = this.schema.models[type]
                     if (model && model != this.schema.uniqueModel) {
