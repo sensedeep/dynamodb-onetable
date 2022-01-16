@@ -564,6 +564,11 @@ export class Table {
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
                 throw new OneError(`Conditional create failed for "${model}"`, {code: 'Condition', trace, err})
 
+            } else if (err.code == 'ProvisionedThroughputExceededException') {
+                throw err
+                //  MOB - the code is getting Error added which messes things up
+                // throw new OneError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
+
             } else {
                 result = result || {}
                 result.Error = 1
