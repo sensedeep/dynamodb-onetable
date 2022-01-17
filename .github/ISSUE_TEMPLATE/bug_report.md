@@ -16,7 +16,7 @@ A clear and complete description of what the bug is. Please explain in detail wh
 
 Steps to reproduce the behavior:
 
-1. Clone this repository
+1. Clone this repository. Must test against the current master branch in the repository.
 2. Edit your reproducible, MINIMAL, stand-alone test case into the test/debug.ts file.
 3. Run via `jest debug` or run VS code in the top level directory.
 

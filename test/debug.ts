@@ -6,11 +6,12 @@
     Or run VS Code in the top level directory and just run.
  */
 import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
+import { OneSchema } from '../src/index.js'
 
 jest.setTimeout(7200 * 1000)
 
 //  Change with your schema
-const schema = {
+const schema: OneSchema = {
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -48,12 +49,11 @@ test('Create Table', async() => {
 })
 
 test('Test', async() => {
-/*
-    Put your code here
-
-    let User = table.getModel('User')
-    let users = await User.find({})
-*/
+    User = table.getModel('User')
+    let user: any = await User.create({email: 'peter@example.com', name: 'peter'}, {log: true})
+    dump(user)
+    user = await User.update({email: 'peter@example.com', name: 'john'}, {log: true})
+    dump(user)
 })
 
 test('Destroy Table', async() => {
