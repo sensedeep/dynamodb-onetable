@@ -811,7 +811,8 @@ export class Model {
             if (params.exists == null) {
                 let field = this.block.fields[this.createdField] || this.table
                 let when = (field.isoDates) ? now.toISOString() : now.getTime()
-                params.set = { [this.createdField]: `if_not_exists(\${${this.createdField}}, {${when}})` }
+                params.set = params.set || {}
+                params.set[this.createdField] = `if_not_exists(\${${this.createdField}}, {${when}})`
             }
         }
         properties = this.prepareProperties('update', properties, params)
