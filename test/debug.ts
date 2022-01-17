@@ -49,11 +49,12 @@ test('Create Table', async() => {
 })
 
 test('Test', async() => {
-    User = table.getModel('User')
-    let user: any = await User.create({email: 'peter@example.com', name: 'peter'}, {log: true})
-    dump(user)
-    user = await User.update({email: 'peter@example.com', name: 'john'}, {log: true})
-    dump(user)
+    /*
+    Put your code here
+
+    let User = table.getModel('User')
+    let users = await User.find({})
+*/
 })
 
 test('Destroy Table', async() => {
