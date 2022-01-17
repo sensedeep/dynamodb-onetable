@@ -334,11 +334,6 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        /* Not required
-        if (field.isIndexed && params.updateIndexes !== true && params.exists !== null) {
-            //  Update indexes if explicitly requested or doing update(, {exists: null}), i.e. create.
-            return
-        } */
         updates.set.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
     }
 
