@@ -11,11 +11,9 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 // import Dynamo from 'dynamodb-onetable/Dynamo'
 // import { OneTableError, OneTableArgError, Table} from 'dynamodb-onetable'
 
-
 //  To debug locally
 import Dynamo from '../../../dist/mjs/Dynamo.js'
-import { Entity, OneTableArgError, OneTableError, Table } from '../../../dist/mjs/index.js'
-
+import { Entity, OneSchema, OneTableArgError, OneTableError, Table} from '../../../dist/mjs/index.js'
 
 import Schema from './schema.js'
 
