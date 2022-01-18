@@ -249,7 +249,7 @@ let account: AccountType = {
 //  Get an Account access model
 let Account = table.getModel<AccountType>('Account')
 
-let account = await Account.update({
+let account = await Account.create({
     name: 'Acme',               //  OK
     unknown: 42,                //  Error
 })
@@ -1139,7 +1139,7 @@ let user = await User.get({email: 'user@example.com'}, {index: 'gs1'})
 let users = await User.find({accountName: 'Acme Airplanes'})
 
 //  Update an item
-let user = await User.update({email: 'user@example.com', balance: 0})
+await User.update({email: 'user@example.com', balance: 0})
 ```
 
 
@@ -1446,7 +1446,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | reprocess | `boolean` | Set to true to enable batchWrite to retry unprocessed items. Defaults to true|
-| return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs will always return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
+| return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs can return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
 | set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
