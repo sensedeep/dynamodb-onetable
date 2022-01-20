@@ -613,6 +613,7 @@ export class Model {
         Remove an item with unique properties. Use transactions to remove unique items.
     */
     async removeUnique(properties, params) {
+        let transactHere = params.transaction ? false : true;
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
@@ -628,7 +629,10 @@ export class Model {
             await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
         }
         await this.deleteItem(properties, params)
-        await this.table.transact('write', params.transaction, params)
+        // Only execute transaction if we are not in a transaction
+        if(transactHere) {
+            await this.table.transact('write', transaction, params)
+        }
     }
 
     async scan(properties = {}, params = {}) {
