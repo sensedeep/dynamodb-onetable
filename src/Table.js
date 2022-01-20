@@ -104,6 +104,7 @@ export class Table {
         this.timestamps = params.timestamps != null ? params.timestamps : false
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
+        this.warn = params.warn || true
 
         if (params.uuid) {
             console.warn('OneTable: Using deprecated Table constructor "uuid" parameter. Use a "generate" function instead or ' +

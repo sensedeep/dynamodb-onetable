@@ -716,25 +716,32 @@ export class Model {
         */
         try {
             await this.table.transact('write', params.transaction, params)
+
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
-                                   `an item of the same name already exists.`,
-                                   {properties, transaction, code: 'UniqueError'})
+                                   `an item of the same name already exists.`, {properties, transaction, code: 'UniqueError'})
             }
             throw err
         }
-        // let items = this.parseResponse('put', params.expression)
-        // return items[0]
-        if (params.return != 'NONE') {
-            return await this.get(keys, {
-                hidden: params.hidden,
-                log: params.log,
-                parse: params.parse,
-            })
+        if (params.return == 'none' || params.return === false) {
+            return
         }
-        return null
+        if (params.return == 'get') {
+            return await this.get(keys, {hidden: params.hidden, log: params.log, parse: params.parse})
+        }
+        if (params.return) {
+            throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
+        } else {
+            if (this.table.warn !== false) {
+                console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
+                             `Use params {return: 'none'} to squelch this warning. ` +
+                             `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
+                             `In future releases, this will throw an exception.`)
+            }
+            return [properties]
+        }
     }
 
     //  Low level API

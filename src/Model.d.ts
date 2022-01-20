@@ -212,7 +212,7 @@ export type OneParams = {
     prev?: object,
     remove?: string[],
     reprocess?: boolean,
-    return?: string,
+    return?: string | boolean,
     reverse?: boolean,
     segment?: number,
     segments?: number,
@@ -249,7 +249,7 @@ export type AnyModel = {
     init(properties?: OneProperties, params?: OneParams): AnyEntity;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    update(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
 };
 
 export class Model<T> {
@@ -260,5 +260,5 @@ export class Model<T> {
     init(properties?: EntityParameters<T>, params?: OneParams): T;
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<void>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
-    update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    update(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
 }

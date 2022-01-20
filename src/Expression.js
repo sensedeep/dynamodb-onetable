@@ -496,12 +496,22 @@ export class Expression {
                 args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
                 args.ReturnItemCollectionMetrics = 'SIZE'                   // SIZE | NONE
             }
+            let returnValues
+            if (params.return) {
+                if (params.return === true) {
+                    returnValues = 'ALL_NEW'
+                } else if (params.return === false) {
+                    returnValues = 'NONE'
+                } else if (params.return != 'get') {
+                    returnValues = params.return
+                }
+            }
             if (op == 'put') {
                 args.Item = puts
-                args.ReturnValues = params.return || 'NONE'
+                args.ReturnValues = returnValues || 'NONE'
 
             } else if (op == 'update') {
-                args.ReturnValues = params.return || 'ALL_NEW'
+                args.ReturnValues = returnValues || 'ALL_NEW'
                 let updates = []
                 for (let op of ['add', 'delete', 'remove', 'set']) {
                     if (this.updates[op].length) {

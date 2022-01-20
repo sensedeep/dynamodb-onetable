@@ -511,7 +511,7 @@ const table = new Table({
 })
 ```
 
-You can also generate metrics for specially profiled queries and scans via the `params.profile` tag. The profile param takes a unique string tag and metrics will be created for the dimensions [Profile, profile-tag-name]. These metrics exist outside the ordered list specified via the Metrics `dimensions` parameter.
+You can also generate metrics for specially profiled queries and scans via the `params.profile` tag. The profile param takes a unique string tag and metrics will be created for the dimensions [Profile, profile-tag-name]. These metrics exist outside the standard dimensions specified via the Metrics `dimensions` parameter.
 
 ```javascript
 await User.find({}, {profile: 'find-all-users'})
@@ -1446,7 +1446,7 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
 | remove | `array` | Set to a list of of attributes to remove from the item.|
 | reprocess | `boolean` | Set to true to enable batchWrite to retry unprocessed items. Defaults to true|
-| return | `string` | Set to 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The `created` and `updated` APIs can return the item properties. This parameter controls the `ReturnValues` DynamoDB API parameter.|
+| return | string | parameter controls the returned values for create() and update() via the ReturnValues DynamoDB API parameter. Set to true, false or 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The value true, is an alias for ALL_NEW. The value false is an alias for 'NONE'. The create() API defaults to 'ALL_NEW'. The updated() API defaults to 'ALL_NEW' unless the item has unique properties the return parameter must be specified. |
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
 | set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |

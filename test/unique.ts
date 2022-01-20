@@ -33,7 +33,7 @@ test('Create user 1', async() => {
         name: 'Peter Smith',
         email: 'peter@example.com',
     }
-    user = await User.create(props, {log: false})
+    user = await User.create(props)
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
@@ -51,7 +51,7 @@ test('Create user 2', async() => {
         name: 'Judy Smith',
         email: 'judy@example.com',
     }
-    user = await User.create(props, {log: false})
+    user = await User.create(props)
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
@@ -63,7 +63,7 @@ test('Update user 2 with unique email', async() => {
         name: 'Judy Smith',
         email: 'judy-a@example.com',
     }
-    user = await User.update(props, {})
+    user = await User.update(props, {return: 'get'})
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
@@ -76,7 +76,7 @@ test('Update non-unique property', async() => {
         name: 'Judy Smith',
         age: 42,
     }
-    user = await User.update(props, {})
+    user = await User.update(props, {return: 'get'})
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
@@ -89,7 +89,7 @@ test('Create non-unique email', async() => {
         email: 'peter@example.com',
     }
     await expect(async () => {
-        user = await User.create(props, {log: false})
+        user = await User.create(props)
     }).rejects.toThrow()
 
     let items = await table.scanItems()
@@ -102,7 +102,7 @@ test('Update non-unique email', async() => {
         email: 'peter@example.com',
     }
     await expect(async () => {
-        user = await User.update(props, {log: false})
+        await User.update(props, {return: 'none'})
     }).rejects.toThrow()
 
     let items = await table.scanItems()
@@ -139,7 +139,7 @@ test('Create user via update', async() => {
         name: 'Judy Smith',
         email: 'judy@example.com',
     }
-    let item: any = await User.update(props, {exists: null})
+    let item: any = await User.update(props, {exists: null, return: 'get'})
     expect(item).toMatchObject(props)
 })
 

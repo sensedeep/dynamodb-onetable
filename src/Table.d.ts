@@ -35,6 +35,7 @@ type TableConstructorParams = {
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.
+    warn?: boolean,                 //  Issue warnings
 
     //  DEPRECATED 2.3 - Defer to generate
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
