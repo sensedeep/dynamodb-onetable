@@ -85,7 +85,9 @@ export class Table {
         }
         this.setParams(params)
         this.schema = new Schema(this, params.schema)
-        this.loader = new DataLoader(commands => this.groupByTableAndBatchGet(commands), { maxBatchSize })
+        if (params.loader) {
+            this.loader = new DataLoader(commands => this.groupByTableAndBatchGet(commands), { maxBatchSize })
+        }
     }
 
     setClient(client) {
@@ -532,7 +534,7 @@ export class Table {
                 cmd.ReturnConsumedCapacity = params.capacity || 'INDEXES'
                 cmd.ReturnItemCollectionMetrics = 'SIZE'
             }
-            if (op === 'get') {
+            if (this.params.loader && op === 'get') {
                 result = await this.loader.load(cmd)
             } else {
                 this.log[params.log ? 'info' : 'trace'](`OneTable "${op}" "${model}"`, { trace })

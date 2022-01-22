@@ -37,6 +37,8 @@ type TableConstructorParams = {
     //  Compute a value for a value template
     value?: (model: AnyModel, fieldName: string, properties: OneProperties, params?: OneParams) => string,
 
+    loader?: boolean,               //  Uses DataLoader to accumulate Get requests in BatchGetRequest transparently. Default false.
+
     //  DEPRECATED 2.3 - Should now be specified via the schema.params
     createdField?: string,          //  Name of "created" timestamp attribute.
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.

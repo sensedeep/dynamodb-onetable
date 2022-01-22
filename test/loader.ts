@@ -8,7 +8,8 @@ import { Client, Table } from './utils/init';
 const table = new Table({
   name: 'BatchTest',
   client: Client,
-  schema: DefaultSchema
+  schema: DefaultSchema,
+  loader: true
 });
 
 let users: any[];
