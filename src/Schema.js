@@ -2,8 +2,8 @@
     Schema.js - Utility class to manage schemas
  */
 
-import {Model} from './Model.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import { OneTableArgError } from './Error.js'
+import { Model } from './Model.js'
 
 const GenericModel = '_Generic'
 const MigrationModel = '_Migration'
@@ -11,7 +11,6 @@ const SchemaModel = '_Schema'
 const UniqueModel = '_Unique'
 const MigrationKey = '_migration'
 const SchemaKey = '_schema'
-const UniqueKey = '_unique'
 const SchemaFormat = 'onetable:1.1.0'
 
 export class Schema {
@@ -19,14 +18,14 @@ export class Schema {
     constructor(table, schema) {
         this.table = table
         table.schema = this
-        Object.defineProperty(this, 'table', {enumerable: false})
+        Object.defineProperty(this, 'table', { enumerable: false })
         this.params = table.getSchemaParams()
         this.setSchemaInner(schema)
     }
 
     getCurrentSchema() {
         if (this.definition) {
-            let schema = this.table.assign({}, this.definition, {params: this.params})
+            let schema = this.table.assign({}, this.definition, { params: this.params })
             return this.transformSchemaForWrite(schema)
         }
         return null
@@ -39,7 +38,7 @@ export class Schema {
         if (schema) {
             this.validateSchema(schema)
             this.definition = schema
-            let {models, indexes, params} = schema
+            let { models, indexes, params } = schema
             if (!models) {
                 models = {}
             }
@@ -50,7 +49,7 @@ export class Schema {
             }
             for (let [name, model] of Object.entries(models)) {
                 if (name == SchemaModel || name == MigrationModel) continue
-                this.models[name] = new Model(this.table, name, {fields: model})
+                this.models[name] = new Model(this.table, name, { fields: model })
             }
             this.createStandardModels()
         }
@@ -71,7 +70,7 @@ export class Schema {
 
     //  Start of a function to better validate schemas. More to do.
     validateSchema(schema) {
-        let {indexes} = schema
+        let { indexes } = schema
         if (!schema.version) {
             throw new Error('Schema is missing a version')
         }
@@ -129,15 +128,15 @@ export class Schema {
         Model for unique attributes. Free standing and not in models[]
      */
     createUniqueModel() {
-        let {indexes, schema, table} = this
+        let { indexes, table } = this
         let primary = indexes.primary
         let fields = {
-            [primary.hash]: {type: String}
+            [primary.hash]: { type: String }
         }
         if (primary.sort) {
-            fields[primary.sort] = {type: String}
+            fields[primary.sort] = { type: String }
         }
-        this.uniqueModel = new Model(table, UniqueModel, {fields, timestamps: false})
+        this.uniqueModel = new Model(table, UniqueModel, { fields, timestamps: false })
     }
 
     /*
@@ -145,52 +144,52 @@ export class Schema {
         NOTE: there is not items created based on this model.
      */
     createGenericModel() {
-        let {indexes, schema, table} = this
+        let { indexes, table } = this
         let primary = indexes.primary
-        let fields = {[primary.hash]: {type: String}}
+        let fields = { [primary.hash]: { type: String } }
         if (primary.sort) {
-            fields[primary.sort] = {type: String}
+            fields[primary.sort] = { type: String }
         }
-        this.genericModel = new Model(table, GenericModel, {fields, timestamps: false, generic: true})
+        this.genericModel = new Model(table, GenericModel, { fields, timestamps: false, generic: true })
     }
 
     createSchemaModel() {
-        let {indexes, schema, table} = this
+        let { indexes, table } = this
         let primary = indexes.primary
         let fields = this.schemaModelFields = {
             [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
-            format:         { type: 'string', required: true },
-            indexes:        { type: 'object', required: true },
-            name:           { type: 'string', required: true },
-            models:         { type: 'object', required: true },
-            params:         { type: 'object', required: true },
-            queries:        { type: 'object', required: true },
-            version:        { type: 'string', required: true },
+            format: { type: 'string', required: true },
+            indexes: { type: 'object', required: true },
+            name: { type: 'string', required: true },
+            models: { type: 'object', required: true },
+            params: { type: 'object', required: true },
+            queries: { type: 'object', required: true },
+            version: { type: 'string', required: true }
         }
         if (primary.sort) {
-            fields[primary.sort] = { type: 'string', required: true, value: `${SchemaKey}:\${name}`}
+            fields[primary.sort] = { type: 'string', required: true, value: `${SchemaKey}:\${name}` }
         }
-        this.models[SchemaModel] = new Model(table, SchemaModel, {fields})
+        this.models[SchemaModel] = new Model(table, SchemaModel, { fields })
     }
 
     createMigrationModel() {
-        let {indexes, schema} = this
+        let { indexes} = this
         let primary = indexes.primary
         let fields = this.migrationModelFields = {
             [primary.hash]: { type: 'string', value: `${MigrationKey}` },
-            date:           { type: 'date',   required: true },
-            description:    { type: 'string', required: true },
-            path:           { type: 'string', required: true },
-            version:        { type: 'string', required: true },
+            date: { type: 'date', required: true },
+            description: { type: 'string', required: true },
+            path: { type: 'string', required: true },
+            version: { type: 'string', required: true }
         }
         if (primary.sort) {
             fields[primary.sort] = { type: 'string', value: `${MigrationKey}:\${version}` }
         }
-        this.models[MigrationModel] = new Model(this.table, MigrationModel, {fields, indexes})
+        this.models[MigrationModel] = new Model(this.table, MigrationModel, { fields, indexes })
     }
 
     addModel(name, fields) {
-        this.models[name] = new Model(this.table, name, {indexes: this.indexes, fields})
+        this.models[name] = new Model(this.table, name, { indexes: this.indexes, fields })
     }
 
     listModels() {
@@ -227,7 +226,7 @@ export class Schema {
             return this.indexes
         }
         let info = await this.table.describeTable()
-        let indexes = {primary: {}}
+        let indexes = { primary: {} }
         for (let key of info.Table.KeySchema) {
             let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
             indexes.primary[type] = key.AttributeName
@@ -307,12 +306,12 @@ export class Schema {
             if (params.timestamps) {
                 let createdField = params.createdField || 'created'
                 let updatedField = params.updatedField || 'updated'
-                mdef[createdField] = {name: createdField, type: 'date'}
-                mdef[updatedField] = {name: updatedField, type: 'date'}
+                mdef[createdField] = { name: createdField, type: 'date' }
+                mdef[updatedField] = { name: updatedField, type: 'date' }
             }
-            mdef[params.typeField] = {name: params.typeField, type: 'string', required: true}
+            mdef[params.typeField] = { name: params.typeField, type: 'string', required: true }
 
-            for (let [key,field] of Object.entries(mdef)) {
+            for (let [, field] of Object.entries(mdef)) {
                 //  DEPRECATE
                 if (field.uuid) {
                     console.warn(`OneTable: Using deprecated field "uuid". Use "generate" instead.`)
@@ -340,7 +339,7 @@ export class Schema {
         if (primary.sort) {
             params[primary.sort] = `${SchemaKey}:Current`
         }
-        let schema = await this.table.getItem(params, {hidden: true, parse: true})
+        let schema = await this.table.getItem(params, { hidden: true, parse: true })
         return this.transformSchemaAfterRead(schema)
     }
 
@@ -350,7 +349,7 @@ export class Schema {
         let params = {
             [primary.hash]: `${SchemaKey}`
         }
-        let schemas = await this.table.queryItems(params, {hidden: true, parse: true})
+        let schemas = await this.table.queryItems(params, { hidden: true, parse: true })
         for (let [index, schema] of Object.entries(schemas)) {
             schemas[index] = this.transformSchemaAfterRead(schema)
         }
@@ -401,6 +400,6 @@ export class Schema {
         schema.format = SchemaFormat
 
         let model = this.getModel(SchemaModel)
-        return await model.update(schema, {exists: null})
+        return await model.update(schema, { exists: null })
     }
 }

@@ -3,7 +3,6 @@
 
     Supports dynamic definition of types based on the Schema.js
 */
-import { Expression } from './Expression'
 
 /*
     Possible types for a schema field "type" property

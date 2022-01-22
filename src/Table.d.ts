@@ -2,7 +2,17 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
+import {
+  AnyEntity,
+  AnyModel,
+  Model,
+  OneIndexSchema,
+  OneModelSchema,
+  OneParams,
+  OneProperties,
+  OneSchema,
+  Paged
+} from './Model';
 
 export type EntityGroup = {
     [key: string]: AnyEntity[]

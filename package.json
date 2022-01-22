@@ -38,7 +38,8 @@
     "homepage": "https://github.com/sensedeep/dynamodb-onetable",
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.5.0",
-        "@aws-sdk/util-dynamodb": "^3.5.0"
+        "@aws-sdk/util-dynamodb": "^3.5.0",
+        "dataloader": "^2.0.0"
     },
     "devDependencies": {
         "aws-sdk": "^2.718.0",

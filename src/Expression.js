@@ -4,7 +4,7 @@
     This module converts API requests into DynamoDB commands.
 */
 
-import {OneTableError, OneTableArgError} from './Error.js'
+import { OneTableArgError, OneTableError } from './Error.js'
 
 //  Operators used on sort keys for get/delete
 const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]

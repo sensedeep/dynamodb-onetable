@@ -20,130 +20,133 @@ let User: UserModel
 let user: UserEntity
 let users: UserEntity[]
 
-test('Create Table', async() => {
-    if (!(await table.exists())) {
-        await table.createTable()
-        expect(await table.exists()).toBe(true)
-    }
-    User = table.getModel('User')
-})
+describe('Unique', () => {
+    test('Create Table', async() => {
+        if (!(await table.exists())) {
+            await table.createTable()
+            expect(await table.exists()).toBe(true)
+        }
+        User = table.getModel('User')
+    })
 
-test('Create user 1', async() => {
-    const props = {
-        name: 'Peter Smith',
-        email: 'peter@example.com',
-    }
-    user = await User.create(props)
-    expect(user).toMatchObject(props)
-
-    let items = await table.scanItems()
-    expect(items.length).toBe(3)
-
-    let unique = items.filter((item) => item.pk.S.indexOf('interpolated') >= 0)
-    let pk = unique[0].pk.S
-    expect(pk.indexOf('Peter Smith') >= 0).toBe(true)
-    expect(pk.indexOf('peter@example.com') >= 0).toBe(true)
-    expect(pk.indexOf('User') >= 0).toBe(true)
-})
-
-test('Create user 2', async() => {
-    const props = {
-        name: 'Judy Smith',
-        email: 'judy@example.com',
-    }
-    user = await User.create(props)
-    expect(user).toMatchObject(props)
-
-    let items = await table.scanItems()
-    expect(items.length).toBe(6)
-})
-
-test('Update user 2 with unique email', async() => {
-    const props = {
-        name: 'Judy Smith',
-        email: 'judy-a@example.com',
-    }
-    user = await User.update(props, {return: 'get'})
-    expect(user).toMatchObject(props)
-
-    let items = await table.scanItems()
-    expect(items.length).toBe(6)
-})
-
-
-test('Update non-unique property', async() => {
-    const props = {
-        name: 'Judy Smith',
-        age: 42,
-    }
-    user = await User.update(props, {return: 'get'})
-    expect(user).toMatchObject(props)
-
-    let items = await table.scanItems()
-    expect(items.length).toBe(6)
-})
-
-test('Create non-unique email', async() => {
-    const props = {
-        name: 'Another Peter Smith',
-        email: 'peter@example.com',
-    }
-    await expect(async () => {
+    test('Create user 1', async() => {
+        const props = {
+            name: 'Peter Smith',
+            email: 'peter@example.com',
+        }
         user = await User.create(props)
-    }).rejects.toThrow()
+        expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
-    expect(items.length).toBe(6)
-})
+        let items = await table.scanItems()
+        expect(items.length).toBe(3)
 
-test('Update non-unique email', async() => {
-    const props = {
-        name: 'Judy Smith',
-        email: 'peter@example.com',
-    }
-    await expect(async () => {
-        await User.update(props, {return: 'none'})
-    }).rejects.toThrow()
+        let unique = items.filter((item) => item.pk.S.indexOf('interpolated') >= 0)
+        let pk = unique[0].pk.S
+        expect(pk.indexOf('Peter Smith') >= 0).toBe(true)
+        expect(pk.indexOf('peter@example.com') >= 0).toBe(true)
+        expect(pk.indexOf('User') >= 0).toBe(true)
+    })
 
-    let items = await table.scanItems()
-    expect(items.length).toBe(6)
-})
+    test('Create user 2', async() => {
+        const props = {
+            name: 'Judy Smith',
+            email: 'judy@example.com',
+        }
+        user = await User.create(props)
+        expect(user).toMatchObject(props)
 
-test('Remove user 1', async() => {
-    users = await User.scan()
-    expect(users.length).toBe(2)
+        let items = await table.scanItems()
+        expect(items.length).toBe(6)
+    })
 
-    await User.remove(users[0])
-    users = await User.scan()
-    expect(users.length).toBe(1)
+    test('Update user 2 with unique email', async() => {
+        const props = {
+            name: 'Judy Smith',
+            email: 'judy-a@example.com',
+        }
+        user = await User.update(props, {return: 'get'})
+        expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
-    expect(items.length).toBe(3)
-})
+        let items = await table.scanItems()
+        expect(items.length).toBe(6)
+    })
 
-test('Remove all users', async() => {
-    users = await User.scan({})
-    expect(users.length).toBe(1)
-    for (let user of users) {
-        await User.remove(user)
-    }
-    users = await User.scan({})
-    expect(users.length).toBe(0)
 
-    let items = await table.scanItems()
-    expect(items.length).toBe(0)
-})
+    test('Update non-unique property', async() => {
+        const props = {
+            name: 'Judy Smith',
+            age: 42,
+        }
+        user = await User.update(props, {return: 'get'})
+        expect(user).toMatchObject(props)
 
-test('Create user via update', async() => {
-    const props = {
-        name: 'Judy Smith',
-        email: 'judy@example.com',
-    }
-    let item: any = await User.update(props, {exists: null, return: 'get'})
-    expect(item).toMatchObject(props)
-})
+        let items = await table.scanItems()
+        expect(items.length).toBe(6)
+    })
 
-test('Destroy Table', async() => {
-    await table.deleteTable('DeleteTableForever')
-    expect(await table.exists()).toBe(false)
-})
+    test('Create non-unique email', async() => {
+        const props = {
+            name: 'Another Peter Smith',
+            email: 'peter@example.com',
+        }
+        await expect(async () => {
+            user = await User.create(props)
+        }).rejects.toThrow()
+
+        let items = await table.scanItems()
+        expect(items.length).toBe(6)
+    })
+
+    test('Update non-unique email', async() => {
+        const props = {
+            name: 'Judy Smith',
+            email: 'peter@example.com',
+        }
+        await expect(async () => {
+            await User.update(props, {return: 'none'})
+        }).rejects.toThrow()
+
+        let items = await table.scanItems()
+        expect(items.length).toBe(6)
+    })
+
+    test('Remove user 1', async() => {
+        users = await User.scan()
+        expect(users.length).toBe(2)
+
+        await User.remove(users[0])
+        users = await User.scan()
+        expect(users.length).toBe(1)
+
+        let items = await table.scanItems()
+        expect(items.length).toBe(3)
+    })
+
+    test('Remove all users', async() => {
+        users = await User.scan({})
+        expect(users.length).toBe(1)
+        for (let user of users) {
+            await User.remove(user)
+        }
+        users = await User.scan({})
+        expect(users.length).toBe(0)
+
+        let items = await table.scanItems()
+        expect(items.length).toBe(0)
+    })
+
+    test('Create user via update', async() => {
+        const props = {
+            name: 'Judy Smith',
+            email: 'judy@example.com',
+        }
+        let item: any = await User.update(props, {exists: null, return: 'get'})
+        expect(item).toMatchObject(props)
+    })
+
+    test('Destroy Table', async() => {
+        await table.deleteTable('DeleteTableForever')
+        expect(await table.exists()).toBe(false)
+    })
+});
+

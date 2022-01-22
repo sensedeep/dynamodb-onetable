@@ -3,8 +3,8 @@
 
     A model represents a DynamoDB single-table entity.
 */
-import {Expression} from './Expression.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import { OneTableArgError, OneTableError } from './Error.js'
+import { Expression } from './Expression.js'
 
 /*
     Ready / write tags for interceptions
@@ -21,7 +21,7 @@ const ReadWrite = {
 const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
-const ValidTypes = [ 'array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
+const ValidTypes = ['array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string']
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -63,7 +63,7 @@ export class Model {
             this.timestamps = table.timestamps
         }
         this.updatedField = table.updatedField
-        this.block = {fields: {}, deps: []}
+        this.block = { fields: {}, deps: [] }
 
         /*
             Map Javascript API properties to DynamoDB attribute names. The schema fields
@@ -90,7 +90,7 @@ export class Model {
         Prepare a model based on the schema and compute the attribute mapping.
      */
     prepModel(schemaFields, block, prefix = '') {
-        let {fields} = block
+        let { fields } = block
 
         schemaFields = this.table.assign({}, schemaFields)
         if (!prefix) {
@@ -106,7 +106,7 @@ export class Model {
                 schemaFields[this.updatedField] = schemaFields[this.updatedField] || { type: Date }
             }
         }
-        let {indexes, table} = this
+        let { indexes, table } = this
         let primary = indexes.primary
 
         //  Attributes that are mapped to a different attribute. Indexed by attribute name for this block.
@@ -171,12 +171,12 @@ export class Model {
                 if (field.attribute.length > 1) {
                     throw new OneTableArgError(`Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`)
                 }
-                if (index == 'primary') {
+                if (index === 'primary') {
                     field.required = true
                     let attribute = field.attribute[0]
-                    if (attribute == primary.hash) {
+                    if (attribute === primary.hash) {
                         this.hash = attribute
-                    } else if (attribute == primary.sort) {
+                    } else if (attribute === primary.sort) {
                         this.sort = attribute
                     }
                 }
@@ -191,11 +191,11 @@ export class Model {
                 Handle nested schema (recursive)
             */
             if (field.schema) {
-                if (field.type == 'array') {
+                if (field.type === 'array') {
                     throw new OneTableArgError(`Array types do not (yet) support nested schemas for field "${field.name}" in model "${this.name}"`)
                 }
-                if (field.type == 'object') {
-                    field.block = {deps: [], fields: {}}
+                if (field.type === 'object') {
+                    field.block = { deps: [], fields: {} }
                     this.prepModel(field.schema, field.block, name)
                     this.nested = true
                 } else {
@@ -203,7 +203,7 @@ export class Model {
                 }
             }
         }
-        if (Object.values(fields).find(f => f.unique && f.attribute != this.hash && f.attribute != this.sort)) {
+        if (Object.values(fields).find(f => f.unique && f.attribute !== this.hash && f.attribute !== this.sort)) {
             this.hasUniqueFields = true
         }
         this.mappings = mapTargets
@@ -229,8 +229,8 @@ export class Model {
     }
 
     orderFields(block, field) {
-        let {deps, fields} = block
-        if (deps.find(i => i.name == field.pathname)) {
+        let { deps, fields } = block
+        if (deps.find(i => i.name === field.pathname)) {
             return
         }
         if (field.value) {
@@ -238,7 +238,7 @@ export class Model {
             for (let pathname of vars) {
                 let name = pathname.split('.').shift()
                 let ref = fields[name]
-                if (ref && ref != field) {
+                if (ref && ref !== field) {
                     if (ref.schema) {
                         this.orderFields(ref.block, ref)
                     } else if (ref.value) {
@@ -263,7 +263,7 @@ export class Model {
         Returns [] for find/scan, cmd if !execute, else returns item.
      */
     async run(op, expression) {
-        let {index, properties, params} = expression
+        let { index, properties, params } = expression
 
         //  UNDOCUMENTED AND DEPRECATED
         if (params.preFormat) {
@@ -289,7 +289,7 @@ export class Model {
             if (top) {
                 params.expression = expression
                 let items = t.TransactItems = t.TransactItems || []
-                items.push({[top]: cmd})
+                items.push({ [top]: cmd })
                 return this.transformReadItem(op, properties, properties, params)
             } else {
                 throw new OneTableArgError(`Unknown transaction operation ${op}`)
@@ -302,15 +302,15 @@ export class Model {
         if (b) {
             params.expression = expression
             let ritems = b.RequestItems = b.RequestItems || {}
-            if (op == 'get') {
-                let list = ritems[this.tableName] = ritems[this.tableName] || {Keys: []}
+            if (op === 'get') {
+                let list = ritems[this.tableName] = ritems[this.tableName] || { Keys: [] }
                 list.Keys.push(cmd.Keys)
                 return this.transformReadItem(op, properties, properties, params)
 
             } else {
                 let list = ritems[this.tableName] = ritems[this.tableName] || []
                 let bop = BatchOps[op]
-                list.push({[bop]: cmd})
+                list.push({ [bop]: cmd })
                 return this.transformReadItem(op, properties, properties, params)
             }
         }
@@ -353,7 +353,7 @@ export class Model {
                 break
             }
             if (params.progress) {
-                params.progress({items, pages, stats, params, cmd})
+                params.progress({ items, pages, stats, params, cmd })
             }
             if (items.length) {
                 if (cmd.Limit) {
@@ -366,9 +366,9 @@ export class Model {
         } while (result.LastEvaluatedKey && (maxPages == null || ++pages < maxPages))
 
         let prev
-        if ((op == 'find' || op == 'scan') && items.length) {
-            let {hash, sort} = index
-            prev = { [hash]: items[0][hash], [sort]: items[0][sort]}
+        if ((op === 'find' || op === 'scan') && items.length) {
+            let { hash, sort } = index
+            prev = { [hash]: items[0][hash], [sort]: items[0][sort] }
             if (prev[hash] == null || prev[sort] == null) {
                 prev = null
             }
@@ -384,23 +384,25 @@ export class Model {
         /*
             Handle pagination next/prev
         */
-        if (op == 'find' || op == 'scan') {
+        if (op === 'find' || op === 'scan') {
             if (result.LastEvaluatedKey) {
                 items.next = this.table.unmarshall(result.LastEvaluatedKey, params)
-                Object.defineProperty(items, 'next', {enumerable: false})
+                Object.defineProperty(items, 'next', { enumerable: false })
             }
-            if (params.count || params.select == 'COUNT') {
+            if (params.count || params.select === 'COUNT') {
                 items.count = result.Count
-                Object.defineProperty(items, 'count', {enumerable: false})
+                Object.defineProperty(items, 'count', { enumerable: false })
             }
             if (prev) {
                 items.prev = this.table.unmarshall(prev, params)
-                Object.defineProperty(items, 'prev', {enumerable: false})
+                Object.defineProperty(items, 'prev', { enumerable: false })
             }
-            if (params.prev && op != 'scan') {
+            if (params.prev && op !== 'scan') {
                 //  DynamoDB scan ignores ScanIndexForward
                 items = items.reverse()
-                let tmp = items.prev ; items.prev = items.next ; items.next = tmp
+                let tmp = items.prev
+                items.prev = items.next
+                items.next = tmp
             }
         }
 
@@ -410,7 +412,7 @@ export class Model {
         */
         if (params.log !== false) {
             this.table.log[params.log ? 'info' : 'data'](`OneTable result for "${op}" "${this.name}"`, {
-                cmd, items, op, properties, params,
+                cmd, items, op, properties, params
             })
         }
 
@@ -419,14 +421,14 @@ export class Model {
             returned from the request on the GSI.
         */
         if (params.follow || (index.follow && params.follow !== false)) {
-            if (op == 'get') {
+            if (op === 'get') {
                 return await this.get(items[0])
             }
-            if (op == 'update') {
+            if (op === 'update') {
                 properties = Object.assign({}, properties, items[0])
                 return await this.update(properties)
             }
-            if (op == 'find') {
+            if (op === 'find') {
                 let results = [], promises = []
                 params = Object.assign({}, params)
                 delete params.follow
@@ -444,35 +446,35 @@ export class Model {
                 }
                 results.next = items.next
                 results.prev = items.prev
-                Object.defineProperty(results, 'next', {enumerable: false})
-                Object.defineProperty(results, 'prev', {enumerable: false})
+                Object.defineProperty(results, 'next', { enumerable: false })
+                Object.defineProperty(results, 'prev', { enumerable: false })
                 return results
             }
         }
-        return (op == 'find' || op == 'scan') ? items : items[0]
+        return (op === 'find' || op === 'scan') ? items : items[0]
     }
 
     /*
         Parse the response into Javascript objects and transform for the high level API.
      */
     parseResponse(op, expression, items) {
-        let {properties, params} = expression
-        let {schema, table} = this
-        if (op == 'put') {
+        let { properties, params } = expression
+        let { schema, table } = this
+        if (op === 'put') {
             //  Put requests do not return the item. So use the properties.
             items = [properties]
         } else {
             items = table.unmarshall(items, params)
         }
         for (let [index, item] of Object.entries(items)) {
-            if (params.high && params.index == this.indexes.primary && item[this.typeField] != this.name) {
+            if (params.high && params.index === this.indexes.primary && item[this.typeField] !== this.name) {
                 //  High level API on the primary index and item for a different model
                 continue
             }
             let type = item[this.typeField] ? item[this.typeField] : this.name
             let model = schema.models[type] ? schema.models[type] : this
             if (model) {
-                if (model == schema.uniqueModel) {
+                if (model === schema.uniqueModel) {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
@@ -486,7 +488,7 @@ export class Model {
         Create/Put a new item. Will overwrite existing items if exists: null.
     */
     async create(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
+        ({ properties, params } = this.checkArgs(properties, params, { parse: true, high: true, exists: false }))
         let result
         if (this.hasUniqueFields) {
             result = await this.createUnique(properties, params)
@@ -505,10 +507,10 @@ export class Model {
         }
         let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
-        let {hash, sort} = this.indexes.primary
+        let { hash, sort } = this.indexes.primary
         let fields = this.block.fields
 
-        fields = Object.values(fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        fields = Object.values(fields).filter(f => f.unique && f.attribute !== hash && f.attribute !== sort)
 
         if (this.timestamps) {
             properties[this.updatedField] = properties[this.createdField] = new Date()
@@ -519,7 +521,11 @@ export class Model {
             if (properties[field.name]) {
                 let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
                 let sk = '_unique#'
-                await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+                await this.schema.uniqueModel.create({ [this.hash]: pk, [this.sort]: sk }, {
+                    transaction,
+                    exists: false,
+                    return: 'NONE'
+                })
             }
         }
         let item = await this.putItem(properties, params)
@@ -533,9 +539,9 @@ export class Model {
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
-                throw new OneTableError(`Cannot create unqiue attributes "${names}" for "${this.name}", ` +
-                                   `an item of the same name already exists.`,
-                                   {properties, transaction, code: 'UniqueError'})
+                throw new OneTableError(
+                    `Cannot create unique attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    { properties, transaction, code: 'UniqueError' })
             }
             throw err
         }
@@ -544,19 +550,22 @@ export class Model {
     }
 
     async find(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { parse: true, high: true }))
         return await this.queryItems(properties, params)
     }
 
     async get(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { parse: true, high: true }))
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
             //  Fallback via find when using non-primary indexes
             params.limit = 2
             let items = await this.find(properties, params)
             if (items.length > 1) {
-                throw new OneTableError('Get without sort key returns more than one result', {properties, code: 'NonUniqueError'})
+                throw new OneTableError('Get without sort key returns more than one result', {
+                    properties,
+                    code: 'NonUniqueError'
+                })
             }
             return items[0]
         }
@@ -566,12 +575,12 @@ export class Model {
     }
 
     init(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { parse: true, high: true }))
         return this.initItem(properties, params)
     }
 
     async remove(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {exists: null, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { exists: null, high: true }))
 
         properties = this.prepareProperties('delete', properties, params)
         if (params.fallback) {
@@ -590,21 +599,21 @@ export class Model {
      */
     async removeByFind(properties, params) {
         if (params.retry) {
-            throw new OneTableArgError('Remove cannot retry', {properties})
+            throw new OneTableArgError('Remove cannot retry', { properties })
         }
         params.parse = true
         let items = await this.find(properties, params)
         if (items.length > 1 && !params.many) {
             throw new OneTableError(`Removing multiple items from "${this.name}". Use many:true to enable.`, {
                 properties,
-                code: 'NonUniqueError',
+                code: 'NonUniqueError'
             })
         }
         for (let item of items) {
             if (this.hasUniqueFields) {
-                await this.removeUnique(item, {retry: true})
+                await this.removeUnique(item, { retry: true })
             } else {
-                await this.remove(item, {retry: true})
+                await this.remove(item, { retry: true })
             }
         }
     }
@@ -613,37 +622,37 @@ export class Model {
         Remove an item with unique properties. Use transactions to remove unique items.
     */
     async removeUnique(properties, params) {
-        let transactHere = params.transaction ? false : true;
+        let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
-        let {hash, sort} = this.indexes.primary
-        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let { hash, sort } = this.indexes.primary
+        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute !== hash && f.attribute !== sort)
 
         params.prepared = properties = this.prepareProperties('delete', properties, params)
 
         for (let field of fields) {
             if (!properties[field.name]) {
-                throw new OneTableArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, {properties})
+                throw new OneTableArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, { properties })
             }
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
-            await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
+            await this.schema.uniqueModel.remove({ [this.hash]: pk, [this.sort]: sk }, { transaction })
         }
         await this.deleteItem(properties, params)
         // Only execute transaction if we are not in a transaction
-        if(transactHere) {
+        if (transactHere) {
             await this.table.transact('write', transaction, params)
         }
     }
 
     async scan(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { parse: true, high: true }))
         return await this.scanItems(properties, params)
     }
 
     async update(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
+        ({ properties, params } = this.checkArgs(properties, params, { exists: true, parse: true, high: true }))
         if (this.hasUniqueFields) {
-            let hasUniqueProperties = Object.entries(properties).find((pair, index) => {
+            let hasUniqueProperties = Object.entries(properties).find((pair) => {
                 return this.block.fields[pair[0]].unique
             })
             if (hasUniqueProperties) {
@@ -661,10 +670,10 @@ export class Model {
         if (params.batch) {
             throw new OneTableArgError('Cannot use batch with unique properties which require transactions')
         }
-        let transactHere = params.transaction ? false : true
+        let transactHere = !params.transaction
         let transaction = params.transaction = params.transaction || {}
         let index = this.indexes.primary
-        let {hash, sort} = index
+        let { hash, sort } = index
 
         params.prepared = properties = this.prepareProperties('update', properties, params)
         let keys = {
@@ -678,16 +687,16 @@ export class Model {
             Get the prior item so we know the previous unique property values so they can be removed.
             This must be run here, even if part of a transaction.
         */
-        let prior = await this.get(keys, {hidden:true})
+        let prior = await this.get(keys, { hidden: true })
         if (prior) {
             prior = this.prepareProperties('update', prior)
-        } else if (params.exists === undefined || params.exists == true) {
-            throw new OneTableError('Cannot find existing item to update', {properties, code: 'NotFoundError'})
+        } else if (params.exists === undefined || params.exists === true) {
+            throw new OneTableError('Cannot find existing item to update', { properties, code: 'NotFoundError' })
         }
         /*
             Create all required unique properties. Remove prior unique properties if they have changed.
         */
-        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
+        let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute !== hash && f.attribute !== sort)
 
         for (let field of fields) {
             if (properties[field.name] === undefined || (prior && properties[field.name] === prior[field.name])) {
@@ -701,13 +710,20 @@ export class Model {
                     Remove prior unique properties if they have changed and create new unique property.
                 */
                 let priorPk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
-                if (pk == priorPk) {
+                if (pk === priorPk) {
                     //  Hasn't changed
                     continue
                 }
-                await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {transaction, exists: null})
+                await this.schema.uniqueModel.remove({ [this.hash]: priorPk, [this.sort]: sk }, {
+                    transaction,
+                    exists: null
+                })
             }
-            await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+            await this.schema.uniqueModel.create({ [this.hash]: pk, [this.sort]: sk }, {
+                transaction,
+                exists: false,
+                return: 'NONE'
+            })
         }
         let item = await this.updateItem(properties, params)
 
@@ -725,24 +741,24 @@ export class Model {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
-                                   `an item of the same name already exists.`, {properties, transaction, code: 'UniqueError'})
+                    `an item of the same name already exists.`, { properties, transaction, code: 'UniqueError' })
             }
             throw err
         }
-        if (params.return == 'none' || params.return === false) {
+        if (params.return === 'none' || params.return === false) {
             return
         }
-        if (params.return == 'get') {
-            return await this.get(keys, {hidden: params.hidden, log: params.log, parse: params.parse})
+        if (params.return === 'get') {
+            return await this.get(keys, { hidden: params.hidden, log: params.log, parse: params.parse })
         }
         if (params.return) {
             throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
         } else {
             if (this.table.warn !== false) {
                 console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
-                             `Use params {return: 'none'} to squelch this warning. ` +
-                             `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
-                             `In future releases, this will throw an exception.`)
+                    `Use params {return: 'none'} to squelch this warning. ` +
+                    `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
+                    `In future releases, this will throw an exception.`)
             }
             return [properties]
         }
@@ -752,7 +768,7 @@ export class Model {
 
     /* private */
     async deleteItem(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         if (!params.prepared) {
             properties = this.prepareProperties('delete', properties, params)
         }
@@ -762,7 +778,7 @@ export class Model {
 
     /* private */
     async getItem(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
         return await this.run('get', expression)
@@ -770,7 +786,7 @@ export class Model {
 
     /* private */
     initItem(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         let fields = this.block.fields
         //  Ensure all fields are present
         for (let key of Object.keys(fields)) {
@@ -785,7 +801,7 @@ export class Model {
 
     /* private */
     async putItem(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         if (!params.prepared) {
             if (this.timestamps) {
                 properties[this.updatedField] = properties[this.createdField] = new Date()
@@ -798,7 +814,7 @@ export class Model {
 
     /* private */
     async queryItems(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         properties = this.prepareProperties('find', properties, params)
         let expression = new Expression(this, 'find', properties, params)
         return await this.run('find', expression)
@@ -807,7 +823,7 @@ export class Model {
     //  Note: scanItems will return all model types
     /* private */
     async scanItems(properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         properties = this.prepareProperties('scan', properties, params)
         let expression = new Expression(this, 'scan', properties, params)
         return await this.run('scan', expression)
@@ -815,7 +831,7 @@ export class Model {
 
     /* private */
     async updateItem(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
+        ({ properties, params } = this.checkArgs(properties, params))
         if (this.timestamps) {
             let now = new Date()
             properties[this.updatedField] = now
@@ -833,8 +849,8 @@ export class Model {
 
     /* private */
     async fetch(models, properties = {}, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params))
-        if (models.length == 0) {
+        ({ properties, params } = this.checkArgs(properties, params))
+        if (models.length === 0) {
             return {}
         }
         let where = []
@@ -869,7 +885,7 @@ export class Model {
                 continue
             }
             let att, sub
-            if (op == 'put') {
+            if (op === 'put') {
                 att = field.name
             } else {
                 [att, sub] = field.attribute
@@ -912,10 +928,10 @@ export class Model {
                 }
             }
         }
-        if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
+        if (params.hidden === true && rec[this.typeField] === undefined && !this.generic) {
             rec[this.typeField] = this.name
         }
-        if (this.table.params.transform && ReadWrite[op] == 'read') {
+        if (this.table.params.transform && ReadWrite[op] === 'read') {
             rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params, raw)
         }
         return rec
@@ -927,10 +943,10 @@ export class Model {
             console.log('WARNING: params.transform functions are DEPRECATED and will be removed soon.')
             return params.transform(this, 'read', name, value)
         }
-        if (field.type == 'date') {
+        if (field.type === 'date') {
             return value ? new Date(value) : null
         }
-        if (field.type == 'buffer' || field.type == 'binary') {
+        if (field.type === 'buffer' || field.type === 'binary') {
             return Buffer.from(value, 'base64')
         }
         return value
@@ -953,13 +969,13 @@ export class Model {
         if (params.fallback) {
             return properties
         }
-        if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
-            this.table.log.error(`Empty hash key`, {properties, params, op})
+        if (op !== 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
+            this.table.log.error(`Empty hash key`, { properties, params, op })
             throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
-                properties, rec, code: 'MissingError',
+                properties, rec, code: 'MissingError'
             })
         }
-        if (this.table.params.transform && ReadWrite[op] == 'write') {
+        if (this.table.params.transform && ReadWrite[op] === 'write') {
             rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params)
         }
         return rec
@@ -967,7 +983,7 @@ export class Model {
 
     //  Handle fallback for get/delete as GSIs only support find and scan
     needsFallback(op, index, params) {
-        if (index != this.indexes.primary && op != 'find' && op != 'scan') {
+        if (index !== this.indexes.primary && op !== 'find' && op !== 'scan') {
             if (params.low) {
                 throw new OneTableArgError('Cannot use non-primary index for "${op}" operation')
             }
@@ -984,7 +1000,7 @@ export class Model {
         if (generic) {
             return rec[index.hash]
         }
-        let field = Object.values(fields).find(f => f.attribute[0] == index.hash)
+        let field = Object.values(fields).find(f => f.attribute[0] === index.hash)
         if (!field) {
             return null
         }
@@ -996,10 +1012,10 @@ export class Model {
     */
     selectIndex(op, params) {
         let index
-        if (params.index && params.index != 'primary') {
+        if (params.index && params.index !== 'primary') {
             index = this.indexes[params.index]
             if (!index) {
-                throw new OneTableError(`Cannot find index ${params.index}`, {code: 'MissingError'})
+                throw new OneTableError(`Cannot find index ${params.index}`, { code: 'MissingError' })
             }
         } else {
             index = this.indexes.primary
@@ -1046,7 +1062,7 @@ export class Model {
         if (params.tunnel) {
             for (let [kind, settings] of Object.entries(params.tunnel)) {
                 for (let [key, value] of Object.entries(settings)) {
-                    properties[key] = {[kind]: value}
+                    properties[key] = { [kind]: value }
                 }
             }
         }
@@ -1064,12 +1080,12 @@ export class Model {
             if (field.schema) continue
             let omit = false
 
-            if (block == this.block) {
+            if (block === this.block) {
                 let attribute = field.attribute[0]
                 //  Missing sort key on a high-level API for get/delete
-                if (properties[name] == null && attribute == index.sort && params.high && KeysOnly[op]) {
-                    if (op == 'delete' && !params.many) {
-                        throw new OneTableError('Missing sort key', {code: 'MissingError'})
+                if (properties[name] == null && attribute === index.sort && params.high && KeysOnly[op]) {
+                    if (op === 'delete' && !params.many) {
+                        throw new OneTableError('Missing sort key', { code: 'MissingError' })
                     }
                     /*
                         Missing sort key for high level get, or delete without "any".
@@ -1078,7 +1094,7 @@ export class Model {
                     params.fallback = true
                     return
                 }
-                if (KeysOnly[op] && attribute != index.hash && attribute != index.sort && !this.hasUniqueFields) {
+                if (KeysOnly[op] && attribute !== index.hash && attribute !== index.sort && !this.hasUniqueFields) {
                     //  Keys only for get and delete. Must include unique properties and all properties if unique value templates.
                     //  FUTURE: could have a "strict" mode where we warn for other properties instead of ignoring.
                     omit = true
@@ -1087,7 +1103,7 @@ export class Model {
                     //  Attribute is not projected
                     omit = true
 
-                } else if (name == this.typeField && name != index.hash && name != index.sort && op == 'find') {
+                } else if (name === this.typeField && name !== index.hash && name !== index.sort && op === 'find') {
                     omit = true
                 }
             }
@@ -1101,9 +1117,9 @@ export class Model {
     getProjection(index) {
         let project = index.project
         if (project) {
-            if (project == 'all') {
+            if (project === 'all') {
                 project = null
-            } else if (project == 'keys') {
+            } else if (project === 'keys') {
                 let primary = this.indexes.primary
                 project = [primary.hash, primary.sort, index.hash, index.sort]
             }
@@ -1142,7 +1158,7 @@ export class Model {
      */
     addContext(op, fields, index, properties, params, context) {
         for (let field of Object.values(fields)) {
-            if (op == 'put' || (field.attribute[0] != index.hash && field.attribute[0] != index.sort)) {
+            if (op === 'put' || (field.attribute[0] !== index.hash && field.attribute[0] !== index.sort)) {
                 if (context[field.name] !== undefined) {
                     properties[field.name] = context[field.name]
                 }
@@ -1157,11 +1173,11 @@ export class Model {
         Set default property values on Put.
     */
     setDefaults(op, fields, properties, params) {
-        if (op != 'put' && op != 'init' && !(op == 'update' && params.exists == null)) {
+        if (op !== 'put' && op !== 'init' && !(op === 'update' && params.exists == null)) {
             return
         }
         for (let field of Object.values(fields)) {
-            if (field.type == 'object' && field.schema) {
+            if (field.type === 'object' && field.schema) {
                 properties[field.name] = properties[field.name] || {}
                 this.setDefaults(op, field.block.fields, properties[field.name], params)
             } else {
@@ -1172,7 +1188,7 @@ export class Model {
                     if (field.default !== undefined) {
                         value = field.default
 
-                    } else if (op == 'init') {
+                    } else if (op === 'init') {
                         if (!field.generate) {
                             //  Set non-default, non-uuid properties to null
                             value = null
@@ -1182,10 +1198,10 @@ export class Model {
                         if (field.generate === true) {
                             value = this.table.generate()
 
-                        } else if (field.generate == 'uuid') {
+                        } else if (field.generate === 'uuid') {
                             value = this.table.uuid()
 
-                        } else if (field.generate == 'ulid') {
+                        } else if (field.generate === 'ulid') {
                             value = this.table.ulid()
                         }
                     }
@@ -1207,9 +1223,9 @@ export class Model {
             if (!field) continue
             if (value === null && field.nulls !== true) {
                 if (field.required && (
-                        //  create with null/undefined, or update with null property
-                        (op == 'put' && properties[field.name] == null) ||
-                        (op == 'update' && properties[field.name] === null))) {
+                    //  create with null/undefined, or update with null property
+                    (op === 'put' && properties[field.name] == null) ||
+                    (op === 'update' && properties[field.name] === null))) {
                     //  Validation will catch this
                     continue
                 }
@@ -1221,7 +1237,7 @@ export class Model {
                 params.remove.push(field.pathname)
                 delete properties[name]
 
-            } else if (typeof value == 'object' && (field.type == 'object' || field.type == 'array')) {
+            } else if (typeof value == 'object' && (field.type === 'object' || field.type === 'array')) {
                 properties[name] = this.removeNulls(field, value)
             }
         }
@@ -1232,8 +1248,8 @@ export class Model {
      */
     runTemplates(op, index, fields, properties, params) {
         for (let [name, field] of Object.entries(fields)) {
-            if (field.isIndexed && (op != 'put' && op != 'update') &&
-                    field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
+            if (field.isIndexed && (op !== 'put' && op !== 'update') &&
+                field.attribute[0] !== index.hash && field.attribute[0] !== index.sort) {
                 //  Ignore indexes not being used for this call
                 continue
             }
@@ -1285,8 +1301,8 @@ export class Model {
             } else {
                 v = match
             }
-            if (typeof v == 'object' && v.toString() == '[object Object]') {
-                throw new OneTableError(`Value for "${field.pathname}" is not a primitive value`, {code: 'TypeError'})
+            if (typeof v == 'object' && v.toString() === '[object Object]') {
+                throw new OneTableError(`Value for "${field.pathname}" is not a primitive value`, { code: 'TypeError' })
             }
             return v
         })
@@ -1296,12 +1312,12 @@ export class Model {
             then use sort key prefix and begins_with, (provide no where clause).
          */
         if (value.indexOf('${') >= 0 && index) {
-            if (field.attribute[0] == index.sort) {
-                if (op == 'find' && !params.where) {
+            if (field.attribute[0] === index.sort) {
+                if (op === 'find' && !params.where) {
                     //  Strip from first ${ onward and retain fixed prefix portion
                     value = value.replace(/\${.*/g, '')
                     if (value) {
-                        return {begins: value}
+                        return { begins: value }
                     }
                 }
             }
@@ -1319,13 +1335,13 @@ export class Model {
         let fields = this.block.fields
         let field = fields[name]
         if (!field) {
-            throw new OneTableError('Cannot find field', {name})
+            throw new OneTableError('Cannot find field', { name })
         }
         return this.runTemplate('find', null, properties, params)
     }
 
     validateProperties(op, fields, properties, params) {
-        if (op != 'put' && op != 'update') {
+        if (op !== 'put' && op !== 'update') {
             return
         }
         let validation = {}
@@ -1343,14 +1359,14 @@ export class Model {
         for (let field of Object.values(fields)) {
             //  If required and create, must be defined. If required and update, must not be null.
             if (field.required && (
-                    (op == 'put' && properties[field.name] == null) || (op == 'update' && properties[field.name] === null))) {
+                (op === 'put' && properties[field.name] == null) || (op === 'update' && properties[field.name] === null))) {
                 validation[field.name] = `Value not defined for required field "${field.name}"`
             }
         }
 
         if (Object.keys(validation).length > 0) {
             let error = new OneTableError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
-                {validation, code: 'ValidationError'}
+                { validation, code: 'ValidationError' }
             )
             throw error
         }
@@ -1363,7 +1379,7 @@ export class Model {
         if (typeof params.validate == 'function') {
             console.log('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
             let error
-            ({error, value} = params.validate(this, field, value))
+            ({ error, value } = params.validate(this, field, value))
             if (error) {
                 details[fieldName] = error
             }
@@ -1380,7 +1396,7 @@ export class Model {
                 }
             } else {
                 let pattern = validate.toString()
-                if (pattern[0] == '/' && pattern.lastIndexOf('/') > 0) {
+                if (pattern[0] === '/' && pattern.lastIndexOf('/') > 0) {
                     let parts = pattern.split('/')
                     let qualifiers = parts.pop()
                     let pat = parts.slice(1).join('/')
@@ -1425,40 +1441,40 @@ export class Model {
         } else if (value == null && field.nulls === true) {
             //  Keep the null
 
-        } else if (op == 'find' && value != null && typeof value == 'object') {
+        } else if (op === 'find' && value != null && typeof value == 'object') {
             //  Find used {begins} and other operators
             value = this.transformNestedWriteFields(field, value)
 
-        } else if (type == 'date') {
+        } else if (type === 'date') {
             value = this.transformWriteDate(field, value)
 
-        } else if (type == 'number') {
+        } else if (type === 'number') {
             let num = Number(value)
             if (isNaN(num)) {
-                throw new OneTableError(`Invalid value "${value}" provided for field "${field.name}"`, {code: 'ValidationError'})
+                throw new OneTableError(`Invalid value "${value}" provided for field "${field.name}"`, { code: 'ValidationError' })
             }
             value = num
 
-        } else if (type == 'boolean') {
-            if (value == 'false' || value == 'null' || value == 'undefined') {
+        } else if (type === 'boolean') {
+            if (value === 'false' || value === 'null' || value === 'undefined') {
                 value = false
             }
             value = Boolean(value)
 
-        } else if (type == 'string') {
+        } else if (type === 'string') {
             if (value != null) {
                 value = value.toString()
             }
 
-        } else if (type == 'buffer' || type == 'binary') {
+        } else if (type === 'buffer' || type === 'binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
             }
 
-        } else if (type == 'array') {
+        } else if (type === 'array') {
             //  Heursistics to accept legacy string values for array types. Note: TS would catch this also.
             if (value != null && !Array.isArray(value)) {
-                if (value == '') {
+                if (value === '') {
                     value = []
                 } else {
                     //  FUTURE: should be moved to validations
@@ -1467,10 +1483,10 @@ export class Model {
                 }
             }
 
-        } else if (type == 'set' && Array.isArray(value)) {
+        } else if (type === 'set' && Array.isArray(value)) {
             value = this.transformWriteSet(type, value)
 
-        } else if (type == 'object' && (value != null && typeof value == 'object')) {
+        } else if (type === 'object' && (value != null && typeof value == 'object')) {
             value = this.transformNestedWriteFields(field, value)
         }
 
@@ -1489,7 +1505,7 @@ export class Model {
             } else if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
 
-            } else if (Array.isArray(value) && (field.type == Set || type == Set)) {
+            } else if (Array.isArray(value) && (field.type === Set || type === Set)) {
                 value = this.transformWriteSet(type, value)
 
             } else if (value == null && field.nulls !== true) {
@@ -1505,9 +1521,9 @@ export class Model {
 
     transformWriteSet(type, value) {
         if (!Array.isArray(value)) {
-            throw new OneTableError('Set values must be arrays', {code: 'TypeError'})
+            throw new OneTableError('Set values must be arrays', { code: 'TypeError' })
         }
-        if (type == Set || type == 'Set') {
+        if (type === Set || type === 'Set') {
             let v = value.values().next().value
             if (typeof v == 'string') {
                 value = value.map(v => v.toString())
@@ -1517,7 +1533,7 @@ export class Model {
                 value = value.map(v => v.toString('base64'))
             }
         } else {
-            throw new OneTableError('Unknown type', {code: 'TypeError'})
+            throw new OneTableError('Unknown type', { code: 'TypeError' })
         }
         return value
     }
@@ -1562,8 +1578,8 @@ export class Model {
         let properties = {}
         for (let [indexName, index] of Object.entries(indexes)) {
             for (let [type, pname] of Object.entries(index)) {
-                if (type == 'hash' || type == 'sort') {
-                    if (properties[pname] != 'primary') {
+                if (type === 'hash' || type === 'sort') {
+                    if (properties[pname] !== 'primary') {
                         //  Let primary take precedence
                         properties[pname] = indexName
                     }
@@ -1587,20 +1603,20 @@ export class Model {
     checkArgs(properties, params, overrides = {}) {
         if (params.checked) {
             //  Only need to clone once
-            return {properties, params}
+            return { properties, params }
         }
         if (!properties) {
             throw new OneTableArgError('Missing properties')
         }
         if (typeof params != 'object') {
-            throw new OneTableError('Invalid type for params', {code: 'TypeError'})
+            throw new OneTableError('Invalid type for params', { code: 'TypeError' })
         }
         //  Must not use merge as we need to modify the callers batch/transaction objects
         params = Object.assign(overrides, params)
 
         params.checked = true
         properties = this.table.assign({}, properties)
-        return {properties, params}
+        return { properties, params }
     }
 
     /*
@@ -1612,7 +1628,7 @@ export class Model {
         /*
             Loop over plain objects and arrays only
         */
-        if (obj !== null && typeof obj == 'object' && (obj.constructor.name == 'Object' || obj.constructor.name == 'Array')) {
+        if (obj !== null && typeof obj == 'object' && (obj.constructor.name === 'Object' || obj.constructor.name === 'Array')) {
             result = Array.isArray(obj) ? [] : {}
             for (let [key, value] of Object.entries(obj)) {
                 if (value === '') {
