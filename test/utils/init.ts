@@ -5,6 +5,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
+const dynamoExecutedCommandsTracer = jest.fn()
+
 const Client = new Dynamo({
     client: new DynamoDBClient({
         endpoint: `http://localhost:${PORT}`,
@@ -13,6 +15,12 @@ const Client = new Dynamo({
             accessKeyId: 'test',
             secretAccessKey: 'test',
         }),
+        logger: {
+            debug: dynamoExecutedCommandsTracer,
+            info: dynamoExecutedCommandsTracer,
+            warn: dynamoExecutedCommandsTracer,
+            error: dynamoExecutedCommandsTracer
+        }
     })
 })
 
@@ -51,4 +59,4 @@ const Match = {
     phone:  /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/,
 }
 
-export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print}
+export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print, dynamoExecutedCommandsTracer}

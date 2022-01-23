@@ -565,6 +565,13 @@ export class Model {
         return await this.run('get', expression)
     }
 
+    async load(properties = {}, params = {}) {
+        ({properties, params} = this.checkArgs(properties, params))
+        properties = this.prepareProperties('get', properties, params)
+        let expression = new Expression(this, 'get', properties, params)
+        return await this.table.batchLoad(this, properties, params, expression)
+    }
+
     init(properties = {}, params = {}) {
         ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return this.initItem(properties, params)
