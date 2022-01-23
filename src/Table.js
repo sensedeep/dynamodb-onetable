@@ -216,13 +216,13 @@ export class Table {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
         let attributes = {}
-        let {indexes, models} = this.schema
+        let {indexes} = this.schema
 
         if (!indexes) {
             throw new OneTableArgError('Cannot create table without schema indexes')
         }
         for (let [name, index] of Object.entries(indexes)) {
-            let collection, keys
+            let keys
             if (name == 'primary') {
                 keys = def.KeySchema
             } else {
@@ -633,7 +633,7 @@ export class Table {
                     return false
                 }
                 if (retries > 11) {
-                    throw new Error(res.UnprocessedItems)
+                    throw new Error(response.UnprocessedItems)
                 }
                 await this.delay(10 * (2 ** retries++))
                 more = true
@@ -843,10 +843,10 @@ export class Table {
         } else {
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
-                    item[i] = this.unmarshallv2(item[i], params)
+                    item[i] = this.unmarshallv2(item[i])
                 }
             } else {
-                item = this.unmarshallv2(item, params)
+                item = this.unmarshallv2(item)
             }
 
         }
@@ -863,7 +863,7 @@ export class Table {
         return item
     }
 
-    unmarshallv2(item, params) {
+    unmarshallv2(item) {
         for (let [key, value] of Object.entries(item)) {
             if (value != null && typeof value == 'object' && value.wrapperName == 'Set' && Array.isArray(value.values)) {
                 let list = value.values
@@ -930,7 +930,7 @@ export class Table {
     }
 
     async delay(time) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve) {
             setTimeout(() => resolve(true), time)
         })
     }
