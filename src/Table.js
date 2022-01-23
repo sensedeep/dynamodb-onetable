@@ -652,9 +652,9 @@ export class Table {
         return true
     }
 
-    async batchLoad(model, properties, params, expression) {
+    async batchLoad(expression) {
         if (this.dataloader) {
-            return await this.dataloader.load({ model, properties, params, expression })
+            return await this.dataloader.load(expression)
         }
         throw new Error('params.dataloader DataLoader constructor is required to use load feature')
     }
@@ -738,16 +738,16 @@ export class Table {
     }
 
     /**
-     * this is a function passed to the DataLoader that given an array of { model, properties, params, expression }
+     * this is a function passed to the DataLoader that given an array of Expression
      * will group all commands by TableName and make all Keys unique and then will perform
      * a BatchGet request and process the response of the BatchRequest to return an array
      * with the corresponding response in the same order as it was requested.
      *
-     * @param batch
+     * @param expressions
      * @returns {Promise<*>}
      */
-    async batchLoaderFunction(batch) {
-        const commands = batch.map(each => each.expression.command())
+    async batchLoaderFunction(expressions) {
+        const commands = expressions.map(each => each.command())
 
         const groupedByTableName =  commands.reduce((groupedBy, item) => {
             const tableName = item.TableName
@@ -779,7 +779,7 @@ export class Table {
         // return the exact mapping (on same order as input) of each get command request to the result from database
         // to do that we need to find in the Responses object the item that was request and return it in the same position
         return commands.map((command, index) => {
-            const { model, params } = batch[index]
+            const { model, params } = expressions[index]
 
             // each key is { pk: { S: "XX" } }
             // on map function, key will be pk and unmarshalled will be { S: "XX" }

@@ -569,7 +569,7 @@ export class Model {
         ({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
-        return await this.table.batchLoad(this, properties, params, expression)
+        return await this.table.batchLoad(expression)
     }
 
     init(properties = {}, params = {}) {
