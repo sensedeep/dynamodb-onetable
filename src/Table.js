@@ -321,12 +321,15 @@ export class Table {
             GlobalSecondaryIndexUpdates: [],
             TableName: this.name,
         }
-        let provisioned = params.provisioned
+        let {create, provisioned} = params
+
         if (provisioned) {
             if (!provisioned.ReadCapacityUnits && !provisioned.WriteCapacityUnits) {
                 def.BillingMode = 'PAY_PER_REQUEST'
             } else {
-                def.ProvisionedThroughput = provisioned
+                if (!create) {
+                    def.ProvisionedThroughput = provisioned
+                }
                 def.BillingMode = 'PROVISIONED'
             }
         }
@@ -334,7 +337,6 @@ export class Table {
         if (!indexes) {
             throw new OneTableArgError('Cannot update table without schema indexes')
         }
-        let create = params.create
         if (create) {
             if (create.hash == null || create.hash == indexes.primary.hash || create.type == 'local') {
                 throw new OneTableArgError('Cannot update table to create an LSI')
@@ -367,6 +369,9 @@ export class Table {
                 def.AttributeDefinitions.push({AttributeName: create.sort, AttributeType: 'S'})
                 keys.push({AttributeName: create.sort, KeyType: 'RANGE'})
             }
+            if (provisioned) {
+                projDef.ProvisionedThroughput = provisioned
+            }
             def.GlobalSecondaryIndexUpdates.push({Create: projDef})
 
         } else if (params.remove) {
@@ -382,10 +387,6 @@ export class Table {
         if (def.GlobalSecondaryIndexUpdates.length == 0) {
             delete def.GlobalSecondaryIndexUpdates
 
-        } else if (provisioned) {
-            for (let index of def.GlobalSecondaryIndexes) {
-                index.ProvisionedThroughput = provisioned
-            }
         }
         this.log.trace(`OneTable updateTable for "${this.name}"`, {def})
         if (this.V3) {
