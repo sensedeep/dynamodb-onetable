@@ -28,7 +28,6 @@ const table = new Table({
     schema,
     logger: true,
     transform(model, op, item, properties, params, raw) {
-        expect(op).toBe('write')
         if (op == 'write') {
             item.name = properties.email.toUpperCase()
         }

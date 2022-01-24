@@ -18,6 +18,15 @@ const ReadWrite = {
     update: 'write'
 }
 
+const TransformParseResponseAs = {
+    delete: 'get',
+    get: 'get',
+    find: 'find',
+    put: 'get',
+    scan: 'scan',
+    update: 'get'
+}
+
 const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
@@ -915,8 +924,9 @@ export class Model {
         if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
             rec[this.typeField] = this.name
         }
-        if (this.table.params.transform && ReadWrite[op] == 'read') {
-            rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params, raw)
+        if (this.table.params.transform) {
+            let opForTransform = TransformParseResponseAs[op]
+            rec = this.table.params.transform(this, ReadWrite[opForTransform], rec, properties, params, raw)
         }
         return rec
     }
