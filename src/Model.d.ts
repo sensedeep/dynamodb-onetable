@@ -246,6 +246,7 @@ export type AnyModel = {
     create(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    load(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     init(properties?: OneProperties, params?: OneParams): AnyEntity;
     remove(properties: OneProperties, params?: OneParams): Promise<void>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
@@ -257,6 +258,7 @@ export class Model<T> {
     create(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
+    load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<void>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;

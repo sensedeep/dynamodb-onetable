@@ -27,6 +27,9 @@ type TableConstructorParams = {
     //  Compute a value for a value template
     value?: (model: AnyModel, fieldName: string, properties: OneProperties, params?: OneParams) => string,
 
+    // https://www.npmjs.com/package/dataloader DataLoader constructor
+    dataloader?: new (batchLoadFn: any, options?: any) => any
+
     //  DEPRECATED 2.3 - Should now be specified via the schema.params
     createdField?: string,          //  Name of "created" timestamp attribute.
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
@@ -89,6 +92,7 @@ export class Table {
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    load(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     init(modelName: string, properties?: OneProperties, params?: OneParams): AnyEntity;
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;

@@ -53,6 +53,8 @@ const DynamoOps = {
 
 const GenericModel = '_Generic'
 
+const maxBatchSize = 25
+
 /*
     Represent a single DynamoDB table
  */
@@ -81,6 +83,9 @@ export class Table {
         }
         this.setParams(params)
         this.schema = new Schema(this, params.schema)
+        if (params.dataloader) {
+            this.dataloader = new params.dataloader(cmds => this.batchLoaderFunction(cmds), { maxBatchSize })
+        }
     }
 
     setClient(client) {
@@ -498,6 +503,11 @@ export class Table {
         return await model.get(properties, params)
     }
 
+    async load(modelName, properties, params) {
+        let model = this.getModel(modelName)
+        return await model.load(properties, params)
+    }
+
     init(modelName, properties, params) {
         let model = this.getModel(modelName)
         return model.init(properties, params)
@@ -643,6 +653,13 @@ export class Table {
         return true
     }
 
+    async batchLoad(expression) {
+        if (this.dataloader) {
+            return await this.dataloader.load(expression)
+        }
+        throw new Error('params.dataloader DataLoader constructor is required to use load feature')
+    }
+
     async deleteItem(properties, params) {
         return await this.schema.genericModel.deleteItem(properties, params)
     }
@@ -719,6 +736,73 @@ export class Table {
             list.push(preparedItem)
         }
         return result
+    }
+
+    /**
+     * this is a function passed to the DataLoader that given an array of Expression
+     * will group all commands by TableName and make all Keys unique and then will perform
+     * a BatchGet request and process the response of the BatchRequest to return an array
+     * with the corresponding response in the same order as it was requested.
+     *
+     * @param expressions
+     * @returns {Promise<*>}
+     */
+    async batchLoaderFunction(expressions) {
+        const commands = expressions.map(each => each.command())
+
+        const groupedByTableName =  commands.reduce((groupedBy, item) => {
+            const tableName = item.TableName
+            if (!groupedBy[tableName]) groupedBy[tableName] = []
+            groupedBy[tableName].push(item)
+            return groupedBy
+        }, {})
+
+        // convert each of the get requests into a single RequestItem with unique Keys
+        const requestItems = Object.keys(groupedByTableName).reduce((requestItems, tableName) => {
+            // batch get does not support duplicate Keys, so we need to make them unique
+            // it's complex because we have the unmarshalled values on the Keys
+            const allKeys = groupedByTableName[tableName].map(each => each.Key)
+            const uniqueKeys = allKeys.filter((key1, index1, self) => {
+                const index2 = self.findIndex(key2 => {
+                    return Object.keys(key2).every(prop => {
+                        const type = Object.keys(key1[prop])[0] // { S: "XX" } => type is S
+                        return key2[prop][type] === key1[prop][type]
+                    })
+                })
+                return index2 === index1
+            })
+            requestItems[tableName] = { Keys: uniqueKeys }
+            return requestItems
+        }, {})
+
+        const results = await this.batchGet({ RequestItems: requestItems })
+
+        // return the exact mapping (on same order as input) of each get command request to the result from database
+        // to do that we need to find in the Responses object the item that was request and return it in the same position
+        return commands.map((command, index) => {
+            const { model, params } = expressions[index]
+
+            // each key is { pk: { S: "XX" } }
+            // on map function, key will be pk and unmarshalled will be { S: "XX" }
+            const criteria = Object.entries(command.Key).map(([key, unmarshalled]) => {
+                const type = Object.keys(unmarshalled)[0] // the type will be S
+                return [[key, type], unmarshalled[type]] // return [[pk, S], "XX"]
+            })
+
+            // finds the matching object in the unmarshalled Responses array with criteria Key above
+            const findByKeyUnmarshalled = (items = []) => items.find(item => {
+                return criteria.every(([[prop, type], value]) => {
+                    return item[prop][type] === value
+                })
+            })
+
+            const items = results.Responses[command.TableName]
+            const item = findByKeyUnmarshalled(items)
+            if (item) {
+                const unmarshalled = this.unmarshall(item, params)
+                return model.transformReadItem('get', unmarshalled, {}, params)
+            }
+        })
     }
 
     /*

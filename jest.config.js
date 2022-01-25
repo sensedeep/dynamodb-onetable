@@ -29,6 +29,7 @@ module.exports = {
     globalSetup: '<rootDir>/test/utils/setup.ts',
     globalTeardown: '<rootDir>/test/utils/teardown.ts',
     testEnvironment: "node",
+    resetMocks: true,
     transform: {
         '^.+\\.(js|ts)$': 'ts-jest'
     },
