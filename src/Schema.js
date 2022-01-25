@@ -3,7 +3,7 @@
  */
 
 import {Model} from './Model.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import {OneTableArgError} from './Error.js'
 
 const GenericModel = '_Generic'
 const MigrationModel = '_Migration'
@@ -11,7 +11,6 @@ const SchemaModel = '_Schema'
 const UniqueModel = '_Unique'
 const MigrationKey = '_migration'
 const SchemaKey = '_schema'
-const UniqueKey = '_unique'
 const SchemaFormat = 'onetable:1.1.0'
 
 export class Schema {
@@ -129,7 +128,7 @@ export class Schema {
         Model for unique attributes. Free standing and not in models[]
      */
     createUniqueModel() {
-        let {indexes, schema, table} = this
+        let {indexes, table} = this
         let primary = indexes.primary
         let fields = {
             [primary.hash]: {type: String}
@@ -145,7 +144,7 @@ export class Schema {
         NOTE: there is not items created based on this model.
      */
     createGenericModel() {
-        let {indexes, schema, table} = this
+        let {indexes, table} = this
         let primary = indexes.primary
         let fields = {[primary.hash]: {type: String}}
         if (primary.sort) {
@@ -155,7 +154,7 @@ export class Schema {
     }
 
     createSchemaModel() {
-        let {indexes, schema, table} = this
+        let {indexes, table} = this
         let primary = indexes.primary
         let fields = this.schemaModelFields = {
             [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
@@ -174,7 +173,7 @@ export class Schema {
     }
 
     createMigrationModel() {
-        let {indexes, schema} = this
+        let {indexes} = this
         let primary = indexes.primary
         let fields = this.migrationModelFields = {
             [primary.hash]: { type: 'string', value: `${MigrationKey}` },
@@ -312,7 +311,7 @@ export class Schema {
             }
             mdef[params.typeField] = {name: params.typeField, type: 'string', required: true}
 
-            for (let [key,field] of Object.entries(mdef)) {
+            for (let [,field] of Object.entries(mdef)) {
                 //  DEPRECATE
                 if (field.uuid) {
                     console.warn(`OneTable: Using deprecated field "uuid". Use "generate" instead.`)
