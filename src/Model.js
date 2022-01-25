@@ -18,6 +18,15 @@ const ReadWrite = {
     update: 'write'
 }
 
+const TransformParseResponseAs = {
+    delete: 'get',
+    get: 'get',
+    find: 'find',
+    put: 'get',
+    scan: 'scan',
+    update: 'get'
+}
+
 const KeysOnly = { delete: true, get: true }
 const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
 const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
@@ -533,9 +542,9 @@ export class Model {
         } catch (err) {
             if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
                 let names = fields.map(f => f.name).join(', ')
-                throw new OneTableError(`Cannot create unqiue attributes "${names}" for "${this.name}", ` +
-                                   `an item of the same name already exists.`,
-                                   {properties, transaction, code: 'UniqueError'})
+                throw new OneTableError(
+                    `Cannot create unqiue attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    {properties, transaction, code: 'UniqueError'})
             }
             throw err
         }
@@ -620,7 +629,7 @@ export class Model {
         Remove an item with unique properties. Use transactions to remove unique items.
     */
     async removeUnique(properties, params) {
-        let transactHere = params.transaction ? false : true;
+        let transactHere = params.transaction ? false : true
         let transaction = params.transaction = params.transaction || {}
         let {hash, sort} = this.indexes.primary
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
@@ -650,7 +659,7 @@ export class Model {
     async update(properties, params = {}) {
         ({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
-            let hasUniqueProperties = Object.entries(properties).find((pair, index) => {
+            let hasUniqueProperties = Object.entries(properties).find((pair) => {
                 return this.block.fields[pair[0]].unique
             })
             if (hasUniqueProperties) {
@@ -922,8 +931,9 @@ export class Model {
         if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
             rec[this.typeField] = this.name
         }
-        if (this.table.params.transform && ReadWrite[op] == 'read') {
-            rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params, raw)
+        if (this.table.params.transform) {
+            let opForTransform = TransformParseResponseAs[op]
+            rec = this.table.params.transform(this, ReadWrite[opForTransform], rec, properties, params, raw)
         }
         return rec
     }
@@ -1214,8 +1224,8 @@ export class Model {
             if (!field) continue
             if (value === null && field.nulls !== true) {
                 if (field.required && (
-                        //  create with null/undefined, or update with null property
-                        (op == 'put' && properties[field.name] == null) ||
+                //  create with null/undefined, or update with null property
+                    (op == 'put' && properties[field.name] == null) ||
                         (op == 'update' && properties[field.name] === null))) {
                     //  Validation will catch this
                     continue
@@ -1350,7 +1360,7 @@ export class Model {
         for (let field of Object.values(fields)) {
             //  If required and create, must be defined. If required and update, must not be null.
             if (field.required && (
-                    (op == 'put' && properties[field.name] == null) || (op == 'update' && properties[field.name] === null))) {
+                (op == 'put' && properties[field.name] == null) || (op == 'update' && properties[field.name] === null))) {
                 validation[field.name] = `Value not defined for required field "${field.name}"`
             }
         }
