@@ -1,7 +1,6 @@
 # Contribution Guidelines
 
-All code contributions shall be made using the [MIT](https://opensource.org/licenses/MIT).
-See [Contributors Agreement](https://embedthis.com/developers/contributors.html) for full details.
+All code contributions shall be made using the [MIT](https://opensource.org/licenses/MIT) license.
 
 - [Contribution Guidelines](#contribution-guidelines)
   - [Guide](#guide)
