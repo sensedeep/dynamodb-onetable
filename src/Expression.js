@@ -386,8 +386,7 @@ export class Expression {
                 }
                 this.already[key] = true
                 let target = this.makeTarget(fields, key)
-                //  If value is number of simple string then don't expand
-                if (value.toString().match(/\${.*?}|@{.*?}|{.*?}/)) {
+                if (typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)) {
                     updates.set.push(`${target} = ${this.expand(value)}`)
                 } else {
                     updates.set.push(`${target} = :_${this.addValue(value)}`)
