@@ -107,7 +107,7 @@ type EntityFieldFromType<T extends OneField> =
     : T['type'] extends (ObjectConstructor | 'object') ? object
     : T['type'] extends (DateConstructor | 'date') ? Date
     : T['type'] extends (StringConstructor | 'string') ? string
-    : T['type'] extends (SetConstructor | 'set') ? Set<T>
+    : T['type'] extends (SetConstructor | 'set') ? Set<any>
     : never;
 
 /*
