@@ -32,6 +32,6 @@ jobs:
     - run: npm run build --if-present
     - run: npm run lint --if-present
     - name: DynamoDB Client v2 Tests
-      run: DDB_CLIENT_VERSION=v2 npm test
+      run: npm run test:v2
     - name: DynamoDB Client v3 Tests
-      run: DDB_CLIENT_VERSION=v3 npm test
+      run: npm run test:v3
