@@ -2,8 +2,8 @@
    Batch get/write
  */
 
-import {AWS, Client, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
+import {Client, isV2, isV3, Table} from './utils/init'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -83,7 +83,8 @@ test('Batch get without parse', async() => {
     }
     let response: any = await table.batchGet(batch, {hidden: false})
     expect(response.Responses).toBeDefined()
-    expect(response['$metadata']).toBeDefined()
+    if (isV3()) expect(response['$metadata']).toBeDefined()
+    if (isV2()) expect(response['$response']).toBeDefined()
 })
 
 test('Batch with error', async() => {

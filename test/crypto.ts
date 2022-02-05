@@ -1,7 +1,7 @@
 /*
     crypto.ts - CRUD with crypto
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Match, Table, print, dump, delay, isV3, isV2} from './utils/init'
 import {CryptoSchema} from './schemas'
 
 const Crypto = {
@@ -50,10 +50,18 @@ test('Get', async() => {
 
 test('Get raw ', async() => {
     user = await User.get({id: user.id}, {hidden: true, parse: false})
-    expect(user.pk.S).toMatch(/^User#/)
-    expect(user.email.S).toBeDefined()
-    expect(user.email.S).not.toMatch('peter@example.com')
-    expect(user.email.S).toMatch(/^primary/)
+    if (isV3()) {
+        expect(user.pk.S).toMatch(/^User#/)
+        expect(user.email.S).toBeDefined()
+        expect(user.email.S).not.toMatch('peter@example.com')
+        expect(user.email.S).toMatch(/^primary/)
+    }
+    if (isV2()) {
+        expect(user.pk).toMatch(/^User#/)
+        expect(user.email).toBeDefined()
+        expect(user.email).not.toMatch('peter@example.com')
+        expect(user.email).toMatch(/^primary/)
+    }
 })
 
 test('Destroy Table', async() => {

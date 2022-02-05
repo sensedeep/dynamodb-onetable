@@ -7,10 +7,10 @@
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
-import {Expression} from './Expression.js'
-import {Schema} from './Schema.js'
-import {Metrics} from './Metrics.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import { Expression } from './Expression.js'
+import { Schema } from './Schema.js'
+import { Metrics } from './Metrics.js'
+import { OneTableArgError, OneTableError } from './Error.js'
 
 /*
     AWS V2 DocumentClient methods
@@ -760,13 +760,16 @@ export class Table {
         // convert each of the get requests into a single RequestItem with unique Keys
         const requestItems = Object.keys(groupedByTableName).reduce((requestItems, tableName) => {
             // batch get does not support duplicate Keys, so we need to make them unique
-            // it's complex because we have the unmarshalled values on the Keys
+            // it's complex because we have the unmarshalled values on the Keys when it's V3
             const allKeys = groupedByTableName[tableName].map(each => each.Key)
             const uniqueKeys = allKeys.filter((key1, index1, self) => {
                 const index2 = self.findIndex(key2 => {
                     return Object.keys(key2).every(prop => {
-                        const type = Object.keys(key1[prop])[0] // { S: "XX" } => type is S
-                        return key2[prop][type] === key1[prop][type]
+                        if (this.V3) {
+                            const type = Object.keys(key1[prop])[0] // { S: "XX" } => type is S
+                            return key2[prop][type] === key1[prop][type]
+                        }
+                        return key2[prop] === key1[prop]
                     })
                 })
                 return index2 === index1
@@ -782,17 +785,21 @@ export class Table {
         return commands.map((command, index) => {
             const { model, params } = expressions[index]
 
-            // each key is { pk: { S: "XX" } }
-            // on map function, key will be pk and unmarshalled will be { S: "XX" }
+            // each key is { pk: { S: "XX" } } when V3 or { pk: "XX" } when V2
+            // on map function, key will be pk and unmarshalled will be { S: "XX" }, OR "XXX"
             const criteria = Object.entries(command.Key).map(([key, unmarshalled]) => {
-                const type = Object.keys(unmarshalled)[0] // the type will be S
-                return [[key, type], unmarshalled[type]] // return [[pk, S], "XX"]
+                if (this.V3) {
+                    const type = Object.keys(unmarshalled)[0] // the type will be S
+                    return [[key, type], unmarshalled[type]] // return [[pk, S], "XX"]
+                }
+                return [[key], unmarshalled]
             })
 
             // finds the matching object in the unmarshalled Responses array with criteria Key above
             const findByKeyUnmarshalled = (items = []) => items.find(item => {
                 return criteria.every(([[prop, type], value]) => {
-                    return item[prop][type] === value
+                    if (type) return item[prop][type] === value // if it has a type it means it is V3
+                    return item[prop] === value
                 })
             })
 

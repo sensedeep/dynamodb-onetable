@@ -2,12 +2,26 @@ import AWS from 'aws-sdk'
 import Dynamo from '../../src/Dynamo.js'
 import { Entity, Model, Table } from '../../src/index.js'
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { DynamoDB } from 'aws-sdk'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
 const dynamoExecutedCommandsTracer = jest.fn()
 
-const Client = new Dynamo({
+const ClientV2 = new DynamoDB.DocumentClient({
+    endpoint: `http://localhost:${PORT}`,
+    region: 'local',
+    sslEnabled: false,
+    credentials: new AWS.Credentials({
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+    }),
+    logger: {
+        log: dynamoExecutedCommandsTracer
+    }
+})
+
+const ClientV3 = new Dynamo({
     client: new DynamoDBClient({
         endpoint: `http://localhost:${PORT}`,
         region: 'local',
@@ -23,6 +37,11 @@ const Client = new Dynamo({
         }
     })
 })
+
+const isV2 = () => process.env.DDB_CLIENT_VERSION === 'v2';
+const isV3 = () => !isV2();
+
+const Client = isV2() ? ClientV2 : ClientV3
 
 const dump = (...args) => {
     let s = []
@@ -59,4 +78,4 @@ const Match = {
     phone:  /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/,
 }
 
-export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print, dynamoExecutedCommandsTracer}
+export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print, dynamoExecutedCommandsTracer, isV2, isV3}

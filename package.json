@@ -26,6 +26,8 @@
         "prepare": "npm run build",
         "_prepublishOnly": "npm test && npm run lint",
         "test": "jest",
+        "test:v2": "DDB_CLIENT_VERSION=v2 jest",
+        "test:v3": "DDB_CLIENT_VERSION=v3 jest",
         "test-cov": "jest --coverage"
     },
     "repository": {
