@@ -1,8 +1,7 @@
-import AWS from 'aws-sdk'
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
+import AWS, {DynamoDB} from 'aws-sdk'
 import Dynamo from '../../src/Dynamo.js'
-import { Entity, Model, Table } from '../../src/index.js'
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
-import { DynamoDB } from 'aws-sdk'
+import {Entity, Model, Table} from '../../src/index.js'
 
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
