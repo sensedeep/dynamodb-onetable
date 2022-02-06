@@ -456,11 +456,11 @@ export class Expression {
         let args
         if (params.batch) {
             if (op == 'get') {
-                args = { Keys: key }
+                args = {Keys: key}
             } else if (op == 'delete') {
-                args = { Key: key }
+                args = {Key: key}
             } else if (op == 'put') {
-                args = { Item: puts }
+                args = {Item: puts}
             } else {
                 throw new OneTableArgError(`Unsupported batch operation "${op}"`)
             }
