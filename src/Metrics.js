@@ -149,7 +149,7 @@ export class Metrics {
 
     addMetric(key, values, dimensions, dimensionValues, properties) {
         let rec = this.metrics.counters[key] = this.metrics.counters[key] || {
-            totals: { count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0 },
+            totals: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0},
             dimensions: dimensions.slice(0),
             dimensionValues,
             properties,
