@@ -420,7 +420,7 @@ The value template function is called with the signature:
 str = value(model, fieldName, properties, params)
 ```
 
-The value template should return a string to be used for the given fieldName.
+The value template should return a string to be used for the given fieldName. The `properties` and `params` are corresponding arguments given to the API.
 
 
 #### Crypto

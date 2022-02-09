@@ -902,7 +902,7 @@ export class Model {
             }
             if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
-                    console.log('WARNING: default functions are DEPRECATED and will be removed soon.')
+                    console.warn('WARNING: default functions are DEPRECATED and will be removed soon.')
                     value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
@@ -941,7 +941,7 @@ export class Model {
     transformReadAttribute(field, name, value, params) {
         if (typeof params.transform == 'function') {
             //  Invoke custom data transform after reading
-            console.log('WARNING: params.transform functions are DEPRECATED and will be removed soon.')
+            console.warn('WARNING: params.transform functions are DEPRECATED and will be removed soon.')
             return params.transform(this, 'read', name, value)
         }
         if (field.type == 'date') {
@@ -1264,7 +1264,7 @@ export class Model {
             } else if (properties[name] === undefined) {
                 if (field.value) {
                     if (typeof field.value == 'function') {
-                        console.log('WARNING: value functions are DEPRECATED and will be removed soon.')
+                        console.warn('WARNING: value functions are DEPRECATED and will be removed soon.')
                         properties[name] = field.value(field.pathname, properties)
                     } else {
                         let value = this.runTemplate(op, index, field, properties, params, field.value)
@@ -1378,7 +1378,7 @@ export class Model {
 
         //  DEPRECATE
         if (typeof params.validate == 'function') {
-            console.log('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
+            console.warn('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
             let error
             ({error, value} = params.validate(this, field, value))
             if (error) {
