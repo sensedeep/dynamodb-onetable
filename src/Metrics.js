@@ -72,7 +72,7 @@ export class Metrics {
                     metrics.enable = false
                 }
             }
-            metric.dimensions = process.env.LOG_ONETABLE_DIMENSIONS || metric.dimensions
+            metrics.dimensions = process.env.LOG_ONETABLE_DIMENSIONS || metrics.dimensions
         }
 
         metrics.map = {Profile: true}
