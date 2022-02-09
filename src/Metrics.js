@@ -60,6 +60,21 @@ export class Metrics {
             //  Params takes priority
             metrics = Object.assign({}, DefaultMetrics, params)
         }
+
+        if (metrics.env && process.env) {
+            //  Need a better sense logs test than 'metrics'
+            if (this.log.metrics) {
+                //  SenseLogs. Always use enable() API to support LOG_* variables.
+                metrics.enable = true
+            } else {
+                let filter = process.env.LOG_FILTER
+                if (!filter || filter.indexOf('dbmetrics') < 0) {
+                    metrics.enable = false
+                }
+            }
+            metric.dimensions = process.env.LOG_ONETABLE_DIMENSIONS || metric.dimensions
+        }
+
         metrics.map = {Profile: true}
         for (let dim of metrics.dimensions) {
             metrics.map[dim] = true
@@ -69,12 +84,6 @@ export class Metrics {
         metrics.lastFlushed = Date.now()
         metrics.counters = {}
 
-        if (metrics.env && process.env) {
-            let filter = process.env.LOG_FILTER
-            if (!filter || filter.indexOf('dbmetrics') < 0) {
-                metrics.enable = false
-            }
-        }
         //  Preserve any prior defined properties functions
         metrics.properties = metrics.properties || prior.properties
         this.metrics = metrics
