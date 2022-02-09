@@ -78,6 +78,17 @@ test('Create', async() => {
     expect(user.registered.toString()).toBe(now.toString())
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
+
+    // try to create a duplicate
+    let newParams = {
+        id: user.id,
+        ...params,
+    }
+    try {
+        user = await User.create(newParams)
+    } catch (err) {
+        expect(err.code).toBe('ConditionError');
+    }
 })
 
 test('Get', async() => {

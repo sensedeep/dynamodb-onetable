@@ -10,7 +10,7 @@ import ULID from './ULID.js'
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
-import {OneTableArgError, OneTableError} from './Error.js'
+import {OneTableArgError, OneTableError, checkErr} from './Error.js'
 
 /*
     AWS V2 DocumentClient methods
@@ -549,12 +549,12 @@ export class Table {
             if (params.throw === false) {
                 result = {}
 
-            } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
+            } else if (checkErr(err, 'ConditionalCheckFailedException') && op == 'put') {
                 //  Not a hard error -- typically part of normal operation
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
                 throw new OneTableError(`Conditional create failed for "${model}"`, {code: 'ConditionError', trace, err})
 
-            } else if (err.code == 'ProvisionedThroughputExceededException') {
+            } else if (checkErr(err, 'ProvisionedThroughputExceededException')) {
                 throw err
                 // FUTURE throw new OneTableError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
 

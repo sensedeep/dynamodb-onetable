@@ -4,7 +4,7 @@
     A model represents a DynamoDB single-table entity.
 */
 import {Expression} from './Expression.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import {OneTableError, OneTableArgError, checkErr} from './Error.js'
 
 /*
     Ready / write tags for interceptions
@@ -540,7 +540,7 @@ export class Model {
         try {
             await this.table.transact('write', params.transaction, params)
         } catch (err) {
-            if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
+            if (checkErr(err, 'ConditionalCheckFailedException')) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(
                     `Cannot create unqiue attributes "${names}" for "${this.name}", an item of the same name already exists.`,
@@ -738,7 +738,7 @@ export class Model {
             await this.table.transact('write', params.transaction, params)
 
         } catch (err) {
-            if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
+            if (checkErr(err, 'ConditionalCheckFailedException')) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
                                    `an item of the same name already exists.`, {properties, transaction, code: 'UniqueError'})
