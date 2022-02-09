@@ -1,8 +1,8 @@
 /*
     unique.ts - Test unique crud
  */
-import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
 import {UniqueSchema} from './schemas'
+import {Client, Entity, isV2, isV3, Model, Table} from './utils/init'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -39,8 +39,16 @@ test('Create user 1', async() => {
     let items = await table.scanItems()
     expect(items.length).toBe(3)
 
-    let unique = items.filter((item) => item.pk.S.indexOf('interpolated') >= 0)
-    let pk = unique[0].pk.S
+    let pk = (() => {
+        if (isV3()) {
+            let unique = items.filter((item) => (item.pk.S).indexOf('interpolated') >= 0)
+            return unique[0].pk.S
+        }
+        if (isV2()) {
+            let unique = items.filter((item) => (item.pk).indexOf('interpolated') >= 0)
+            return unique[0].pk
+        }
+    })()
     expect(pk.indexOf('Peter Smith') >= 0).toBe(true)
     expect(pk.indexOf('peter@example.com') >= 0).toBe(true)
     expect(pk.indexOf('User') >= 0).toBe(true)

@@ -157,17 +157,17 @@ export class Schema {
         let {indexes, table} = this
         let primary = indexes.primary
         let fields = this.schemaModelFields = {
-            [primary.hash]: { type: 'string', required: true, value: `${SchemaKey}` },
-            format:         { type: 'string', required: true },
-            indexes:        { type: 'object', required: true },
-            name:           { type: 'string', required: true },
-            models:         { type: 'object', required: true },
-            params:         { type: 'object', required: true },
-            queries:        { type: 'object', required: true },
-            version:        { type: 'string', required: true },
+            [primary.hash]: {type: 'string', required: true, value: `${SchemaKey}`},
+            format:         {type: 'string', required: true},
+            indexes:        {type: 'object', required: true},
+            name:           {type: 'string', required: true},
+            models:         {type: 'object', required: true},
+            params:         {type: 'object', required: true},
+            queries:        {type: 'object', required: true},
+            version:        {type: 'string', required: true},
         }
         if (primary.sort) {
-            fields[primary.sort] = { type: 'string', required: true, value: `${SchemaKey}:\${name}`}
+            fields[primary.sort] = {type: 'string', required: true, value: `${SchemaKey}:\${name}`}
         }
         this.models[SchemaModel] = new Model(table, SchemaModel, {fields})
     }
@@ -176,14 +176,14 @@ export class Schema {
         let {indexes} = this
         let primary = indexes.primary
         let fields = this.migrationModelFields = {
-            [primary.hash]: { type: 'string', value: `${MigrationKey}` },
-            date:           { type: 'date',   required: true },
-            description:    { type: 'string', required: true },
-            path:           { type: 'string', required: true },
-            version:        { type: 'string', required: true },
+            [primary.hash]: {type: 'string', value: `${MigrationKey}`},
+            date:           {type: 'date',   required: true},
+            description:    {type: 'string', required: true},
+            path:           {type: 'string', required: true},
+            version:        {type: 'string', required: true},
         }
         if (primary.sort) {
-            fields[primary.sort] = { type: 'string', value: `${MigrationKey}:\${version}` }
+            fields[primary.sort] = {type: 'string', value: `${MigrationKey}:\${version}`}
         }
         this.models[MigrationModel] = new Model(this.table, MigrationModel, {fields, indexes})
     }

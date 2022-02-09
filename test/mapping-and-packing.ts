@@ -4,7 +4,7 @@
     This tests simple mapping of properties to an abbreviated attribute and
     packing properties into a single attribute
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Match, Table, print, dump, delay, isV3, isV2} from './utils/init'
 import {MappedSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
@@ -72,12 +72,22 @@ test('Get including hidden', async() => {
 test('Get without parse', async() => {
     //  Returns attributes without parsing including hidden (pk, sk)
     let u = await User.get({id: user.id}, {hidden: true, parse: false})
-    expect(u.id.S).toMatch(Match.ulid)
-    expect(u.em.S).toEqual('peter@example.com')
-    expect(u.pk.S).toEqual(`us#${u.id.S}`)
-    expect(u.sk.S).toEqual(`us#`)
-    expect(u.pk1.S).toEqual(`ty#us`)
-    expect(u.sk1.S).toEqual(`us#${user.email}`)
+    if (isV3()) {
+        expect(u.id.S).toMatch(Match.ulid)
+        expect(u.em.S).toEqual('peter@example.com')
+        expect(u.pk.S).toEqual(`us#${u.id.S}`)
+        expect(u.sk.S).toEqual(`us#`)
+        expect(u.pk1.S).toEqual(`ty#us`)
+        expect(u.sk1.S).toEqual(`us#${user.email}`)
+    }
+    if (isV2()) {
+        expect(u.id).toMatch(Match.ulid)
+        expect(u.em).toEqual('peter@example.com')
+        expect(u.pk).toEqual(`us#${u.id}`)
+        expect(u.sk).toEqual(`us#`)
+        expect(u.pk1).toEqual(`ty#us`)
+        expect(u.sk1).toEqual(`us#${user.email}`)
+    }
 })
 
 test('Get via GSI', async() => {

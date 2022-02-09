@@ -5,7 +5,7 @@
 // @ts-ignore
 import DataLoader from 'dataloader';
 import {DefaultSchema} from './schemas';
-import {Client, dynamoExecutedCommandsTracer, Table} from './utils/init';
+import {Client, dynamoExecutedCommandsTracer, isV2, isV3, Table} from './utils/init';
 
 const table = new Table({
     name: 'BatchTest',
@@ -21,6 +21,21 @@ let data = [
     {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active'},
     {name: 'Cu Later', email: 'cu@example.com', status: 'inactive'}
 ];
+
+const assertBatchGetWasUsed = () => {
+    if (isV3()) {
+        expect(dynamoExecutedCommandsTracer).toHaveBeenCalledWith(
+            expect.objectContaining({
+                commandName: expect.stringMatching('BatchGetItemCommand')
+            })
+        );
+    }
+    if (isV2()) {
+        expect(dynamoExecutedCommandsTracer).toHaveBeenCalledWith(
+            expect.stringMatching('batchGetItem')
+        );
+    }
+};
 
 describe('Loader', () => {
     test('Create', async () => {
@@ -46,11 +61,7 @@ describe('Loader', () => {
             })
         );
 
-        expect(dynamoExecutedCommandsTracer).toHaveBeenCalledWith(
-            expect.objectContaining({
-                commandName: 'BatchGetItemCommand'
-            })
-        );
+        assertBatchGetWasUsed();
         expect(items.length).toBe(data.length);
 
         for (let item of items) {
@@ -67,12 +78,7 @@ describe('Loader', () => {
             table.load('User', {id: users[0].id})
         ]);
 
-        expect(dynamoExecutedCommandsTracer).toHaveBeenCalledWith(
-            expect.objectContaining({
-                commandName: 'BatchGetItemCommand'
-            })
-        );
-
+        assertBatchGetWasUsed();
         expect(items.length).toBe(3);
         expect(items[0]).toEqual(users[0]);
         expect(items[1]).toEqual(users[0]);

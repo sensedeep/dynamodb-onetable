@@ -27,9 +27,9 @@ const TransformParseResponseAs = {
     update: 'get'
 }
 
-const KeysOnly = { delete: true, get: true }
-const TransactOps = { delete: 'Delete', get: 'Get', put: 'Put', update: 'Update' }
-const BatchOps = { delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest' }
+const KeysOnly = {delete: true, get: true}
+const TransactOps = {delete: 'Delete', get: 'Get', put: 'Put', update: 'Update'}
+const BatchOps = {delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest'}
 const ValidTypes = [ 'array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
 const SanityPages = 1000
 const FollowThreads = 10
@@ -105,14 +105,14 @@ export class Model {
         if (!prefix) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
-                schemaFields[this.typeField] = { type: String, hidden: true }
+                schemaFields[this.typeField] = {type: String, hidden: true}
                 if (!this.generic) {
                     schemaFields[this.typeField].required = true
                 }
             }
             if (this.timestamps) {
-                schemaFields[this.createdField] = schemaFields[this.createdField] || { type: Date }
-                schemaFields[this.updatedField] = schemaFields[this.updatedField] || { type: Date }
+                schemaFields[this.createdField] = schemaFields[this.createdField] || {type: Date}
+                schemaFields[this.updatedField] = schemaFields[this.updatedField] || {type: Date}
             }
         }
         let {indexes, table} = this
@@ -377,7 +377,7 @@ export class Model {
         let prev
         if ((op == 'find' || op == 'scan') && items.length) {
             let {hash, sort} = index
-            prev = { [hash]: items[0][hash], [sort]: items[0][sort]}
+            prev = {[hash]: items[0][hash], [sort]: items[0][sort]}
             if (prev[hash] == null || prev[sort] == null) {
                 prev = null
             }
