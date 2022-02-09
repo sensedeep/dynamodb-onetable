@@ -22,8 +22,9 @@ function init(self, message, context) {
 
 export function checkErr(error, code) {
     // aws sdk v3 has moved code to name - see https://github.com/aws/aws-sdk-js-v3/issues/2874
-    return error.code == code || error.name == code; 
+    return error.code == code || error.name == code
 }
+
 export class OneTableError extends Error {
     constructor(message, context) {
         super(message)
