@@ -546,26 +546,35 @@ export class Table {
             }
 
         } catch (err) {
+            //  V3 stores the error in 'name' (Ugh!)
+            let code = err.code || err.name
             if (params.throw === false) {
                 result = {}
 
-            } else if (err.code == 'ConditionalCheckFailedException' && op == 'put') {
-                //  Not a hard error -- typically part of normal operation
+            } else if (code == 'ConditionalCheckFailedException' && op == 'put') {
                 this.log.info(`Conditional check failed "${op}" on "${model}"`, {err, trace})
-                throw new OneTableError(`Conditional create failed for "${model}"`, {code: 'ConditionError', trace, err})
+                throw new OneTableError(`Conditional create failed for "${model}"`, {
+                    code, err, trace,
+                })
 
-            } else if (err.code == 'ProvisionedThroughputExceededException') {
-                throw err
-                // FUTURE throw new OneTableError(`Provisioned throughput exceeded`, {code: 'ProvisionedThroughputExceededException', trace, err})
+            } else if (code == 'ProvisionedThroughputExceededException') {
+                throw new OneTableError('Provisioning Throughput Exception', {
+                    code, err, trace,
+                })
+            } else if (code == 'TransactionCanceledException') {
+                throw new OneTableError('Transaction Cancelled', {
+                    code, err, trace,
+                })
 
             } else {
                 result = result || {}
                 result.Error = 1
-                trace.err = err
                 if (params.log != false) {
                     this.log.error(`OneTable exception in "${op}" on "${model}"`, {err, trace})
                 }
-                throw new OneTableError(`OneTable execute failed "${op}" for "${model}. ${err.message}`, {err})
+                throw new OneTableError(`OneTable execute failed "${op}" for "${model}. ${err.message}`, {
+                    code, err, trace,
+                })
             }
 
         } finally {
@@ -626,8 +635,9 @@ export class Table {
     }
 
     /*
-        AWS BatchWrite may throw an exception of no items can be processed. Otherwise it will retry (up to 11 times)
-        and return partial results in UnprocessedItems. Those will be handled here if possible.
+        AWS BatchWrite may throw an exception of no items can be processed.
+        Otherwise it will retry (up to 11 times) and return partial results in UnprocessedItems.
+        Those will be handled here if possible.
     */
     async batchWrite(batch, params = {}) {
         if (Object.getOwnPropertyNames(batch).length == 0) {

@@ -17,9 +17,9 @@ let user: any
 let users: any[]
 
 let data = [
-    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
-    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
-    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active'},
+    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active'},
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive'},
 ]
 
 test('Create', async() => {
@@ -30,10 +30,16 @@ test('Create', async() => {
 
 test('Transaction create', async() => {
     let transaction = {}
-    for (let item of data) {
-        user = await table.create('User', item, {transaction})
+    try {
+        for (let item of data) {
+            user = await table.create('User', item, {transaction})
+        }
+        await table.transact('write', transaction, {parse: true, hidden: false})
+
+    } catch (err) {
+        //  Should never happen2
+        expect(false).toBe(true)
     }
-    await table.transact('write', transaction, {parse: true, hidden: false})
 
     expect(user.pk).toBeUndefined()
     expect(user.id).toBeDefined()

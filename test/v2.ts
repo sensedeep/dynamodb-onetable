@@ -10,9 +10,9 @@ import DynamoDB from 'aws-sdk/clients/dynamodb'
 const PORT = parseInt(process.env.DYNAMODB_PORT)
 
 let data = [
-    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
-    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
-    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active'},
+    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active'},
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive'},
 ]
 
 const client = new DynamoDB.DocumentClient({
@@ -230,10 +230,15 @@ test('Batch get', async() => {
 
 test('Transaction create', async() => {
     let transaction = {}
-    for (let item of data) {
-        await table.create('User', item, {transaction})
+    try {
+        for (let item of data) {
+            await table.create('User', item, {transaction})
+        }
+        await table.transact('write', transaction, {parse: true, hidden: false})
+    } catch (err) {
+        //  Never
+        expect(false).toBe(true)
     }
-    await table.transact('write', transaction, {parse: true, hidden: false})
 
     users = await table.scan('User')
     expect(users.length).toBe(data.length)
