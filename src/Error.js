@@ -7,9 +7,11 @@ function init(self, message, context) {
     self.message = message
     if (context) {
         self.context = context
-        if (context.code) {
-            self.code = context.code
+        let code = context.code || context.name
+        if (code) {
+            self.code = code
             delete context.code
+            delete context.name
         }
     }
     self.date = new Date()
