@@ -100,7 +100,7 @@ const MySchema = {
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
         gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
-        ls1:     { sort: 'id', local: true },
+        ls1:     { sort: 'id', type: 'local' },
     },
     models: {
         Account: {
@@ -567,7 +567,7 @@ The `schema.params` is a hash map of properties that control how data is stored.
 
 #### Indexes
 
-The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Global Secondary Indexes (GSIs) unless they are defined with a `type: local` property in which case they will be designated as Local Secondary Indexes (LSIs). An LSI index should not specify a hash attribute. If one is specified, it must equal that of the primary index.
+The `schema.indexes` property can contain one or more indexes and must contain the `primary` key. Additional indexes will be treated as Global Secondary Indexes (GSIs) unless they are defined with a `type: "local"` property in which case they will be designated as Local Secondary Indexes (LSIs). An LSI index should not specify a hash attribute. If one is specified, it must equal that of the primary index.
 
 ```javascript
 {
@@ -583,7 +583,7 @@ The `schema.indexes` property can contain one or more indexes and must contain t
         follow: true,
     },
     ls1: {
-        local: true,
+        type: 'local'
         sort: 'id',
     }
     ...
@@ -1536,9 +1536,11 @@ API errors will throw an instance of the `OneTableError` class. This instance ha
 
 * message &mdash; Text error message.
 * name &mdash; Error class name.
-* code &mdash; Set to a string error code indicating the class of error.
+* code &mdash; Set to the AWS string error code indicating the class of error.
 * context &mdash; Map of additional context information.
 * stack &mdash; Stack backtrace information.
+
+The `context` contains the original AWS DynamoDB error object as `context.err`. For transaction errors, the `context.err.CancellationReasons` holds the specifics of the transaction error.
 
 
 #### Using `postFormat` to customize the final API request
