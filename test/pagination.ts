@@ -37,7 +37,7 @@ function zpad(n: number, size: number): string {
 
 test('Create Users', async() => {
     for (let i = 0; i < MaxUsers; i++) {
-        await User.create({name: `user-${zpad(i, 6)}`})
+        await User.create({name: `user-${zpad(i, 6)}`, email: `email-${zpad(i, 6)}@example.com`})
     }
     users = await table.scan('User')
     expect(users.length).toBe(MaxUsers)
@@ -50,6 +50,7 @@ test('Find with next offset', async() => {
         items = await User.find({}, {limit: PerPage, next})
         if (items.length) {
             expect(items[0].name).toBe(`user-${zpad(total, 6)}`)
+            expect(items[0].email).toBe(`email-${zpad(total, 6)}@example.com`)
             total += items.length
             pages++
         }
@@ -67,6 +68,25 @@ test('Reverse scan', async() => {
         items = await User.find({}, {limit: PerPage, next, reverse: true})
         if (items.length) {
             expect(items[0].name).toBe(`user-${zpad(MaxUsers - total - 1, 6)}`)
+            expect(items[0].email).toBe(`email-${zpad(MaxUsers - total - 1, 6)}@example.com`)
+            total += items.length
+            pages++
+        }
+        next = items.next
+    } while (next)
+
+    expect(total).toBe(MaxUsers)
+    expect(pages).toBe(MaxUsers / PerPage)
+})
+
+test('Reverse scan via GSI', async() => {
+    let pages = 0, total = 0, next
+    let items: any
+    do {
+        items = await User.find({}, {limit: PerPage, next, reverse: true, index: 'gs1'})
+        if (items.length) {
+            expect(items[0].name).toBe(`user-${zpad(MaxUsers - total - 1, 6)}`)
+            expect(items[0].email).toBe(`email-${zpad(MaxUsers - total - 1, 6)}@example.com`)
             total += items.length
             pages++
         }

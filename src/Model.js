@@ -378,6 +378,11 @@ export class Model {
         if ((op == 'find' || op == 'scan') && items.length) {
             let {hash, sort} = index
             prev = {[hash]: items[0][hash], [sort]: items[0][sort]}
+            if (params.index && params.index != 'primary') {
+                let primary = this.indexes.primary
+                prev[primary.hash] = items[0][primary.hash]
+                prev[primary.sort] = items[0][primary.sort]
+            }
             if (prev[hash] == null || prev[sort] == null) {
                 prev = null
             }
