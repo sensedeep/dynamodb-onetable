@@ -4,7 +4,7 @@
 
 // jest.setTimeout(7200 * 1000)
 
-import { AWS, Client, Table, print, dump, delay, Model } from "./utils/init"
+import { AWS, Client, Table, print, dump, delay, Model, isV2 } from "./utils/init"
 
 const table = new Table({
     name: "MarshallTestTable",
@@ -37,13 +37,21 @@ const table = new Table({
 })
 
 const User = table.getModel("User")
-const json = {
+const jsonV3 = {
     name: { S: "alice" },
     registered: { S: "2022-01-01Z" },
     profile: {
         M: {
             dob: { S: "2000-01-01Z" },
         },
+    },
+} as const
+
+const jsonV2 = {
+    name: "alice",
+    registered: "2022-01-01Z",
+    profile: {
+        dob: "2000-01-01Z",
     },
 } as const
 
@@ -54,6 +62,7 @@ const unmarshallModel = <T>(model: Model<T>, item: any): T => {
 }
 
 test("Unmarshall model", async () => {
+    let json = isV2() ? jsonV2 : jsonV3
     const obj = unmarshallModel(User, json)
     expect(obj).toEqual(
         expect.objectContaining({
@@ -64,6 +73,7 @@ test("Unmarshall model", async () => {
 })
 
 test("Unmarshall nested model", async () => {
+    let json = isV2() ? jsonV2 : jsonV3
     const obj = unmarshallModel(User, json)
     expect(obj).toEqual(
         expect.objectContaining({
