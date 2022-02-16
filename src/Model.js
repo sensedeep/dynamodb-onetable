@@ -881,9 +881,11 @@ export class Model {
         if (!raw) {
             return raw
         }
-        let rec = {}
-        let fields = this.block.fields
+        return this.transformReadBlock(op, raw, properties, params, this.block.fields)
+    }
 
+    transformReadBlock(op, raw, properties, params, fields) {
+        let rec = {}
         for (let [name, field] of Object.entries(fields)) {
             //  Skip hidden params. Follow needs hidden params to do the follow.
             if (field.hidden && params.hidden !== true && params.follow !== true) {
@@ -922,7 +924,11 @@ export class Model {
                 continue
 
             } else {
-                rec[name] = this.transformReadAttribute(field, name, value, params)
+                if (field.schema && typeof value == 'object') {
+                    rec[name] = this.transformReadBlock(op, raw[name], properties[name], params, field.block.fields)
+                } else {
+                    rec[name] = this.transformReadAttribute(field, name, value, params)
+                }
             }
         }
         if (this.generic) {

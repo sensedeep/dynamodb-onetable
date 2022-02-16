@@ -17,10 +17,12 @@ const Properties = {
     name: 'Peter Smith',
     email: 'peter@example.com',
     status: 'active',
+    started: new Date(),
     location: {
         address: '444 Cherry Tree Lane',
         city: 'Seattle',
         zip: '98011',
+        started: new Date(),
     },
     balance: 0,
     tokens: ['red', 'white', 'blue']
@@ -58,8 +60,9 @@ test('Create', async() => {
     expect(user.location).toMatchObject(Properties.location)
     expect(user.location).toBeDefined()
     expect(user.location.unknown).toBeUndefined()
-    expect(user.created).toBeUndefined()
-    expect(user.updated).toBeUndefined()
+    expect(user.location.started instanceof Date).toBe(true)
+    expect(user.created).toBeDefined()
+    expect(user.updated).toBeDefined()
     expect(user.pk).toBeUndefined()
     expect(user.sk).toBeUndefined()
 })
@@ -67,6 +70,7 @@ test('Create', async() => {
 test('Get', async() => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject(Properties)
+    expect(user.location.started instanceof Date).toBe(true)
 })
 
 test('Update top level property', async() => {

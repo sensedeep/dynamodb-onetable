@@ -17,13 +17,17 @@ export default {
             status:      { type: String },
             balance:     { type: Number },
             tokens:      { type: Array },
+            started:     { type: Date },
 
             location:    { type: Object, schema: {
                 address: { type: String },
                 city:    { type: String },
                 zip:     { type: String },
+                started: { type: Date },
             }}
         }
     },
-    params: {},
+    params: {
+        timestamps: true,
+    },
 }
