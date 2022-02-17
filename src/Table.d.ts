@@ -89,6 +89,8 @@ export class Table {
     scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
+    child(context: {}): Table;
+
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
