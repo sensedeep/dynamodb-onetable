@@ -646,7 +646,7 @@ export class Table {
         let retries = 0, more
         do {
             more = false
-            let response = await this.execute(GenericModel, 'batchWrite', batch, params)
+            let response = await this.execute(GenericModel, 'batchWrite', batch, {}, params)
             let data = response.data
             if (data && data.UnprocessedItems && Object.keys(data.UnprocessedItems).length) {
                 batch.RequestItems = data.UnprocessedItems
@@ -702,7 +702,8 @@ export class Table {
         Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
     async transact(op, transaction, params = {}) {
-        let result = await this.execute(GenericModel, op == 'write' ? 'transactWrite' : 'transactGet', transaction, params)
+        let result = await this.execute(GenericModel,
+            op == 'write' ? 'transactWrite' : 'transactGet', transaction, {}, params)
         if (op == 'get') {
             if (params.parse) {
                 let items = []
