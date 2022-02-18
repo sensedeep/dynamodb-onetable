@@ -44,6 +44,6 @@ export class OneTableArgError extends Error {
     constructor(message, context) {
         super(message, context)
         init(this, message, context)
-        this.code = context.code || 'ArgumentError'
+        this.code = context?.code || 'ArgumentError'
     }
 }
