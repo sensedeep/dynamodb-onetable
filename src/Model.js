@@ -665,7 +665,7 @@ export class Model {
         ({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
             let hasUniqueProperties = Object.entries(properties).find((pair) => {
-                return this.block.fields[pair[0]].unique
+                return this.block.fields[pair[0]] && this.block.fields[pair[0]].unique
             })
             if (hasUniqueProperties) {
                 return await this.updateUnique(properties, params)
