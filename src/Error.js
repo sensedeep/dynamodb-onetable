@@ -23,7 +23,7 @@ function init(self, message, context) {
 }
 
 export class OneTableError extends Error {
-    constructor(message, context) {
+    constructor(message, context = {}) {
         super(message)
         init(this, message, context)
     }
@@ -41,7 +41,7 @@ export class OneTableError extends Error {
 }
 
 export class OneTableArgError extends Error {
-    constructor(message, context) {
+    constructor(message, context = {}) {
         super(message, context)
         init(this, message, context)
         this.code = context.code || 'ArgumentError'
