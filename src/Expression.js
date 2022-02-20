@@ -594,7 +594,7 @@ export class Expression {
         if (index == null) {
             index = this.vindex++
             this.values[`:_${index}`] = value
-            if (value && typeof value != 'object') {
+            if (value && typeof value != 'object' && typeof value != 'number') {
                 this.valuesMap[value] = index
             }
         }
