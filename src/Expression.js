@@ -347,31 +347,6 @@ export class Expression {
             }
         }
 
-        const pushOperationKeyOnly =  (opsArray, key) => {
-            this.already[key] = true
-            let target = this.makeTarget(fields, key)
-
-            opsArray.push(`${target}`)
-        }
-
-        const pushCustomOperationValue = (opsArray, key, custom) => {
-            this.already[key] = true
-            let target = this.makeTarget(fields, key)
-            updates.set.push(`${target} = ${custom.replaceAll('$target$', target)}`)
-        }
-
-        const pushOperationWithValue = (opsArray, key, op, value) => {
-            this.already[key] = true
-            let target = this.makeTarget(fields, key)
-
-            let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
-            if (requiresExpansion) {
-                opsArray.push(`${target} ${op} ${this.expand(value)}`)
-            } else {
-                opsArray.push(`${target} ${op} ${this.addValueExp(value)}`)
-            }
-        }
-
         const prepareKey = (key) => {
             this.already[key] = true
             return this.makeTarget(fields, key)
