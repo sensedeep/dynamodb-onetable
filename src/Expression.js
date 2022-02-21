@@ -232,7 +232,7 @@ export class Expression {
             let index
             const {substitutions} = this.params
             let name = value.replace(/^\.\.\./, '')
-            if (!substitutions || !substitutions[name]) {
+            if (!substitutions || substitutions[name] === undefined) {
                 throw new OneTableError(`Missing substitutions for attribute value "${name}"`, {
                     expr,
                     substitutions,
