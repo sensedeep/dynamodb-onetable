@@ -341,56 +341,93 @@ export class Expression {
         let {params, updates} = this
         let fields = this.model.block.fields
 
+        const assertIsNotPartition =  (key, op) => {
+            if (key == this.hash || key == this.sort) {
+                throw new OneTableArgError(`Cannot ${op} hash or sort`)
+            }
+        }
+
+        const pushOperationKeyOnly =  (opsArray, key) => {
+            this.already[key] = true
+            let target = this.makeTarget(fields, key)
+
+            opsArray.push(`${target}`)
+        }
+
+        const pushCustomOperationValue = (opsArray, key, custom) => {
+            this.already[key] = true
+            let target = this.makeTarget(fields, key)
+            updates.set.push(`${target} = ${custom.replaceAll('$target$', target)}`)
+        }
+
+        const pushOperationWithValue = (opsArray, key, op, value) => {
+            this.already[key] = true
+            let target = this.makeTarget(fields, key)
+
+            let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
+            if (requiresExpansion) {
+                opsArray.push(`${target} ${op} ${this.expand(value)}`)
+            } else {
+                opsArray.push(`${target} ${op} ${this.addValueExp(value)}`)
+            }
+        }
+
+        const prepareKey = (key) => {
+            this.already[key] = true
+            return this.makeTarget(fields, key)
+        }
+
+        const prepareKeyValue = (key, value) => {
+            let target = prepareKey(key)
+
+            let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
+            if (requiresExpansion) {
+                return [target, this.expand(value)]
+            } else {
+                return [target, this.addValueExp(value)]
+            }
+        }
+
         if (params.add) {
-            //  keys are property names not attributes
             for (let [key, value] of Object.entries(params.add)) {
-                if (key == this.hash || key == this.sort) {
-                    throw new OneTableArgError('Cannot add to hash or sort')
-                }
-                this.already[key] = true
-                let target = this.makeTarget(fields, key)
-                updates.add.push(`${target} :_${this.addValue(value)}`)
+                assertIsNotPartition(key, 'add')
+                const [target, variable] = prepareKeyValue(key, value)
+                updates.add.push(`${target} ${variable}`)
             }
         }
         if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
-                if (key == this.hash || key == this.sort) {
-                    throw new OneTableArgError('Cannot delete hash or sort')
-                }
-                this.already[key] = true
-                let target = this.makeTarget(fields, key)
-                updates.delete.push(`${target} :_${this.addValue(value)}`)
+                assertIsNotPartition(key, 'delete')
+                const [target, variable] = prepareKeyValue(key, value)
+                updates.delete.push(`${target} ${variable}`)
             }
         }
         if (params.remove) {
-            if (!Array.isArray(params.remove)) {
-                params.remove = [params.remove]
-            }
+            params.remove = [].concat(params.remove) // enforce array
             let fields = this.model.block.fields
             for (let key of params.remove) {
-                if (key == this.hash || key == this.sort) {
-                    throw new OneTableArgError('Cannot remove hash or sort')
-                }
+                assertIsNotPartition(key, 'remove')
                 if (fields.required) {
                     throw new OneTableArgError('Cannot remove required field')
                 }
-                this.already[key] = true
-                let target = this.makeTarget(fields, key)
+                const target = prepareKey(key)
                 updates.remove.push(`${target}`)
             }
         }
         if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
-                if (key == this.hash || key == this.sort) {
-                    throw new OneTableArgError('Cannot set hash or sort')
-                }
-                this.already[key] = true
-                let target = this.makeTarget(fields, key)
-                if (typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)) {
-                    updates.set.push(`${target} = ${this.expand(value)}`)
-                } else {
-                    updates.set.push(`${target} = :_${this.addValue(value)}`)
-                }
+                assertIsNotPartition(key, 'set')
+                const [target, variable] = prepareKeyValue(key, value)
+                updates.set.push(`${target} = ${variable}`)
+            }
+        }
+        if (params.push) {
+            for (let [key, value] of Object.entries(params.push)) {
+                assertIsNotPartition(key, 'push')
+                let empty = this.addValueExp([])
+                let items = this.addValueExp([].concat(value)) // enforce array on values
+                const target = prepareKey(key)
+                updates.set.push(`${target} = list_append(if_not_exists(${target}, ${empty}), ${items})`)
             }
         }
     }
@@ -599,5 +636,9 @@ export class Expression {
             }
         }
         return index
+    }
+
+    addValueExp(value) {
+        return `:_${this.addValue(value)}`
     }
 }

@@ -210,6 +210,7 @@ export type OneParams = {
     parse?: boolean,
     postFormat?: (model: AnyModel, cmd: {}) => {},
     prev?: object,
+    push?: object,
     remove?: string[],
     reprocess?: boolean,
     return?: string | boolean,

@@ -1393,14 +1393,20 @@ The method returns the all the Javascript properties for the item. Hidden attrib
 
 If the method fails to update, it will throw an exception. If `params.throw` is set to false, an exception will not be thrown and the method will return `undefined`.
 
-The optional params are described in [Model API Params](#model-api-params).    
+The optional params are described in [Model API Params](#model-api-params).
+
+The API matching [Update Expressions](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.UpdateExpressions.html)
 
 The `params.add` parameter may be set a value to add to property.
 The `params.delete` parameter may be set to a hash, where the hash keys are the property sets to modify and the values are the items in the sets to remove.
 The `params.remove` parameter may be set to a list of properties to remove.
-The `params.set` parameter may be set to a hash, where the hash keys are the properties to modify and the values are expresions.
+The `params.set` parameter may be set to a hash, where the hash keys are the properties to modify and the values are expressions.
 
-The propertys provided to params.add, delete, remove and set are property names (not mapped attribute names).
+Custom Shortcut operations
+
+The `params.push` parameter may safely push a value to an array property using `list_append(if_not_exists(${key}, @{empty}), @{value})`
+
+The properties provided to params.add, delete, remove and set are property names (not mapped attribute names).
 
 If a property is specified in the API `properties` first argument and the property is also set in params.set, params.delete, params.remove or params.add, then the params.* property value takes precedence.
 
@@ -1444,12 +1450,13 @@ The are the parameter values that may be supplied to various `Model` and `Table`
 | prev | `object` | Starting key for the result set when requesting a previous page. This is used to set the ExclusiveStartKey when doing a find/scan in reverse order. Typically set to the result.prev value returned on a previous find/scan.|
 | parse | `boolean` | Parse DynamoDB response into native Javascript properties. Defaults to true.|
 | postFormat | `function` | Hook to invoke on the formatted API command just before execution. Passed the `model` and `cmd`, expects updated `cmd` to be returned. Cmd is an object with properties for the relevant DynamoDB API.|
-| remove | `array` | Set to a list of of attributes to remove from the item.|
+| push | `object` | Used to atomically push an attribute values to an array property. Set to an object containing the attribute names and values to assign. The values should be either single values or array of values |
+| remove | `array` | Set to a list of attributes to remove from the item.|
 | reprocess | `boolean` | Set to true to enable batchWrite to retry unprocessed items. Defaults to true|
 | return | string | parameter controls the returned values for create() and update() via the ReturnValues DynamoDB API parameter. Set to true, false or 'ALL_NEW', 'ALL_OLD', 'NONE', 'UPDATED_OLD' or 'UPDATED_NEW'. The value true, is an alias for ALL_NEW. The value false is an alias for 'NONE'. The create() API defaults to 'ALL_NEW'. The updated() API defaults to 'ALL_NEW' unless the item has unique properties the return parameter must be specified. |
 | reverse | `boolean` | Set to true to reverse the order of items returned.|
 | select | `string` | Determine the returned attributes. Set to ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT. Note: recommended to use params.count instead of COUNT. Default to ALL_ATTRIBUTES. |
-| set | `object` | Used to atomically set attribute vaules to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
+| set | `object` | Used to atomically set attribute values to an expression value. Set to an object containing the attribute names and values to assign. The values are expressions similar to Where Clauses with embedded ${attributeReferences} and {values}. See [Where Clause](#where-clauses) for more details. |
 | stats | `object` | Set to an object to receive performance statistics for find/scan. Defaults to null.|
 | substitutions | `object` | Variables that can be referenced in a where clause. Values will be added to ExpressionAttributeValues when used.|
 | throw | `boolean` | Set to false to not throw exceptions when an API request fails. Defaults to true.|
