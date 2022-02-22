@@ -106,7 +106,7 @@ const MySchema = {
         Account: {
             pk:          { type: String, value: 'account:${name}' },
             sk:          { type: String, value: 'account:' },
-            id:          { type: String, generate: 'ulid', validate: /^[0-9A-F]{32}$/i },
+            id:          { type: String, generate: 'ulid', validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
