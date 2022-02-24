@@ -77,6 +77,7 @@ export type OneSchema = {
     indexes: {
         [key: string]: OneIndexSchema
     },
+    queries?: {},
 };
 
 export type OneSchemaParams = {
