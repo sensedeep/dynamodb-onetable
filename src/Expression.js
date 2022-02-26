@@ -4,7 +4,7 @@
     This module converts API requests into DynamoDB commands.
 */
 
-import {OneTableError, OneTableArgError} from './Error.js'
+import {OneTableArgError, OneTableError} from './Error.js'
 
 //  Operators used on sort keys for get/delete
 const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
@@ -496,9 +496,9 @@ export class Expression {
                 args.ReturnItemCollectionMetrics = 'SIZE'                   // SIZE | NONE
             }
             let returnValues
-            if (params.return) {
+            if (params.return !== undefined) {
                 if (params.return === true) {
-                    returnValues = 'ALL_NEW'
+                    returnValues = op === 'delete' ? 'ALL_OLD' : 'ALL_NEW'
                 } else if (params.return === false) {
                     returnValues = 'NONE'
                 } else if (params.return != 'get') {
@@ -518,7 +518,10 @@ export class Expression {
                     }
                 }
                 args.UpdateExpression = updates.join(' ')
+            } else if (op == 'delete') {
+                args.ReturnValues = returnValues || 'ALL_OLD'
             }
+
             if (op == 'delete' || op == 'get' || op == 'update') {
                 args.Key = key
             }

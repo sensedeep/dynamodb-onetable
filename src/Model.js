@@ -592,7 +592,7 @@ export class Model {
     }
 
     async remove(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {exists: null, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse:true, exists: null, high: true}))
 
         properties = this.prepareProperties('delete', properties, params)
         if (params.fallback) {
@@ -602,7 +602,7 @@ export class Model {
         if (this.hasUniqueFields) {
             await this.removeUnique(properties, params)
         } else {
-            await this.run('delete', expression)
+            return await this.run('delete', expression)
         }
     }
 
