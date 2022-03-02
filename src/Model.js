@@ -592,7 +592,7 @@ export class Model {
     }
 
     async remove(properties, params = {}) {
-        ({properties, params} = this.checkArgs(properties, params, {exists: null, high: true}))
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, exists: null, high: true}))
 
         properties = this.prepareProperties('delete', properties, params)
         if (params.fallback) {
@@ -600,9 +600,9 @@ export class Model {
         }
         let expression = new Expression(this, 'delete', properties, params)
         if (this.hasUniqueFields) {
-            await this.removeUnique(properties, params)
+            return await this.removeUnique(properties, params)
         } else {
-            await this.run('delete', expression)
+            return await this.run('delete', expression)
         }
     }
 
@@ -621,13 +621,17 @@ export class Model {
                 code: 'NonUniqueError',
             })
         }
+        let response = []
         for (let item of items) {
+            let removed
             if (this.hasUniqueFields) {
-                await this.removeUnique(item, {retry: true})
+                removed = await this.removeUnique(item, {retry: true})
             } else {
-                await this.remove(item, {retry: true})
+                removed = await this.remove(item, {retry: true, return: params.return})
             }
+            response.push(removed)
         }
+        return response
     }
 
     /*
@@ -649,11 +653,12 @@ export class Model {
             let sk = `_unique#`
             await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
         }
-        await this.deleteItem(properties, params)
+        let removed = await this.deleteItem(properties, params)
         // Only execute transaction if we are not in a transaction
-        if(transactHere) {
-            await this.table.transact('write', transaction, params)
+        if (transactHere) {
+            removed = await this.table.transact('write', transaction, params)
         }
+        return removed
     }
 
     async scan(properties = {}, params = {}) {
@@ -778,7 +783,7 @@ export class Model {
             properties = this.prepareProperties('delete', properties, params)
         }
         let expression = new Expression(this, 'delete', properties, params)
-        await this.run('delete', expression)
+        return await this.run('delete', expression)
     }
 
     /* private */
