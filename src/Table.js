@@ -934,7 +934,7 @@ export class Table {
     */
     unmarshall(item, params) {
         if (this.V3) {
-            let client = params.client || this.client
+            let client = params?.client || this.client
             let options = client.params.unmarshall
             if (Array.isArray(item)) {
                 for (let i = 0; i < item.length; i++) {
@@ -957,7 +957,7 @@ export class Table {
     }
 
     marshallv2(item, params) {
-        let client = params.client || this.client
+        let client = params?.client || this.client
         for (let [key, value] of Object.entries(item)) {
             if (value instanceof Set) {
                 item[key] = client.createSet(Array.from(value))
