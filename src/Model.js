@@ -928,12 +928,10 @@ export class Model {
                 }
                 continue
 
+            } else if (field.schema && typeof value == 'object') {
+                rec[name] = this.transformReadBlock(op, raw[name], properties[name] || {}, params, field.block.fields)
             } else {
-                if (field.schema && typeof value == 'object') {
-                    rec[name] = this.transformReadBlock(op, raw[name], properties[name], params, field.block.fields)
-                } else {
-                    rec[name] = this.transformReadAttribute(field, name, value, params)
-                }
+                rec[name] = this.transformReadAttribute(field, name, value, params)
             }
         }
         if (this.generic) {
