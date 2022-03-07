@@ -1,5 +1,5 @@
 /*
-    typescript-crud.ts - Typescript Basic create, read, update delete
+    typescript-basic.ts - Typescript Basic create, read, update delete
 
     Uses table schema and not inline model schemas
  */
