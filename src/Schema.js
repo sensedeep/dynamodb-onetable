@@ -81,7 +81,6 @@ export class Schema {
         if (!primary) {
             throw new Error('Schema is missing a primary index')
         }
-        let hash = primary.hash
         let lsi = 0
         for (let [name, index] of Object.entries(schema.indexes)) {
             if (name != 'primary') {
