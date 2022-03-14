@@ -77,43 +77,38 @@ export class Schema {
         if (!schema.indexes) {
             throw new Error('Schema is missing indexes')
         }
-        let primary = schema.indexes.primary
+        let primary = indexes.primary
         if (!primary) {
             throw new Error('Schema is missing a primary index')
         }
-        let hash = primary.hash
-        let gsis = Object.values(indexes).filter(i => i.hash != hash)
-        let lsis = Object.values(indexes).filter(i => i.hash == hash)
-        if (lsis.length > 5) {
-            throw new Error('Schema has too many LSIs')
-        }
-        if (gsis.length > 20) {
-            throw new Error('Schema has too many GSIs')
-        }
+        let lsi = 0
         for (let [name, index] of Object.entries(schema.indexes)) {
             if (name != 'primary') {
                 if (index.type == 'local') {
-                    index.hash = primary.hash
-                    if (index.hash != indexes.primary.hash) {
+                    if (index.hash && index.hash != primary.hash) {
                         throw new OneTableArgError(`LSI "${name}" should not define a hash attribute that is different to the primary index`)
                     }
-                } else if (index.hash == primary.hash) {
-                    index.type = 'local'
-                    console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
-
-                } else if (!index.hash) {
-                    index.type = 'local'
-                    console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
-                }
-                if (index.type == 'local') {
                     if (index.sort == null) {
                         throw new OneTableArgError('LSIs must define a sort attribute')
                     }
                     if (index.project) {
-                        throw new OneTableArgError('Unwanted project definition for LSI')
+                        throw new OneTableArgError('Unexpected project definition for LSI')
+                    }
+                    index.hash = primary.hash
+                    lsi++
+
+                } else if (index.hash == null) {
+                    if (index.type == null) {
+                        console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
+                        index.type = 'local'
+                    } else {
+                        throw new OneTableArgError(`Index "${name}" is missing a hash attribute`)
                     }
                 }
             }
+        }
+        if (lsi > 5) {
+            throw new Error('Schema has too many LSIs')
         }
     }
 

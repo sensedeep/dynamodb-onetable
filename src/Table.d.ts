@@ -101,4 +101,7 @@ export class Table {
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
     fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
+
+    marshall(item: AnyEntity | AnyEntity[], params?: OneParams);
+    unmarshall(item: AnyEntity | AnyEntity[], params?: OneParams);
 }

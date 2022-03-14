@@ -160,8 +160,11 @@ test('Remove attribute 2', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Remove item', async() => {
-    await User.remove({id: user.id})
+test('Remove item (returning ALL_OLD)', async() => {
+    user = await User.get({id: user.id})
+    const removed = await User.remove({id: user.id})
+    expect(removed).toEqual(user);
+
     user = await User.get({id: user.id})
     expect(user).toBeUndefined()
 })

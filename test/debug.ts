@@ -8,7 +8,7 @@
 import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
 import { OneSchema } from '../src/index.js'
 
-// jest.setTimeout(7200 * 1000)
+jest.setTimeout(7200 * 1000)
 
 //  Change with your schema
 const schema: OneSchema = {

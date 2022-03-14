@@ -106,7 +106,7 @@ const MySchema = {
         Account: {
             pk:          { type: String, value: 'account:${name}' },
             sk:          { type: String, value: 'account:' },
-            id:          { type: String, generate: 'ulid', validate: /^[0-9A-F]{32}$/i },
+            id:          { type: String, generate: 'ulid', validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i },
             name:        { type: String, required: true },
             status:      { type: String, default: 'active' },
             zip:         { type: String },
@@ -412,7 +412,7 @@ The validation function must return a map of validation messages for properties 
 
 #### Value Template Function
 
-Value templates are defined in the schema for model fields. These are typically literal strings with property variable references. In some use cases, more complex logic for a value template requires a function to calculate the property value at runtime. The Table params.value function provides a centralized place to evaluate value templates. It will be invoked for fields that define their value template to be `true`.
+Value templates are defined in the schema for model fields. These are typically literal strings with property variable references. In some use cases, more complex logic for a value template requires a function to calculate the property value at runtime. The Table constructor params.value function provides a centralized place to evaluate value templates. It will be invoked for fields that define their value template to be `true`.
 
 The value template function is called with the signature:
 
@@ -577,7 +577,7 @@ The `schema.indexes` property can contain one or more indexes and must contain t
     },
     //  Zero or more global secondary or local secondary indexes
     gs1: {
-        hash: 'gs1pk',      //  Omit the hash for an LSI or set to the primary index hash name
+        hash: 'gs1pk',
         sort: 'gs1sk',
         project: 'all',
         follow: true,
