@@ -211,6 +211,7 @@ export type OneParams = {
     parse?: boolean,
     postFormat?: (model: AnyModel, cmd: {}) => {},
     prev?: object,
+    push?: object,
     remove?: string[],
     reprocess?: boolean,
     return?: string | boolean,
@@ -261,7 +262,7 @@ export class Model<T> {
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
-    remove(properties: EntityParameters<T>, params?: OneParams): Promise<AnyEntity | undefined>;
+    remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
     update(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
 }

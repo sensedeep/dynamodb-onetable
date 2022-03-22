@@ -119,6 +119,18 @@ test("Set expression with param substitution", async () => {
     expect(user.tokens).toEqual(["red", "white", "blue", "green"])
 })
 
+test("Push value to array (push shortcut)", async () => {
+    user = await User.update(
+        { id: user.id },
+        {
+            push: {
+                "tokens": ["yellow"]
+            }
+        }
+    )
+    expect(user.tokens).toEqual(["red", "white", "blue", "green", "yellow"])
+})
+
 test('Set list', async() => {
     //  More complex expressions
     user = await User.update({id: user.id}, {set: {
