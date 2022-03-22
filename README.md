@@ -258,16 +258,9 @@ account.name = 'Coyote'         //  OK
 account.unknown = 42            //  Error
 ```
 
-## Full Documentation
-
-Read the full documentation at
-
-* [OneTable Documentation](https://doc.onetable.io/)
-
-### Contact
-
-You can contact me (Michael O'Brien) on Twitter at: [@mobstream](https://twitter.com/mobstream), or [email](mob-pub-18@sensedeep.com) and ready my [Blog](https://www.sensedeep.com/blog).
-
 ### SenseDeep
 
-Please try our Serverless Developer Studio [SenseDeep](https://www.sensedeep.com/).
+Please try our Serverless Developer Studio [SenseDeep](https://www.sensedeep.com/) which includes a full DynamoDB suite with
+single-table aware data browser, single-table designer, migration manager, provisioning planner and metrics.
+
+![SenseDeep Developer Studio](https://www.sensedeep.com/images/sensedeep/table-browse.png).
