@@ -13,9 +13,9 @@ OneTable is the most evolved API for DynamoDB. It provides a high-level, elegant
 
 OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
 
-Join the active community using OneTable on our [GitHub Discussion Hub](https://github.com/sensedeep/dynamodb-onetable/discussions) and learn about the growing set of extensions for migrations, CLI and graphical monitoring tools for your single-table designs.
+## Full Documentation
 
-Read the full documentation at [OneTable Documentation](https://doc.onetable.io/).
+* [OneTable Documentation](https://doc.onetable.io/)
 
 ## OneTable Features
 
