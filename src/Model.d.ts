@@ -16,7 +16,7 @@ export type OneType =
     ObjectConstructor |
     StringConstructor |
     SetConstructor |
-    Buffer |
+    BufferConstructor |
     string;
 
 /*
