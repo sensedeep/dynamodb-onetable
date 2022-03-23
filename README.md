@@ -9,7 +9,7 @@
 
 ## The Easiest Way to Create DynamoDB Single Table Designs.
 
-OneTable is the most evolved API for DynamoDB. It provides a high-level, elegant dry syntax while still enabling full access to DynamoDB API.
+OneTable is the most evolved API for DynamoDB. It provides a dry, high-level, elegant syntax while enabling full access to DynamoDB API.
 
 OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
 
@@ -260,7 +260,6 @@ account.unknown = 42            //  Error
 
 ### SenseDeep
 
-Please try our Serverless Developer Studio [SenseDeep](https://www.sensedeep.com/) which includes a full DynamoDB suite with
-single-table aware data browser, single-table designer, migration manager, provisioning planner and metrics.
+Please try our [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) that includes a full DynamoDB suite with single-table aware data browser, single-table designer, migration manager, provisioning planner and metrics.
 
 ![SenseDeep Developer Studio](https://www.sensedeep.com/images/sensedeep/table-browse.png).
