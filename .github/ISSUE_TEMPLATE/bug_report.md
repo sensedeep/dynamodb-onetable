@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**ISSUES will not receive priority that do not complete this template. They will be flagged as "Insufficient Information" and may be closed without any action**
+**ISSUES will not receive priority that do not complete this template. They will be flagged as "Insufficient Information" and may be closed without any action.**
 
 **Describe the bug**
 
