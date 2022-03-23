@@ -42,7 +42,9 @@ export class OneTableError extends Error {
                 for (let [key, value] of Object.entries(this.context)) {
                     try {
                         buf.push(`    ${key}: ${JSON.stringify(value, null, 4)}`)
-                    } catch (err) { }
+                    } catch (err) {
+                        //  No action
+                    }
                 }
                 buf.push('}')
             }
