@@ -8,7 +8,7 @@ export type EntityGroup = {
     [key: string]: AnyEntity[]
 };
 
-type TableConstructorParams = {
+type TableConstructorParams<Schema extends OneSchema> = {
     client?: {},                    //  Instance of DocumentClient or Dynamo.
     crypto?: {},                    //  Crypto configuration.
     generate?: (() => string),      //  Function to generate IDs for field schema that requires.
@@ -18,7 +18,7 @@ type TableConstructorParams = {
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
     metrics?: boolean | object,     //  Enable CloudWatch metrics.
     name?: string,                  //  Table name.
-    schema?: OneSchema,             //  Table models schema.
+    schema?: Schema,             //  Table models schema.
     senselogs?: {},                 //  SenseLogs instance for logging
     //  Transform record for read / write.
     transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams, raw?: {}) => AnyEntity,
@@ -44,16 +44,16 @@ type TableConstructorParams = {
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
 };
 
-export class Table {
+export class Table<Schema extends OneSchema> {
     name: string;
-    constructor(params: TableConstructorParams);
+    constructor(params: TableConstructorParams<Schema>);
 
-    addContext(context?: {}): Table;
+    addContext(context?: {}): Table<Schema>;
     addModel(name: string, fields: OneModelSchema): void;
 
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
-    clearContext(): Table;
+    clearContext(): Table<Schema>;
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
     describeTable(): Promise<{}>;
@@ -62,7 +62,7 @@ export class Table {
     generate(): string;
     getLog(): any;
     getKeys(): Promise<OneIndexSchema>;
-    getModel<T>(name: string): Model<T>;
+    getModel<Name extends keyof Schema["models"]>(name: Name): Model<Schema["models"][Name]>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
@@ -73,7 +73,7 @@ export class Table {
     removeSchema(schema: OneSchema): Promise<void>;
     saveSchema(schema?: OneSchema): Promise<OneSchema>;
     setClient(client: {}): void;
-    setContext(context?: {}, merge?: boolean): Table;
+    setContext(context?: {}, merge?: boolean): Table<Schema>;
     setGenerate(fn: () => string): void;
     setLog(log: any): void;
     setSchema(schema?: OneSchema): Promise<void>;
@@ -89,7 +89,7 @@ export class Table {
     scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
-    child(context: {}): Table;
+    child(context: {}): Table<Schema>;
 
     create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
