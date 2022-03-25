@@ -60,7 +60,6 @@ export class Metrics {
             //  Params takes priority
             metrics = Object.assign({}, DefaultMetrics, params)
         }
-
         if (metrics.env && process.env) {
             //  Need a better sense logs test than 'metrics'
             if (this.log.metrics) {
@@ -73,8 +72,10 @@ export class Metrics {
                 }
             }
             metrics.dimensions = process.env.LOG_ONETABLE_DIMENSIONS || metrics.dimensions
+            if (!Array.isArray(metrics.dimensions)) {
+                metrics.dimensions = metrics.dimensions.split(',').map(i => i.trim())
+            }
         }
-
         metrics.map = {Profile: true}
         for (let dim of metrics.dimensions) {
             metrics.map[dim] = true
