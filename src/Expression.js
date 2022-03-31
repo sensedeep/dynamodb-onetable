@@ -211,7 +211,7 @@ export class Expression {
         if (op == 'update') {
             this.addUpdates()
         }
-        if (params.where && (op == 'delete' || op == 'update')) {
+        if (params.where) {
             conditions.push(this.expand(params.where))
         }
     }
