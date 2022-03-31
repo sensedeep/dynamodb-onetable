@@ -3,6 +3,7 @@
  */
 import {UniqueSchema} from './schemas'
 import {Client, Entity, isV2, isV3, Model, Table} from './utils/init'
+import {OneTableError} from '../src';
 
 // jest.setTimeout(7200 * 1000)
 
@@ -112,7 +113,11 @@ test('Create non-unique email', async() => {
     }
     await expect(async () => {
         user = await User.create(props)
-    }).rejects.toThrow()
+    }).rejects.toThrow(new OneTableError(
+        `Cannot create unique attributes "email, interpolated" for "User", an item of the same name already exists.`,
+        {
+            code: 'UniqueError'
+        }))
 
     let items = await table.scanItems()
     expect(items.length).toBe(6)
@@ -125,7 +130,11 @@ test('Update non-unique email', async() => {
     }
     await expect(async () => {
         await User.update(props, {return: 'none'})
-    }).rejects.toThrow()
+    }).rejects.toThrow(new OneTableError(
+        `Cannot update unique attributes "email, interpolated" for "User", an item of the same name already exists.`,
+        {
+            code: 'UniqueError'
+        }))
 
     let items = await table.scanItems()
     expect(items.length).toBe(6)
