@@ -545,10 +545,10 @@ export class Model {
         try {
             await this.table.transact('write', params.transaction, params)
         } catch (err) {
-            if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
+            if (err instanceof OneTableError && err.code === 'TransactionCanceledException' && err.context.err.message.indexOf('ConditionalCheckFailed') !== -1) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(
-                    `Cannot create unqiue attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    `Cannot create unique attributes "${names}" for "${this.name}", an item of the same name already exists.`,
                     {properties, transaction, code: 'UniqueError'})
             }
             throw err
@@ -748,10 +748,13 @@ export class Model {
             await this.table.transact('write', params.transaction, params)
 
         } catch (err) {
-            if (err.message.indexOf('ConditionalCheckFailed') >= 0) {
+            console.log(err.code)
+            console.log(err.context.err)
+            if (err instanceof OneTableError && err.code === 'TransactionCanceledException' && err.context.err.message.indexOf('ConditionalCheckFailed') !== -1) {
                 let names = fields.map(f => f.name).join(', ')
-                throw new OneTableError(`Cannot update unqiue attributes "${names}" for "${this.name}", ` +
-                                   `an item of the same name already exists.`, {properties, transaction, code: 'UniqueError'})
+                throw new OneTableError(
+                    `Cannot update unique attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    {properties, transaction, code: 'UniqueError'})
             }
             throw err
         }
