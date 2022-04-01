@@ -12,7 +12,8 @@ export default {
             pk:           { type: String, value: '${_type}#${name}' },
             sk:           { type: String, value: '${_type}#' },
             name:         { type: String },
-            email:        { type: String, unique: true },
+            email:        { type: String, unique: true, required: true },
+            phone:        { type: String, unique: true },
             age:          { type: Number },
             interpolated: { type: String, value: '${name}#${email}', unique: true },
         }

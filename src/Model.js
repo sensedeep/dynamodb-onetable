@@ -530,7 +530,7 @@ export class Model {
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
         for (let field of fields) {
-            if (properties[field.name]) {
+            if (properties[field.name] !== undefined) {
                 let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
                 let sk = '_unique#'
                 await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
@@ -644,14 +644,36 @@ export class Model {
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         params.prepared = properties = this.prepareProperties('delete', properties, params)
+        
+        let keys = {
+            [hash]: properties[hash]
+        }
+        if (sort) {
+            keys[sort] = properties[sort]
+        }
+        /*
+            Get the prior item so we know the previous unique property values so they can be removed.
+            This must be run here, even if part of a transaction.
+        */
+        let prior = await this.get(keys, {hidden:true})
+        if (prior) {
+            prior = this.prepareProperties('update', prior)
+        } else if (params.exists === undefined || params.exists == true) {
+            throw new OneTableError('Cannot find existing item to remove', {properties, code: 'NotFoundError'})
+        }
 
         for (let field of fields) {
-            if (!properties[field.name]) {
-                throw new OneTableArgError(`Cannot remove unique field "${field.name}" for model "${this.name}", must provide "${field.name}" value`, {properties})
-            }
-            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
-            await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction})
+            // If we had a prior record, remove unique values that existed
+            if (prior && prior[field.name]) {
+                let pk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
+                await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: params.exists})
+            }
+            // else, if we *didn't* have a prior record but the field is defined, try to remove it
+            else if (!prior && properties[field.name] !== undefined) {
+                let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+                await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: params.exists})
+            }
         }
         let removed = await this.deleteItem(properties, params)
         // Only execute transaction if we are not in a transaction
@@ -716,13 +738,16 @@ export class Model {
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         for (let field of fields) {
-            if (properties[field.name] === undefined || (prior && properties[field.name] === prior[field.name])) {
+            let toBeRemoved = (params.remove && params.remove.includes(field.name))
+            let isUnchanged = (prior && properties[field.name] === prior[field.name])
+            if (isUnchanged) {
                 continue
             }
+
             let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
-
-            if (prior && prior[field.name]) {
+            // If we had a prior value AND value is changing or being removed, remove old value
+            if (prior && prior[field.name] && (properties[field.name] !== undefined || toBeRemoved)) {
                 /*
                     Remove prior unique properties if they have changed and create new unique property.
                 */
@@ -733,7 +758,10 @@ export class Model {
                 }
                 await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {transaction, exists: null})
             }
-            await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+            // If value is changing, add new unique value
+            if (properties[field.name] !== undefined) {
+                await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+            }
         }
         let item = await this.updateItem(properties, params)
 

@@ -59,12 +59,25 @@ test('Create user 2', async() => {
     const props = {
         name: 'Judy Smith',
         email: 'judy@example.com',
+        phone: '+15555555555'
     }
     user = await User.create(props)
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(7)
+})
+
+test('Update user 2 with the same email', async() => {
+    const props = {
+        name: 'Judy Smith',
+        email: 'judy@example.com',
+    }
+    user = await User.update(props, {return: 'get'})
+    expect(user).toMatchObject(props)
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(7)
 })
 
 test('Update user 2 with unique email', async() => {
@@ -76,9 +89,8 @@ test('Update user 2 with unique email', async() => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(7)
 })
-
 
 test('Update non-unique property', async() => {
     const props = {
@@ -89,7 +101,7 @@ test('Update non-unique property', async() => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(7)
 })
 
 test('Update with unknown property', async() => {
@@ -103,6 +115,20 @@ test('Update with unknown property', async() => {
     expect(user).toMatchObject(expectedProps)
 
     let items = await table.scanItems()
+    expect(items.length).toBe(7)
+})
+
+test('Update to remove optional unique property', async() => {
+    const props = {
+        name: 'Judy Smith',
+        phone: null
+    }
+    user = await User.update(props, {return: 'get', log:true})
+    const {phone, ...expectedProps} = props
+    expect(user).toMatchObject(expectedProps)
+    expect(user.phone).toBeUndefined()
+
+    let items = await table.scanItems()
     expect(items.length).toBe(6)
 })
 
@@ -114,7 +140,7 @@ test('Create non-unique email', async() => {
     await expect(async () => {
         user = await User.create(props)
     }).rejects.toThrow(new OneTableError(
-        `Cannot create unique attributes "email, interpolated" for "User", an item of the same name already exists.`,
+        `Cannot create unique attributes "email, phone, interpolated" for "User", an item of the same name already exists.`,
         {
             code: 'UniqueError'
         }))
@@ -131,7 +157,7 @@ test('Update non-unique email', async() => {
     await expect(async () => {
         await User.update(props, {return: 'none'})
     }).rejects.toThrow(new OneTableError(
-        `Cannot update unique attributes "email, interpolated" for "User", an item of the same name already exists.`,
+        `Cannot update unique attributes "email, phone, interpolated" for "User", an item of the same name already exists.`,
         {
             code: 'UniqueError'
         }))
