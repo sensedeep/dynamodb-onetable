@@ -644,7 +644,7 @@ export class Model {
         let fields = Object.values(this.block.fields).filter(f => f.unique && f.attribute != hash && f.attribute != sort)
 
         params.prepared = properties = this.prepareProperties('delete', properties, params)
-        
+
         let keys = {
             [hash]: properties[hash]
         }
@@ -668,11 +668,14 @@ export class Model {
             if (prior && prior[field.name]) {
                 let pk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
                 await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: params.exists})
-            }
-            // else, if we *didn't* have a prior record but the field is defined, try to remove it
-            else if (!prior && properties[field.name] !== undefined) {
+
+            } else if (!prior && properties[field.name] !== undefined) {
+                // if we did not have a prior record and the field is defined, try to remove it
                 let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
-                await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: params.exists})
+                await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {
+                    transaction,
+                    exists: params.exists
+                })
             }
         }
         let removed = await this.deleteItem(properties, params)

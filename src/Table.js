@@ -1087,7 +1087,18 @@ class Log {
             return
         }
         if (context) {
-            console.log(level, message, JSON.stringify(context, null, 4))
+            try {
+                console.log(level, message, JSON.stringify(context, null, 4))
+            } catch (err) {
+                let buf = ['{']
+                for (let [key, value] of Object.entries(context)) {
+                    try {
+                        buf.push(`    ${key}: ${JSON.stringify(value, null, 4)}`)
+                    } catch (err) { /* continue */ }
+                }
+                buf.push('}')
+                console.log(level, message, buf.join('\n'))
+            }
         } else {
             console.log(level, message)
         }
