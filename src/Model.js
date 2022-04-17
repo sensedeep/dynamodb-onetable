@@ -839,7 +839,7 @@ export class Model {
             }
         }
         this.setDefaults('init', fields, properties, params)
-        this.runTemplates('put', this.indexes.primary, fields, properties, params)
+        this.runTemplates('put', this.indexes.primary, this.block.deps, properties, params)
         return properties
     }
 
@@ -1095,7 +1095,7 @@ export class Model {
         this.tunnelProperties(properties, params)
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties, params)
-        this.runTemplates(op, index, fields, properties, params)
+        this.runTemplates(op, index, block.deps, properties, params)
         this.convertNulls(op, fields, properties, params)
         this.validateProperties(op, fields, properties, params)
         this.selectProperties(op, block, index, properties, params, rec)
@@ -1295,8 +1295,9 @@ export class Model {
     /*
         Process value templates and property values that are functions
      */
-    runTemplates(op, index, fields, properties, params) {
-        for (let [name, field] of Object.entries(fields)) {
+    runTemplates(op, index, deps, properties, params) {
+        for (let field of deps) {
+            let name = field.name
             if (field.isIndexed && (op != 'put' && op != 'update') &&
                     field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
                 //  Ignore indexes not being used for this call
