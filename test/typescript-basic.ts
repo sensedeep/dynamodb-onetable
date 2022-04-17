@@ -39,6 +39,7 @@ describe('TypeScript', () => {
         },
         balance: 0,
         tokens: ['red', 'white', 'blue'],
+        buffer: Buffer.from('test'),
     }
 
     test('Create', async() => {
