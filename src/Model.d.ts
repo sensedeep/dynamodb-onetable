@@ -16,7 +16,7 @@ export type OneType =
     ObjectConstructor |
     StringConstructor |
     SetConstructor |
-    BufferConstructor |
+    ArrayBufferConstructor |
     string;
 
 /*
@@ -107,7 +107,7 @@ type EntityFieldFromType<T extends OneField> =
     : T['type'] extends (NumberConstructor | 'number') ? number
     : T['type'] extends (ObjectConstructor | 'object') ? object
     : T['type'] extends (DateConstructor | 'date') ? Date
-    : T['type'] extends (BufferConstructor) ? Buffer
+    : T['type'] extends (ArrayBufferConstructor) ? ArrayBuffer
     : T['type'] extends (StringConstructor | 'string') ? string
     : T['type'] extends (SetConstructor | 'set') ? Set<any>
     : never;
