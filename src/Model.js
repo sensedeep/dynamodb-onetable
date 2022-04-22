@@ -1573,7 +1573,7 @@ export class Model {
         if (!Array.isArray(value)) {
             throw new OneTableError('Set values must be arrays', {code: 'TypeError'})
         }
-        if (type == Set || type == 'Set') {
+        if (type == Set || type == 'Set' || type == 'set') {
             let v = value.values().next().value
             if (typeof v == 'string') {
                 value = value.map(v => v.toString())
