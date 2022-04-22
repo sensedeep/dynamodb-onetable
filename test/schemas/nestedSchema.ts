@@ -18,7 +18,7 @@ export default {
             balance:     { type: Number },
             tokens:      { type: Array },
             started:     { type: Date },
-            buffer:      { type: Buffer },
+            buffer:      { type: ArrayBuffer },
 
             location:    { type: Object, schema: {
                 address: { type: String },

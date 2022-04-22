@@ -30,7 +30,7 @@ const TransformParseResponseAs = {
 const KeysOnly = {delete: true, get: true}
 const TransactOps = {delete: 'Delete', get: 'Get', put: 'Put', update: 'Update'}
 const BatchOps = {delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest'}
-const ValidTypes = [ 'array', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
+const ValidTypes = [ 'array', 'arraybuffer', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
 const SanityPages = 1000
 const FollowThreads = 10
 
@@ -995,7 +995,7 @@ export class Model {
         if (field.type == 'date') {
             return value ? new Date(value) : null
         }
-        if (field.type == 'buffer' || field.type == 'binary') {
+        if (field.type == 'buffer' || field.type == 'arraybuffer' || field.type == 'binary') {
             return Buffer.from(value, 'base64')
         }
         return value
@@ -1516,7 +1516,7 @@ export class Model {
                 value = value.toString()
             }
 
-        } else if (type == 'buffer' || type == 'binary') {
+        } else if (type == 'buffer' || type == 'arraybuffer' || type == 'binary') {
             if (value instanceof Buffer || value instanceof ArrayBuffer || value instanceof DataView) {
                 value = value.toString('base64')
             }
