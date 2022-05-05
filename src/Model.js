@@ -1211,7 +1211,8 @@ export class Model {
                 }
             }
         }
-        if (!this.generic) {
+        if (!this.generic && fields == this.block.fields) {
+            //  Set type field for the top level only
             properties[this.typeField] = this.name
         }
     }
