@@ -1082,11 +1082,18 @@ export class Model {
         }
         if (this.nested && !KeysOnly[op]) {
             //  Process nested schema recursively
-            for (let [name, value] of Object.entries(properties)) {
-                let field = fields[name]
-                if (field && field.schema && typeof value == 'object') {
-                    rec[name] = rec[name] || {}
-                    this.collectProperties(op, field.block, index, value, params, context[name] || {}, rec[name])
+            // for (let [name, value] of Object.entries(properties)) {
+            for (let field of Object.values(fields)) {
+                if (field.schema) {
+                    let name = field.name
+                    let value = properties[name]
+                    if (op == 'put') {
+                        value = value || field.default || {}
+                    }
+                    if (value !== undefined) {
+                        rec[name] = rec[name] || value
+                        this.collectProperties(op, field.block, index, value, params, context[name] || {}, rec[name])
+                    }
                 }
             }
         }
