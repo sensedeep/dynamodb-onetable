@@ -802,7 +802,7 @@ export class Model {
                              `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
                              `In future releases, this will throw an exception.`)
             }
-            return [properties]
+            return properties
         }
     }
 
@@ -963,7 +963,7 @@ export class Model {
             } else if (field.schema && typeof value == 'object') {
                 rec[name] = this.transformReadBlock(op, raw[name], properties[name] || {}, params, field.block.fields)
             } else {
-                rec[name] = this.transformReadAttribute(field, name, value, params)
+                rec[name] = this.transformReadAttribute(field, name, value, params, properties)
             }
         }
         if (this.generic) {
@@ -984,11 +984,10 @@ export class Model {
         return rec
     }
 
-    transformReadAttribute(field, name, value, params) {
+    transformReadAttribute(field, name, value, params, properties) {
         if (typeof params.transform == 'function') {
             //  Invoke custom data transform after reading
-            console.warn('WARNING: params.transform functions are DEPRECATED and will be removed soon.')
-            return params.transform(this, 'read', name, value)
+            return params.transform(this, 'read', name, value, properties)
         }
         if (field.type == 'date') {
             return value ? new Date(value) : null
@@ -1082,7 +1081,6 @@ export class Model {
         }
         if (this.nested && !KeysOnly[op]) {
             //  Process nested schema recursively
-            // for (let [name, value] of Object.entries(properties)) {
             for (let field of Object.values(fields)) {
                 if (field.schema) {
                     let name = field.name
