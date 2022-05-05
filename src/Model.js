@@ -779,8 +779,6 @@ export class Model {
             await this.table.transact('write', params.transaction, params)
 
         } catch (err) {
-            console.log(err.code)
-            console.log(err.context.err)
             if (err instanceof OneTableError && err.code === 'TransactionCanceledException' && err.context.err.message.indexOf('ConditionalCheckFailed') !== -1) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(
