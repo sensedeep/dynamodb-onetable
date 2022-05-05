@@ -123,7 +123,7 @@ test('Update to remove optional unique property', async() => {
         name: 'Judy Smith',
         phone: null
     }
-    user = await User.update(props, {return: 'get', log:true})
+    user = await User.update(props, {return: 'get', log: false})
     const {phone, ...expectedProps} = props
     expect(user).toMatchObject(expectedProps)
     expect(user.phone).toBeUndefined()
