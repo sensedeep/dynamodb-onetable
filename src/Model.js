@@ -946,7 +946,7 @@ export class Model {
             }
             if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
-                    console.warn('WARNING: default functions are DEPRECATED and will be removed soon.')
+                    // console.warn('WARNING: default functions are DEPRECATED and will be removed soon.')
                     value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
@@ -1317,7 +1317,7 @@ export class Model {
             } else if (properties[name] === undefined) {
                 if (field.value) {
                     if (typeof field.value == 'function') {
-                        console.warn('WARNING: value functions are DEPRECATED and will be removed soon.')
+                        // console.warn('WARNING: value functions are DEPRECATED and will be removed soon.')
                         properties[name] = field.value(field.pathname, properties)
                     } else {
                         let value = this.runTemplate(op, index, field, properties, params, field.value)
@@ -1431,7 +1431,7 @@ export class Model {
 
         //  DEPRECATE
         if (typeof params.validate == 'function') {
-            console.warn('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
+            // console.warn('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
             let error
             ({error, value} = params.validate(this, field, value))
             if (error) {
