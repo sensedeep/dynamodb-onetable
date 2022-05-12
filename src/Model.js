@@ -1391,7 +1391,7 @@ export class Model {
         if (!field) {
             throw new OneTableError('Cannot find field', {name})
         }
-        return this.runTemplate('find', null, properties, params)
+        return this.runTemplate('find', null, properties, params, field.value)
     }
 
     validateProperties(op, fields, properties, params) {
