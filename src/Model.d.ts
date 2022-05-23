@@ -258,7 +258,7 @@ export type AnyModel = {
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    create(properties: T, params?: OneParams): Promise<T>;
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
