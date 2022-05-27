@@ -105,7 +105,7 @@ type EntityFieldFromType<T extends OneField> =
       T['type'] extends (ArrayConstructor | 'array') ? any[]
     : T['type'] extends (BooleanConstructor | 'boolean') ? boolean
     : T['type'] extends (NumberConstructor | 'number') ? number
-    : T['type'] extends (ObjectConstructor | 'object') ? object
+    : T['type'] extends (ObjectConstructor | 'object') ? Entity<T["schema"]>
     : T['type'] extends (DateConstructor | 'date') ? Date
     : T['type'] extends (ArrayBufferConstructor) ? ArrayBuffer
     : T['type'] extends (StringConstructor | 'string') ? string
