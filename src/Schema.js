@@ -272,7 +272,6 @@ export class Schema {
                 }
                 let type = (typeof field.type == 'function') ? field.type.name : field.type
                 field.type = type.toLowerCase()
-                delete field[params.typeField]
                 if (field.uuid) {
                     field.generate = field.generate || field.uuid
                     delete field.uuid
