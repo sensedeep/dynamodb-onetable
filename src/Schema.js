@@ -264,7 +264,6 @@ export class Schema {
         Prepare for persisting the schema. Convert types and regexp to strings.
     */
     transformSchemaForWrite(schema) {
-        let params = this.setDefaultParams(schema.params || this.params)
         for (let [name, model] of Object.entries(schema.models)) {
             for (let [fname, field] of Object.entries(model)) {
                 if (field.validate && field.validate instanceof RegExp) {
@@ -278,6 +277,7 @@ export class Schema {
                 }
             }
         }
+        schema.params = this.setDefaultParams(schema.params || this.params)
         return schema
     }
 
@@ -314,10 +314,6 @@ export class Schema {
             }
         }
         this.setDefaultParams(params)
-        /*
-        if (params.typeField != this.table.typeField) {
-            delete schema[this.table.typeField]
-        } */
         return schema
     }
 
