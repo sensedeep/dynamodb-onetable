@@ -17,6 +17,7 @@ export type OneType =
     StringConstructor |
     SetConstructor |
     ArrayBufferConstructor |
+    'typed-array' |
     string;
 
 /*
@@ -51,6 +52,7 @@ export type OneField = {
     value?: boolean | string,
     schema?: OneModelSchema,
     ttl?: boolean,
+    items?: OneField
 
     //  DEPRECATE 2.3
     uuid?: boolean | string,
@@ -110,8 +112,8 @@ type EntityFieldFromType<T extends OneField> =
     : T['type'] extends (ArrayBufferConstructor) ? ArrayBuffer
     : T['type'] extends (StringConstructor | 'string') ? string
     : T['type'] extends (SetConstructor | 'set') ? Set<any>
+    : T['type'] extends 'typed-array' ? EntityFieldFromType<T["items"]>[]
     : never;
-
 /*
     Select the required properties from a model
 */
