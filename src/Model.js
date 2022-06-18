@@ -126,7 +126,9 @@ export class Model {
             let pathname = prefix ? `${prefix}.${name}` : name
 
             if (!field.type) {
-                throw new OneTableArgError(`Missing field type for ${pathname}`)
+                field.type = 'string'
+                this.table.log.error(`Missing type field for ${pathname}`, {field})
+                // throw new OneTableArgError(`Missing field type for ${pathname}`)
             }
             field.pathname = pathname
             field.name = name
