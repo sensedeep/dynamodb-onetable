@@ -286,6 +286,11 @@ export class Model {
          */
         let cmd = expression.command()
         if (!expression.execute) {
+            if (params.log !== false) {
+                this.table.log[params.log ? 'info' : 'data'](`OneTable command for "${op}" "${this.name} (not executed)"`, {
+                    cmd, op, properties, params,
+                })
+            }
             return cmd
         }
         /*
@@ -761,11 +766,22 @@ export class Model {
                     //  Hasn't changed
                     continue
                 }
-                await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {transaction, exists: null})
+                await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {
+                    transaction, 
+                    exists: null, 
+                    execute: params.execute,
+                    log: params.log,
+                })
             }
             // If value is changing, add new unique value
             if (properties[field.name] !== undefined) {
-                await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
+                await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {
+                    transaction, 
+                    exists: false, 
+                    return: 'NONE',
+                    log: params.log,
+                    execute: params.execute
+                })
             }
         }
         let item = await this.updateItem(properties, params)
@@ -793,7 +809,12 @@ export class Model {
             return
         }
         if (params.return == 'get') {
-            return await this.get(keys, {hidden: params.hidden, log: params.log, parse: params.parse})
+            return await this.get(keys, {
+                hidden: params.hidden, 
+                log: params.log, 
+                parse: params.parse,
+                execute: params.execute,
+            })
         }
         if (params.return) {
             throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
@@ -1018,7 +1039,7 @@ export class Model {
             return properties
         }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
-            this.table.log.error(`Empty hash key`, {properties, params, op})
+            this.table.log.error(`Empty hash key`, {properties, params, op, rec, model: this.name})
             throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
                 properties, rec, code: 'MissingError',
             })

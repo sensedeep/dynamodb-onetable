@@ -702,6 +702,14 @@ export class Table {
         Invoke a prepared transaction. Note: transactGet does not work on non-primary indexes.
      */
     async transact(op, transaction, params = {}) {
+        if (params.execute === false) {
+            if (params.log !== false) {
+                this.log[params.log ? 'info' : 'data'](`OneTable transaction for "${op}" (not executed)`, {
+                    transaction, op, params,
+                })
+            }
+            return transaction
+        }
         let result = await this.execute(GenericModel,
             op == 'write' ? 'transactWrite' : 'transactGet', transaction, {}, params)
         if (op == 'get') {
