@@ -19,7 +19,7 @@ const table = new Table({
     logger: true,
 })
 
-let User = null
+let User: any = null
 let user: any
 let users: any[]
 
