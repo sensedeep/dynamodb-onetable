@@ -83,8 +83,7 @@ test('Batch get without parse', async() => {
     }
     let response: any = await table.batchGet(batch, {hidden: false})
     expect(response.Responses).toBeDefined()
-    if (isV3()) expect(response['$metadata']).toBeDefined()
-    if (isV2()) expect(response['$response']).toBeDefined()
+    expect(response.Responses.BatchTest).toBeDefined()
 })
 
 test('Batch with error', async() => {

@@ -615,27 +615,51 @@ export class Table {
         }
         def.ConsistentRead = params.consistent ? true : false
 
-        let result = await this.execute(GenericModel, 'batchGet', batch, {}, params)
+        // let result = await this.execute(GenericModel, 'batchGet', batch, {}, params)
 
-        let response = result.Responses
-        if (params.parse && response) {
-            result = []
-            for (let items of Object.values(response)) {
-                for (let item of items) {
-                    item = this.unmarshall(item, params)
-                    let type = item[this.typeField] || '_unknown'
-                    let model = this.schema.models[type]
-                    if (model && model != this.schema.uniqueModel) {
-                        result.push(model.transformReadItem('get', item, {}, params))
+        let result, retries = 0, more
+        result = params.parse ? [] : {Responses:{}}
+        do {
+            more = false
+            let data = await this.execute(GenericModel, 'batchGet', batch, {}, params)
+            if (data) {
+                let responses = data.Responses
+                if (responses) {
+                    for (let [key, items] of Object.entries(responses)) {
+                        for (let item of items) {
+                            if (params.parse) {
+                                item = this.unmarshall(item, params)
+                                let type = item[this.typeField] || '_unknown'
+                                let model = this.schema.models[type]
+                                if (model && model != this.schema.uniqueModel) {
+                                    result.push(model.transformReadItem('get', item, {}, params))
+                                }
+                            } else {
+                                let set = result.Responses[key] = result.Responses[key] || []
+                                set.push(item)
+                            }
+                        }
                     }
                 }
+                let unprocessed = data.UnprocessedItems
+                if (unprocessed && Object.keys(unprocessed).length) {
+                    batch.RequestItems = unprocessed
+                    if (params.reprocess === false) {
+                        return false
+                    }
+                    if (retries > 11) {
+                        throw new Error(response.UnprocessedItems)
+                    }
+                    await this.delay(10 * (2 ** retries++))
+                    more = true
+                }
             }
-        }
+        } while (more)
         return result
     }
 
     /*
-        AWS BatchWrite may throw an exception of no items can be processed.
+        AWS BatchWrite may throw an exception if no items can be processed.
         Otherwise it will retry (up to 11 times) and return partial results in UnprocessedItems.
         Those will be handled here if possible.
     */
@@ -758,18 +782,17 @@ export class Table {
     }
 
     /**
-     * this is a function passed to the DataLoader that given an array of Expression
-     * will group all commands by TableName and make all Keys unique and then will perform
-     * a BatchGet request and process the response of the BatchRequest to return an array
-     * with the corresponding response in the same order as it was requested.
-     *
-     * @param expressions
-     * @returns {Promise<*>}
+        This is a function passed to the DataLoader that given an array of Expression
+        will group all commands by TableName and make all Keys unique and then will perform
+        a BatchGet request and process the response of the BatchRequest to return an array
+        with the corresponding response in the same order as it was requested.
+        @param expressions
+        @returns {Promise<*>}
      */
     async batchLoaderFunction(expressions) {
         const commands = expressions.map(each => each.command())
 
-        const groupedByTableName =  commands.reduce((groupedBy, item) => {
+        const groupedByTableName = commands.reduce((groupedBy, item) => {
             const tableName = item.TableName
             if (!groupedBy[tableName]) groupedBy[tableName] = []
             groupedBy[tableName].push(item)

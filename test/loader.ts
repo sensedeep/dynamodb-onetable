@@ -8,7 +8,7 @@ import {DefaultSchema} from './schemas';
 import {Client, dynamoExecutedCommandsTracer, isV2, isV3, Table} from './utils/init';
 
 const table = new Table({
-    name: 'BatchTest',
+    name: 'LoaderTest',
     client: Client,
     schema: DefaultSchema,
     dataloader: DataLoader
