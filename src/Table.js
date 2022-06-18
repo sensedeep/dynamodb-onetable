@@ -648,7 +648,7 @@ export class Table {
                         return false
                     }
                     if (retries > 11) {
-                        throw new Error(response.UnprocessedItems)
+                        throw new Error(unprocessed)
                     }
                     await this.delay(10 * (2 ** retries++))
                     more = true
