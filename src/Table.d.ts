@@ -76,6 +76,7 @@ export class Table {
     setContext(context?: {}, merge?: boolean): Table;
     setGenerate(fn: () => string): void;
     setLog(log: any): void;
+    setParams(params: OneParams): void;
     setSchema(schema?: OneSchema): Promise<void>;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
     ulid(): string;
