@@ -51,6 +51,7 @@ export type OneField = {
     value?: boolean | string,
     schema?: OneModelSchema,
     ttl?: boolean,
+    items?: OneField
 
     //  DEPRECATE 2.3
     uuid?: boolean | string,
@@ -102,7 +103,7 @@ type EntityField<T extends OneField> =
     T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : EntityFieldFromType<T>;
 
 type EntityFieldFromType<T extends OneField> =
-      T['type'] extends (ArrayConstructor | 'array') ? any[]
+      T['type'] extends (ArrayConstructor | 'array') ? ArrayItemType<T>[]
     : T['type'] extends (BooleanConstructor | 'boolean') ? boolean
     : T['type'] extends (NumberConstructor | 'number') ? number
     : T['type'] extends (ObjectConstructor | 'object') ? Entity<T["schema"]>
@@ -110,8 +111,11 @@ type EntityFieldFromType<T extends OneField> =
     : T['type'] extends (ArrayBufferConstructor) ? ArrayBuffer
     : T['type'] extends (StringConstructor | 'string') ? string
     : T['type'] extends (SetConstructor | 'set') ? Set<any>
+    : T['type'] extends 'typed-array' ? EntityFieldFromType<T["items"]>[]
     : never;
 
+type ArrayItemType<T extends OneField> =
+    T extends {items: OneField} ? EntityFieldFromType<T["items"]> : any
 /*
     Select the required properties from a model
 */

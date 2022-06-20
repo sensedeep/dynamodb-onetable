@@ -10,8 +10,10 @@ import SingleKeySchema from './singleKeySchema'
 import TenantSchema from './tenantSchema'
 import UniqueSchema from './uniqueSchema'
 import ValidationSchema from './validationSchema'
+import ArrayItemsSchema from "./arrayItemsSchema";
 
 export {
+    ArrayItemsSchema,
     CryptoSchema,
     DataTypesSchema,
     DefaultSchema,
