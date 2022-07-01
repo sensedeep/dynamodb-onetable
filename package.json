@@ -21,7 +21,7 @@
     "author": "Michael O'Brien <mob@sensedeep.com>",
     "license": "MIT",
     "scripts": {
-        "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && ./fixup",
+        "build": "rm -fr dist/* && tsc -p tsconfig.json && tsc -p tsconfig-cjs.json && bash ./fixup",
         "lint": "eslint src",
         "lint-fix": "eslint src --fix",
         "prepare": "npm run build",
