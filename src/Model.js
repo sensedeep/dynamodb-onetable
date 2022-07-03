@@ -772,8 +772,8 @@ export class Model {
                     continue
                 }
                 await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {
-                    transaction, 
-                    exists: null, 
+                    transaction,
+                    exists: null,
                     execute: params.execute,
                     log: params.log,
                 })
@@ -781,8 +781,8 @@ export class Model {
             // If value is changing, add new unique value
             if (properties[field.name] !== undefined) {
                 await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {
-                    transaction, 
-                    exists: false, 
+                    transaction,
+                    exists: false,
                     return: 'NONE',
                     log: params.log,
                     execute: params.execute
@@ -815,8 +815,8 @@ export class Model {
         }
         if (params.return == 'get') {
             return await this.get(keys, {
-                hidden: params.hidden, 
-                log: params.log, 
+                hidden: params.hidden,
+                log: params.log,
                 parse: params.parse,
                 execute: params.execute,
             })

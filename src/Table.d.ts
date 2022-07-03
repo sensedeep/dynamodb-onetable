@@ -100,6 +100,7 @@ export class Table {
     remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
     scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    upsert(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
     fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
 
