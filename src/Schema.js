@@ -265,20 +265,31 @@ export class Schema {
     */
     transformSchemaForWrite(schema) {
         for (let [name, model] of Object.entries(schema.models)) {
-            for (let [fname, field] of Object.entries(model)) {
-                if (field.validate && field.validate instanceof RegExp) {
-                    schema.models[name][fname].validate = `/${field.validate.source}/${field.validate.flags}`
-                }
-                let type = (typeof field.type == 'function') ? field.type.name : field.type
-                field.type = type.toLowerCase()
-                if (field.uuid) {
-                    field.generate = field.generate || field.uuid
-                    delete field.uuid
-                }
+            for (let field of Object.values(model)) {
+                this.transformFieldForWrite(field)
             }
         }
         schema.params = this.setDefaultParams(schema.params || this.params)
         return schema
+    }
+
+    transformFieldForWrite(field) {
+        if (field.validate && field.validate instanceof RegExp) {
+            field.validate = `/${field.validate.source}/${field.validate.flags}`
+        }
+        let type = (typeof field.type == 'function') ? field.type.name : field.type
+        field.type = type.toLowerCase()
+        //  DEPRECATE
+        if (field.uuid) {
+            field.generate = field.generate || field.uuid
+            delete field.uuid
+        }
+        if (field.schema) {
+            for (let f of Object.values(field.schema)) {
+                this.transformFieldForWrite(f)
+            }
+        }
+        return field
     }
 
     /*
