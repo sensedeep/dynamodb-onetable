@@ -1157,7 +1157,13 @@ export class Model {
             NOTE: Value templates for unique items may need other properties when removing unique items
         */
         for (let [name, field] of Object.entries(block.fields)) {
-            if (field.schema) continue
+            if (field.schema) {
+                if (properties[name]) {
+                    rec[name] = Array.isArray(field.type) ? [] : {}
+                    this.selectProperties(op, field.block, index, properties[name], params, rec[name])
+                }
+                continue
+            }
             let omit = false
 
             if (block == this.block) {
