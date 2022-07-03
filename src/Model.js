@@ -711,6 +711,11 @@ export class Model {
         return await this.updateItem(properties, params)
     }
 
+    async upsert(properties, params = {}) {
+        params.exists = null
+        return await this.update(properties, params)
+    }
+
     /*
         Update an item with unique attributes and actually updating a unique property.
         Use a transaction to update a unique item for each unique attribute.

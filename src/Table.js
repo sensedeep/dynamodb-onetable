@@ -528,6 +528,11 @@ export class Table {
         return await model.update(properties, params)
     }
 
+    async upsert(modelName, properties, params) {
+        params.exists = null
+        return this.update(modelName, properties, params)
+    }
+
     async execute(model, op, cmd, properties = {}, params = {}) {
         let mark = new Date()
         let trace = {model, cmd, op, properties}
