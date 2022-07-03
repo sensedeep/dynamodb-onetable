@@ -264,7 +264,7 @@ export class Schema {
         Prepare for persisting the schema. Convert types and regexp to strings.
     */
     transformSchemaForWrite(schema) {
-        for (let [name, model] of Object.entries(schema.models)) {
+        for (let model of Object.values(schema.models)) {
             for (let field of Object.values(model)) {
                 this.transformFieldForWrite(field)
             }
