@@ -220,6 +220,9 @@ export class Table {
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
+        if (params.TimeToLiveSpecification) {
+            def.TimeToLiveSpecification = params.TimeToLiveSpecification
+        }
         let attributes = {}
         let {indexes} = this.schema
 
