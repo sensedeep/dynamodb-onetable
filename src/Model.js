@@ -1044,7 +1044,7 @@ export class Model {
             return properties
         }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
-            this.table.log.error(`Empty hash key`, {properties, params, op, rec, model: this.name})
+            this.table.log.error(`Empty hash key`, {properties, params, op, rec, index, model: this.name})
             throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
                 properties, rec, code: 'MissingError',
             })
@@ -1165,7 +1165,7 @@ export class Model {
                 //  Missing sort key on a high-level API for get/delete
                 if (properties[name] == null && attribute == index.sort && params.high && KeysOnly[op]) {
                     if (op == 'delete' && !params.many) {
-                        throw new OneTableError('Missing sort key', {code: 'MissingError'})
+                        throw new OneTableError('Missing sort key', {code: 'MissingError', properties, params})
                     }
                     /*
                         Missing sort key for high level get, or delete without "any".
