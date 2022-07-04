@@ -220,6 +220,9 @@ export class Table {
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
+        if (params.TimeToLiveSpecification) {
+            def.TimeToLiveSpecification = params.TimeToLiveSpecification
+        }
         let attributes = {}
         let {indexes} = this.schema
 
@@ -526,6 +529,11 @@ export class Table {
     async update(modelName, properties, params) {
         let model = this.getModel(modelName)
         return await model.update(properties, params)
+    }
+
+    async upsert(modelName, properties, params) {
+        params.exists = null
+        return this.update(modelName, properties, params)
     }
 
     async execute(model, op, cmd, properties = {}, params = {}) {

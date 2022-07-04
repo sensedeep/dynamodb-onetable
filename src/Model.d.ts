@@ -258,6 +258,7 @@ export type AnyModel = {
     remove(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    upsert(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
 };
 
 export class Model<T> {
@@ -270,4 +271,5 @@ export class Model<T> {
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
     update(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
+    upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
 }

@@ -711,6 +711,11 @@ export class Model {
         return await this.updateItem(properties, params)
     }
 
+    async upsert(properties, params = {}) {
+        params.exists = null
+        return await this.update(properties, params)
+    }
+
     /*
         Update an item with unique attributes and actually updating a unique property.
         Use a transaction to update a unique item for each unique attribute.
@@ -767,8 +772,8 @@ export class Model {
                     continue
                 }
                 await this.schema.uniqueModel.remove({[this.hash]: priorPk,[this.sort]: sk}, {
-                    transaction, 
-                    exists: null, 
+                    transaction,
+                    exists: null,
                     execute: params.execute,
                     log: params.log,
                 })
@@ -776,8 +781,8 @@ export class Model {
             // If value is changing, add new unique value
             if (properties[field.name] !== undefined) {
                 await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {
-                    transaction, 
-                    exists: false, 
+                    transaction,
+                    exists: false,
                     return: 'NONE',
                     log: params.log,
                     execute: params.execute
@@ -810,8 +815,8 @@ export class Model {
         }
         if (params.return == 'get') {
             return await this.get(keys, {
-                hidden: params.hidden, 
-                log: params.log, 
+                hidden: params.hidden,
+                log: params.log,
                 parse: params.parse,
                 execute: params.execute,
             })
@@ -853,13 +858,13 @@ export class Model {
     initItem(properties, params = {}) {
         ({properties, params} = this.checkArgs(properties, params))
         let fields = this.block.fields
+        this.setDefaults('init', fields, properties, params)
         //  Ensure all fields are present
         for (let key of Object.keys(fields)) {
             if (properties[key] === undefined) {
                 properties[key] = null
             }
         }
-        this.setDefaults('init', fields, properties, params)
         this.runTemplates('put', this.indexes.primary, this.block.deps, properties, params)
         return properties
     }
@@ -1039,7 +1044,7 @@ export class Model {
             return properties
         }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
-            this.table.log.error(`Empty hash key`, {properties, params, op, rec, model: this.name})
+            this.table.log.error(`Empty hash key`, {properties, params, op, rec, index, model: this.name})
             throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
                 properties, rec, code: 'MissingError',
             })
@@ -1155,7 +1160,13 @@ export class Model {
             NOTE: Value templates for unique items may need other properties when removing unique items
         */
         for (let [name, field] of Object.entries(block.fields)) {
-            if (field.schema) continue
+            if (field.schema) {
+                if (properties[name]) {
+                    rec[name] = Array.isArray(field.type) ? [] : {}
+                    this.selectProperties(op, field.block, index, properties[name], params, rec[name])
+                }
+                continue
+            }
             let omit = false
 
             if (block == this.block) {
@@ -1163,7 +1174,7 @@ export class Model {
                 //  Missing sort key on a high-level API for get/delete
                 if (properties[name] == null && attribute == index.sort && params.high && KeysOnly[op]) {
                     if (op == 'delete' && !params.many) {
-                        throw new OneTableError('Missing sort key', {code: 'MissingError'})
+                        throw new OneTableError('Missing sort key', {code: 'MissingError', properties, params})
                     }
                     /*
                         Missing sort key for high level get, or delete without "any".
