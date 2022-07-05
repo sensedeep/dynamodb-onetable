@@ -18,7 +18,7 @@
             "args": [
                 "--runInBand",
                 "--watchAll=false",
-                "proto"
+                "debug"
             ]
         }
     ]
