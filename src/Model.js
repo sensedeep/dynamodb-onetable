@@ -1114,7 +1114,10 @@ export class Model {
                     let name = field.name
                     let value = properties[name]
                     if (op == 'put') {
-                        value = value || field.default || {}
+                        value = value || field.default
+                        if (value === undefined && field.required) {
+                            value = {}
+                        }
                     }
                     if (value !== undefined) {
                         rec[name] = rec[name] || value
