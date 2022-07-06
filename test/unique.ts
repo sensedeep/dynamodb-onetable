@@ -140,7 +140,7 @@ test('Create non-unique email', async() => {
     await expect(async () => {
         user = await User.create(props)
     }).rejects.toThrow(new OneTableError(
-        `Cannot create unique attributes "email, phone, interpolated" for "User", an item of the same name already exists.`,
+        `Cannot create unique attributes "email, phone, interpolated" for "User". An item of the same name already exists.`,
         {
             code: 'UniqueError'
         }))
@@ -157,7 +157,7 @@ test('Update non-unique email', async() => {
     await expect(async () => {
         await User.update(props, {return: 'none'})
     }).rejects.toThrow(new OneTableError(
-        `Cannot update unique attributes "email, phone, interpolated" for "User", an item of the same name already exists.`,
+        `Cannot update unique attributes "email, phone, interpolated" for "User". An item of the same name already exists.`,
         {
             code: 'UniqueError'
         }))

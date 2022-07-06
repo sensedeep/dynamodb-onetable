@@ -560,7 +560,7 @@ export class Model {
             if (err instanceof OneTableError && err.code === 'TransactionCanceledException' && err.context.err.message.indexOf('ConditionalCheckFailed') !== -1) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(
-                    `Cannot create unique attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    `Cannot create unique attributes "${names}" for "${this.name}". An item of the same name already exists.`,
                     {properties, transaction, code: 'UniqueError'})
             }
             throw err
