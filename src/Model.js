@@ -208,6 +208,7 @@ export class Model {
                 if (field.type == 'object') {
                     field.block = {deps: [], fields: {}}
                     this.prepModel(field.schema, field.block, name)
+                    //  FUTURE - better to apply this to the field block
                     this.nested = true
                 } else {
                     throw new OneTableArgError(`Nested scheme not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`)
@@ -538,7 +539,11 @@ export class Model {
 
         for (let field of fields) {
             if (properties[field.name] !== undefined) {
-                let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+                let scope = ''
+                if (field.scope) {
+                    scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+                }
+                let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
                 let sk = '_unique#'
                 await this.schema.uniqueModel.create({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: false, return: 'NONE'})
             }
@@ -671,14 +676,18 @@ export class Model {
 
         for (let field of fields) {
             let sk = `_unique#`
+            let scope = ''
+            if (field.scope) {
+                scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+            }
             // If we had a prior record, remove unique values that existed
             if (prior && prior[field.name]) {
-                let pk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
+                let pk = `_unique#${scope}${this.name}#${field.attribute}#${prior[field.name]}`
                 await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {transaction, exists: params.exists})
 
             } else if (!prior && properties[field.name] !== undefined) {
                 // if we did not have a prior record and the field is defined, try to remove it
-                let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+                let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
                 await this.schema.uniqueModel.remove({[this.hash]: pk,[this.sort]: sk}, {
                     transaction,
                     exists: params.exists
@@ -759,14 +768,18 @@ export class Model {
                 continue
             }
 
-            let pk = `_unique#${this.name}#${field.attribute}#${properties[field.name]}`
+            let scope = ''
+            if (field.scope) {
+                scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+            }
+            let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
             // If we had a prior value AND value is changing or being removed, remove old value
             if (prior && prior[field.name] && (properties[field.name] !== undefined || toBeRemoved)) {
                 /*
                     Remove prior unique properties if they have changed and create new unique property.
                 */
-                let priorPk = `_unique#${this.name}#${field.attribute}#${prior[field.name]}`
+                let priorPk = `_unique#${scope}${this.name}#${field.attribute}#${prior[field.name]}`
                 if (pk == priorPk) {
                     //  Hasn't changed
                     continue
@@ -805,7 +818,7 @@ export class Model {
             if (err instanceof OneTableError && err.code === 'TransactionCanceledException' && err.context.err.message.indexOf('ConditionalCheckFailed') !== -1) {
                 let names = fields.map(f => f.name).join(', ')
                 throw new OneTableError(
-                    `Cannot update unique attributes "${names}" for "${this.name}", an item of the same name already exists.`,
+                    `Cannot update unique attributes "${names}" for "${this.name}". An item of the same name already exists.`,
                     {properties, transaction, code: 'UniqueError'})
             }
             throw err
