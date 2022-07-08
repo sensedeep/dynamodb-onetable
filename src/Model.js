@@ -626,7 +626,9 @@ export class Model {
             throw new OneTableArgError('Remove cannot retry', {properties})
         }
         params.parse = true
-        let items = await this.find(properties, params)
+        let findParams = Object.assign({}, params)
+        delete findParams.transaction
+        let items = await this.find(properties, findParams)
         if (items.length > 1 && !params.many) {
             throw new OneTableError(`Removing multiple items from "${this.name}". Use many:true to enable.`, {
                 properties,
@@ -637,9 +639,9 @@ export class Model {
         for (let item of items) {
             let removed
             if (this.hasUniqueFields) {
-                removed = await this.removeUnique(item, {retry: true})
+                removed = await this.removeUnique(item, {retry: true, transaction: params.transaction})
             } else {
-                removed = await this.remove(item, {retry: true, return: params.return})
+                removed = await this.remove(item, {retry: true, return: params.return, transaction: params.transaction})
             }
             response.push(removed)
         }
