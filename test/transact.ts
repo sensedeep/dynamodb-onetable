@@ -87,6 +87,14 @@ test('Transaction update', async() => {
     expect(grouped.User.length).toBe(3)
 })
 
+test('Transaction delete many', async ()=> {
+    let transaction = {}
+    await User.remove({}, {index:"gs2", many: true, transaction});
+    await table.transact('write', transaction, {parse: true, hidden: false})
+    let scan = await table.scan('User', {}, {hidden: true})
+    expect(scan.length).toBe(0);
+})
+
 test('Destroy', async() => {
     await table.deleteTable('DeleteTableForever')
 })
