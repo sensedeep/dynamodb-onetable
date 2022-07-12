@@ -1034,7 +1034,7 @@ export class Table {
     }
 
     assignInner(dest, src, recurse = 0) {
-        if (recurse++ > 20) {
+        if (recurse++ > 1000) {
             throw new OneTableError('Recursive merge', {code: 'RuntimeError'})
         }
         if (!src || !dest || typeof src != 'object') {
