@@ -130,12 +130,19 @@ export type Optional<T extends OneTypedModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]>
 };
 
+export type Generated<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['generate'] extends true ? P : never]?: EntityField<T[P]>
+};
+
+type ExtractModel<M> = M extends Entity<infer X> ? X : never
+
 /*
     Merge two types
 */
 type Merge<A extends any, B extends any> = {
     [P in keyof (A & B)]: P extends keyof A ? A[P] : (P extends keyof B ? B[P] : never)
 };
+
 
 /*
     Create entity type which includes required and optional types
@@ -261,9 +268,10 @@ export type AnyModel = {
     upsert(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
 };
 
+type CreateProperties<T> = Omit<T, keyof Generated<ExtractModel<T>>> | Generated<ExtractModel<T>>
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: T, params?: OneParams): Promise<T>;
+    create(properties: CreateProperties<T>, params?: OneParams): Promise<T>;
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
