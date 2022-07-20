@@ -3,7 +3,7 @@ import AWS, {DynamoDB} from 'aws-sdk'
 import Dynamo from '../../src/Dynamo.js'
 import {Entity, Model, Table} from '../../src/index.js'
 
-const PORT = parseInt(process.env.DYNAMODB_PORT)
+const PORT = parseInt(process.env.DYNAMODB_PORT || '4567')
 
 const dynamoExecutedCommandsTracer = jest.fn()
 
@@ -43,14 +43,15 @@ const isV3 = () => !isV2();
 const Client = isV2() ? ClientV2 : ClientV3
 
 const dump = (...args) => {
-    let s = []
+    let s: string[] = []
     for (let item of args) {
-        s.push(JSON.stringify(item, function (key, value) {
+        let values = JSON.stringify(item, function (key, value) {
             if (this[key] instanceof Date) {
                 return this[key].toLocaleString()
             }
             return value
-        }, 4))
+        }, 4)
+        s.push(values)
     }
     console.log(s.join(' '))
 }

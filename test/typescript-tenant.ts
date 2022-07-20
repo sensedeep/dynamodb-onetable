@@ -22,16 +22,16 @@ test('Create Table', async() => {
 
 type UserType = Entity<typeof TenantSchema.models.User>
 let User = table.getModel<UserType>('User')
-let user: UserType = null
+let user: UserType | undefined
 
 type AccountType = Entity<typeof TenantSchema.models.Account>
 let Account = table.getModel<AccountType>('Account')
-let account: AccountType = null
+let account: AccountType
 
 let userData: UserType[] = [
-    {accountId: null, name: 'Peter Smith', email: 'peter@example.com' },
-    {accountId: null, name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: null, name: 'Cu Later', email: 'cu@example.com', optional: '42' },
+    {accountId: 'tbd', name: 'Peter Smith', email: 'peter@example.com' },
+    {accountId: 'tbd', name: 'Patty O\'Furniture', email: 'patty@example.com' },
+    {accountId: 'tbd', name: 'Cu Later', email: 'cu@example.com', optional: '42' },
 ]
 
 test('Create Account', async() => {
@@ -46,6 +46,7 @@ test('Create Users', async() => {
     for (let item of userData) {
         item.accountId = accountId
         await User.create(item)
+        user = await User.get(item)
     }
     let users = await User.scan()
     expect(users.length).toBe(userData.length)
