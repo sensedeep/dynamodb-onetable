@@ -288,11 +288,26 @@ export class Table {
             delete def.LocalSecondaryIndexes
         }
         this.log.trace(`OneTable createTable for "${this.name}"`, {def})
+        let result
         if (this.V3) {
-            return await this.service.createTable(def)
+            result = await this.service.createTable(def)
         } else {
-            return await this.service.createTable(def).promise()
+            result = await this.service.createTable(def).promise()
         }
+        if (params.wait) {
+            let deadline = new Date(Date.now() + params.wait * 1000)
+            do {
+                let info = await this.describeTable()
+                if (info.Table.TableStatus == 'ACTIVE') {
+                    break
+                }
+                if (deadline < Date.now()) {
+                    throw new Error('Table has not become active')
+                }
+                await this.delay(1000)
+            } while (deadline < Date.now();
+        }
+        return result
     }
 
     getAttributeType(name) {
