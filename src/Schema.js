@@ -307,12 +307,13 @@ export class Schema {
         schema.models[MigrationModel] = this.migrationModelFields
 
         let params = schema.params || this.params
+
         for (let mdef of Object.values(schema.models)) {
             if (params.timestamps === true || params.timestamps == 'create') {
                 let createdField = params.createdField || 'created'
                 mdef[createdField] = {name: createdField, type: 'date'}
             }
-            if (params.timestamps === true || params.timestamps == 'create') {
+            if (params.timestamps === true || params.timestamps == 'update') {
                 let updatedField = params.updatedField || 'updated'
                 mdef[updatedField] = {name: updatedField, type: 'date'}
             }

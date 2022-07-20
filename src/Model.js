@@ -66,8 +66,8 @@ export class Model {
         this.nulls = table.nulls
         this.tableName = table.name
         this.typeField = options.typeField || table.typeField
-        this.timestamps = options.timestamps
         this.generic = options.generic != null ? options.generic : table.generic
+        this.timestamps = options.timestamps
         if (this.timestamps == null) {
             this.timestamps = table.timestamps
         }
@@ -111,10 +111,10 @@ export class Model {
                 }
             }
             if (this.timestamps === true || this.timestamps == 'create') {
-                schemaFields[this.createdField] = schemaFields[this.createdField] || {type: Date}
+                schemaFields[this.createdField] = schemaFields[this.createdField] || {type: 'date'}
             }
             if (this.timestamps === true || this.timestamps == 'update') {
-                schemaFields[this.updatedField] = schemaFields[this.updatedField] || {type: Date}
+                schemaFields[this.updatedField] = schemaFields[this.updatedField] || {type: 'date'}
             }
         }
         let {indexes, table} = this
