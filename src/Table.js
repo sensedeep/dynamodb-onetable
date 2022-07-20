@@ -305,7 +305,7 @@ export class Table {
                     throw new Error('Table has not become active')
                 }
                 await this.delay(1000)
-            } while (deadline < Date.now();
+            } while (deadline < Date.now())
         }
         return result
     }
