@@ -308,10 +308,12 @@ export class Schema {
 
         let params = schema.params || this.params
         for (let mdef of Object.values(schema.models)) {
-            if (params.timestamps) {
+            if (params.timestamps === true || params.timestamps == 'create') {
                 let createdField = params.createdField || 'created'
-                let updatedField = params.updatedField || 'updated'
                 mdef[createdField] = {name: createdField, type: 'date'}
+            }
+            if (params.timestamps === true || params.timestamps == 'create') {
+                let updatedField = params.updatedField || 'updated'
                 mdef[updatedField] = {name: updatedField, type: 'date'}
             }
             mdef[params.typeField] = {name: params.typeField, type: 'string', required: true}

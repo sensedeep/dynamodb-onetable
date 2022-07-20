@@ -86,7 +86,7 @@ export type OneSchemaParams = {
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings. Default false.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
-    timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
+    timestamps?: boolean | string,  //  Make "created" and "updated" timestamps. Set to true, 'create' or 'update'. Default true
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute. Default 'updated'.
 }
@@ -195,7 +195,7 @@ type ModelConstructorOptions = {
     indexes?: {
         [key: string]: OneIndexSchema
     },
-    timestamps?: boolean,
+    timestamps?: boolean | string,
 };
 
 /*
