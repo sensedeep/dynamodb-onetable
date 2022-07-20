@@ -264,20 +264,20 @@ export type AnyModel = {
     init(properties?: OneProperties, params?: OneParams): AnyEntity;
     remove(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    update(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
-    upsert(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+    upsert(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 };
 
 type CreateProperties<T> = Omit<T, keyof Generated<ExtractModel<T>>> | Generated<ExtractModel<T>>
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: CreateProperties<T>, params?: OneParams): Promise<T>;
+    create(properties: T, params?: OneParams): Promise<T>;
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
-    update(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
-    upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
+    update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
 }
