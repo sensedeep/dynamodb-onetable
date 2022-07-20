@@ -1649,7 +1649,7 @@ export class Model {
     */
     transformWriteDate(field, value) {
         if (field.ttl) {
-            //  Convert dates to unix epoch in seconds
+            //  Convert dates to DynamoDB TTL
             if (value instanceof Date) {
                 value = value.getTime()
             } else if (typeof value == 'string') {
