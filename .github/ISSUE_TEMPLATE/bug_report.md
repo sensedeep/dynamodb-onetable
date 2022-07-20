@@ -17,13 +17,15 @@ Please don't just paste an issue with this template not completed with all requi
 
 **To Reproduce**
 
+Include a link to a gist or repository containing a debug.ts that reproduces your issue. Reproductions must be short, correct, self-contained and must not contain code that isn't relevant to the issue. Please do NOT just paste code from your project. Explaining how to reproduce is most often insufficient. It may be clear to you, but typically is less than clear to others. Furthermore, it puts the burden of creating a test case onto the volunteer maintainers and isn't scalable. If such a reproduction is not provided, the issue may be closed without comment.
+
 Steps to reproduce the behavior:
 
 1. Clone this repository. Must test against the current master branch in the repository.
 2. Edit your reproducible, MINIMAL, stand-alone test case into the test/debug.ts file.
 3. Run via `jest debug` or run VS code in the top level directory.
 
-If you don't provide a complete debug.ts that demonstrates your issue, then your issue will not receive priority.
+If you don't provide a complete debug.ts that demonstrates your issue, then your issue will not receive priority and may be closed without comment.
 
 Ensure that your debug.ts includes:
 
@@ -35,7 +37,7 @@ Ensure that your debug.ts includes:
 Check that:
 
 1. You are using a current version of Node and NPM
-2. The debug.ts actually runs using 'jest debug'
+2. The debug.ts actually executes using 'jest debug'
 
 **Cut/Paste**
 
