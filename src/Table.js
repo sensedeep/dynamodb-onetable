@@ -223,6 +223,9 @@ export class Table {
         if (params.TimeToLiveSpecification) {
             def.TimeToLiveSpecification = params.TimeToLiveSpecification
         }
+        if (params.StreamSpecification) {
+            def.StreamSpecification = params.StreamSpecification
+        }
         let attributes = {}
         let {indexes} = this.schema
 
