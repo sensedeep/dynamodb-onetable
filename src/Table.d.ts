@@ -44,7 +44,6 @@ type TableConstructorParams<Schema extends OneSchema> = {
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
 };
 type ModelNames<Schema> = keyof Schema["models"];
-type Me<T, Schema> = T extends ModelNames<Schema> ? number : string
 export class Table<Schema extends OneSchema> {
 
     name: string;
