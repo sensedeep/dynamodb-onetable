@@ -62,7 +62,7 @@ export class Table<Schema extends OneSchema> {
     generate(): string;
     getLog(): any;
     getKeys(): Promise<OneIndexSchema>;
-    getModel<T extends (keyof Schema["models"]) | K>(name: T): Model<Entity<Schema["models"][T]>>;
+    getModel<T extends (keyof Schema["models"])>(name: T): Model<Entity<Schema["models"][T]>>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
