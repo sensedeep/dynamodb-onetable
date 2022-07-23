@@ -43,8 +43,10 @@ type TableConstructorParams<Schema extends OneSchema> = {
     //  DEPRECATED 2.3 - Defer to generate
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
 };
-
+type ModelNames<Schema> = keyof Schema["models"];
+type Me<T, Schema> = T extends ModelNames<Schema> ? number : string
 export class Table<Schema extends OneSchema> {
+
     name: string;
     constructor(params: TableConstructorParams<Schema>);
 
@@ -62,7 +64,7 @@ export class Table<Schema extends OneSchema> {
     generate(): string;
     getLog(): any;
     getKeys(): Promise<OneIndexSchema>;
-    getModel<T extends (keyof Schema["models"])>(name: T): Model<Entity<Schema["models"][T]>>;
+    getModel<T extends ModelNames<Schema> | any>(name: T | ModelNames<Schema>): T extends ModelNames<Schema> ? Model<Entity<Schema["models"][T]>> : Model<T>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
