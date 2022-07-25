@@ -7,7 +7,8 @@ import {DefaultSchema} from './schemas'
 // jest.setTimeout(7200 * 1000)
 
 let TableName = 'TableConstructorTestTable'
-let table: Table = null
+// Schema need to be passed because its not in the constructor. Using any because it gets modified
+let table: Table<any>
 
 test('Create table instance', async() => {
     table = new Table({
