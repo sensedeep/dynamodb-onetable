@@ -198,10 +198,11 @@ export class Table {
     }
 
     /*
-        Create a DynamoDB table. Uses the current schema index definition.
+        Output the AWS table definition as a JSON structure to use in external tools such as CloudFormation
+        or the AWS CLI to create your DynamoDB table. Uses the current schema index definition.
         Alternatively, params may contain standard DynamoDB createTable parameters.
     */
-    async createTable(params = {}) {
+    getTableDefinition(params = {}) {
         let def = {
             AttributeDefinitions: [],
             KeySchema: [],
@@ -287,6 +288,15 @@ export class Table {
         if (def.LocalSecondaryIndexes.length == 0) {
             delete def.LocalSecondaryIndexes
         }
+        return def
+    }
+
+    /*
+        Create a DynamoDB table. Uses the current schema index definition.
+        Alternatively, params may contain standard DynamoDB createTable parameters.
+    */
+    async createTable(params = {}) {
+        const def = this.getTableDefinition(params)
         this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         let result
         if (this.V3) {
