@@ -96,3 +96,28 @@ test('Destroy Table', async() => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })
+
+test('Find count of large set of items', async() => {
+    const USER_COUNT = 80
+    await table.createTable()
+    expect(await table.exists()).toBe(true)
+
+    for (let i = 0; i < USER_COUNT; ++i) {
+        await User.create({
+            name: `Peter ${i} Smith`,
+            email: `peter.${i}@example.com`,
+            status: 'active',
+            age: i,
+            profile: Array(26) // Creates a really large object with 256 char keys/values
+                .fill(0)
+                .map((x, i) => ''.padStart(256, String.fromCharCode(i + 65)))
+                .reduce((out, val) => { out[val] = val; return out }, {}),
+        })
+    }
+
+    users = await User.find({ status: 'active' }, { index: 'gs2', count: true })
+    expect(users.count).toBe(USER_COUNT)
+
+    await table.deleteTable('DeleteTableForever')
+    expect(await table.exists()).toBe(false)
+}, 300_000)
