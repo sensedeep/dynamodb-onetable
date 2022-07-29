@@ -1161,7 +1161,7 @@ export class Model {
     }
 
     /*
-        For typescript, we cant use properties: {name: [between], name: {begins}}
+        For typescript, we cannot use properties: {name: [between], name: {begins}}
         so tunnel from the params. Works for between, begins, < <= = >= >
     */
     tunnelProperties(properties, params) {
@@ -1556,7 +1556,7 @@ export class Model {
             //  Keep the null
 
         } else if (op == 'find' && value != null && typeof value == 'object') {
-            //  Find used {begins} and other operators
+            //  Find used {begins} for sort keys and other operators
             value = this.transformNestedWriteFields(field, value)
 
         } else if (type == 'date') {
