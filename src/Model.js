@@ -346,7 +346,7 @@ export class Model {
         /*
             Run command. Paginate if required.
          */
-        let pages = 0, items = []
+        let pages = 0, items = [], count = 0
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         let result
         do {
@@ -370,6 +370,9 @@ export class Model {
             } else if (result.Attributes) {
                 items = [result.Attributes]
                 break
+            }
+            else if (params.count || params.select == 'COUNT') {
+                count += result.Count
             }
             if (params.progress) {
                 params.progress({items, pages, stats, params, cmd})
@@ -414,7 +417,7 @@ export class Model {
                 Object.defineProperty(items, 'next', {enumerable: false})
             }
             if (params.count || params.select == 'COUNT') {
-                items.count = result.Count
+                items.count = count
                 Object.defineProperty(items, 'count', {enumerable: false})
             }
             if (prev) {

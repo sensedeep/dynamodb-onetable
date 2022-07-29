@@ -54,6 +54,7 @@ export class Table {
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
     clearContext(): Table;
+    getTableDefinition(params?: {}): {};
     createTable(params?: {}): Promise<{}>;
     deleteTable(confirmation: string): Promise<{}>;
     describeTable(): Promise<{}>;
