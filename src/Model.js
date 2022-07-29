@@ -844,12 +844,12 @@ export class Model {
         if (params.return) {
             throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
         } else {
+            /*
             if (this.table.warn !== false) {
                 console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
                              `Use params {return: 'none'} to squelch this warning. ` +
-                             `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
-                             `In future releases, this will throw an exception.`)
-            }
+                             `Use {return: 'get'} to do a non-transactional get of the item after the update. `)
+            } */
             return properties
         }
     }
