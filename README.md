@@ -71,7 +71,7 @@ If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class and th
 Note: you can use the Table.setClient API to defer setting the client or replace the client at any time.
 
 ```javascript
-import Dynamo from 'dynamodb-onetable/Dynamo'
+import {Dynamo} from 'dynamodb-onetable/Dynamo'
 import {Model, Table} from 'dynamodb-onetable'
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 const client = new Dynamo({client: new DynamoDBClient(params)})
