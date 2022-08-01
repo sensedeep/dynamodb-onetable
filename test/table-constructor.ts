@@ -8,7 +8,7 @@ import {DefaultSchema} from './schemas'
 
 let TableName = 'TableConstructorTestTable'
 // Schema need to be passed because its not in the constructor. Using any because it gets modified
-let table: Table<any>
+let table: Table
 
 test('Create table instance', async() => {
     table = new Table({
