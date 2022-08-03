@@ -1234,9 +1234,16 @@ export class Model {
         if (project) {
             if (project == 'all') {
                 project = null
+
             } else if (project == 'keys') {
                 let primary = this.indexes.primary
                 project = [primary.hash, primary.sort, index.hash, index.sort]
+                project = project.filter((v, i, a) => a.indexOf(v) === i)
+
+            } else if (Array.isArray(project)) {
+                let primary = this.indexes.primary
+                project = project.concat([primary.hash, primary.sort, index.hash, index.sort])
+                project = project.filter((v, i, a) => a.indexOf(v) === i)
             }
         }
         return project
