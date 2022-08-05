@@ -13,7 +13,7 @@ const table = new Table({
     logger: true,
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 
@@ -41,6 +41,7 @@ test('Describe Table', async() => {
 
 test('Validate User model', async() => {
     await expect(async() => {
+        // @ts-expect-error
         User = table.getModel('Unknown')
     }).rejects.toThrow()
 
