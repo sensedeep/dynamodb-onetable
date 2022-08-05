@@ -10,7 +10,7 @@
 import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 
 // send any schema because it gets modified
-const table = new Table({
+const table = new Table<any>({
     name: 'InlineModelTypeScriptTestTable',
     client: Client,
     schema: {
