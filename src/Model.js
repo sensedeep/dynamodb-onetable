@@ -346,7 +346,7 @@ export class Model {
         /*
             Run command. Paginate if required.
          */
-        let pages = 0, items = []
+        let pages = 0, items = [], count = 0
         let maxPages = params.maxPages ? params.maxPages : SanityPages
         let result
         do {
@@ -370,6 +370,9 @@ export class Model {
             } else if (result.Attributes) {
                 items = [result.Attributes]
                 break
+            }
+            else if (params.count || params.select == 'COUNT') {
+                count += result.Count
             }
             if (params.progress) {
                 params.progress({items, pages, stats, params, cmd})
@@ -414,7 +417,7 @@ export class Model {
                 Object.defineProperty(items, 'next', {enumerable: false})
             }
             if (params.count || params.select == 'COUNT') {
-                items.count = result.Count
+                items.count = count
                 Object.defineProperty(items, 'count', {enumerable: false})
             }
             if (prev) {
@@ -844,12 +847,12 @@ export class Model {
         if (params.return) {
             throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
         } else {
+            /*
             if (this.table.warn !== false) {
                 console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
                              `Use params {return: 'none'} to squelch this warning. ` +
-                             `Use {return: 'get'} to do a non-transactional get of the item after the update. ` +
-                             `In future releases, this will throw an exception.`)
-            }
+                             `Use {return: 'get'} to do a non-transactional get of the item after the update. `)
+            } */
             return properties
         }
     }
@@ -1161,7 +1164,7 @@ export class Model {
     }
 
     /*
-        For typescript, we cant use properties: {name: [between], name: {begins}}
+        For typescript, we cannot use properties: {name: [between], name: {begins}}
         so tunnel from the params. Works for between, begins, < <= = >= >
     */
     tunnelProperties(properties, params) {
@@ -1231,9 +1234,16 @@ export class Model {
         if (project) {
             if (project == 'all') {
                 project = null
+
             } else if (project == 'keys') {
                 let primary = this.indexes.primary
                 project = [primary.hash, primary.sort, index.hash, index.sort]
+                project = project.filter((v, i, a) => a.indexOf(v) === i)
+
+            } else if (Array.isArray(project)) {
+                let primary = this.indexes.primary
+                project = project.concat([primary.hash, primary.sort, index.hash, index.sort])
+                project = project.filter((v, i, a) => a.indexOf(v) === i)
             }
         }
         return project
@@ -1556,7 +1566,7 @@ export class Model {
             //  Keep the null
 
         } else if (op == 'find' && value != null && typeof value == 'object') {
-            //  Find used {begins} and other operators
+            //  Find used {begins} for sort keys and other operators
             value = this.transformNestedWriteFields(field, value)
 
         } else if (type == 'date') {

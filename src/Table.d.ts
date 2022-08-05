@@ -2,109 +2,194 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged, Entity} from "./Model";
+import {
+  AnyEntity,
+  AnyModel,
+  Model,
+  OneIndexSchema,
+  OneParams,
+  OneProperties,
+  OneModelSchema,
+  OneSchema,
+  Paged,
+  Entity,
+} from "./Model";
 
 export type EntityGroup = {
-    [key: string]: AnyEntity[]
+  [key: string]: AnyEntity[];
 };
 
 type TableConstructorParams<Schema extends OneSchema> = {
-    client?: {},                    //  Instance of DocumentClient or Dynamo.
-    crypto?: {},                    //  Crypto configuration.
-    generate?: (() => string),      //  Function to generate IDs for field schema that requires.
-    generic?: boolean,              //  Create a generic (low-level) raw model. Default false.
-    logger?: boolean | ((tag: string, message: string, context: {}) => void),      // Logging callback
-    //  Intercept table reads and writes
-    intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
-    metrics?: boolean | object,     //  Enable CloudWatch metrics.
-    name?: string,                  //  Table name.
-    schema?: Schema,                    //  Table models schema.
-    senselogs?: {},                 //  SenseLogs instance for logging
-    //  Transform record for read / write.
-    transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams, raw?: {}) => AnyEntity,
-    //  Validate properties before writing
-    validate?: (model: AnyModel, properties: OneProperties, params?: OneParams) => {},
-    //  Compute a value for a value template
-    value?: (model: AnyModel, fieldName: string, properties: OneProperties, params?: OneParams) => string,
+  client?: {}; //  Instance of DocumentClient or Dynamo.
+  crypto?: {}; //  Crypto configuration.
+  generate?: () => string; //  Function to generate IDs for field schema that requires.
+  generic?: boolean; //  Create a generic (low-level) raw model. Default false.
+  logger?: boolean | ((tag: string, message: string, context: {}) => void); // Logging callback
+  //  Intercept table reads and writes
+  intercept?: (
+    model: AnyModel,
+    op: string,
+    rec: {},
+    params: OneParams,
+    raw?: {}
+  ) => void;
+  metrics?: boolean | object; //  Enable CloudWatch metrics.
+  name?: string; //  Table name.
+  schema?: Schema; //  Table models schema.
+  senselogs?: {}; //  SenseLogs instance for logging
+  //  Transform record for read / write.
+  transform?: (
+    model: AnyModel,
+    op: string,
+    item: AnyEntity,
+    properties: OneProperties,
+    params?: OneParams,
+    raw?: {}
+  ) => AnyEntity;
+  //  Validate properties before writing
+  validate?: (
+    model: AnyModel,
+    properties: OneProperties,
+    params?: OneParams
+  ) => {};
+  //  Compute a value for a value template
+  value?: (
+    model: AnyModel,
+    fieldName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ) => string;
 
-    // https://www.npmjs.com/package/dataloader DataLoader constructor
-    dataloader?: new (batchLoadFn: any, options?: any) => any
+  // https://www.npmjs.com/package/dataloader DataLoader constructor
+  dataloader?: new (batchLoadFn: any, options?: any) => any;
 
-    //  DEPRECATED 2.3 - Should now be specified via the schema.params
-    createdField?: string,          //  Name of "created" timestamp attribute.
-    hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
-    isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
-    nulls?: boolean,                //  Store nulls in database attributes. Default false.
-    timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
-    typeField?: string,             //  Name of model type attribute. Default "_type".
-    updatedField?: string,          //  Name of "updated" timestamp attribute.
-    warn?: boolean,                 //  Issue warnings
+  //  DEPRECATED 2.3 - Should now be specified via the schema.params
+  createdField?: string; //  Name of "created" timestamp attribute.
+  hidden?: boolean; //  Hide key attributes in Javascript properties. Default false.
+  isoDates?: boolean; //  Set to true to store dates as Javascript ISO Date strings.
+  nulls?: boolean; //  Store nulls in database attributes. Default false.
+  timestamps?: boolean; //  Make "created" and "updated" timestamps. Default true.
+  typeField?: string; //  Name of model type attribute. Default "_type".
+  updatedField?: string; //  Name of "updated" timestamp attribute.
+  warn?: boolean; //  Issue warnings
 
-    //  DEPRECATED 2.3 - Defer to generate
-    uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.
+  //  DEPRECATED 2.3 - Defer to generate
+  uuid?: (() => string) | string; //  Function to create a UUID if field schema requires it.
 };
 type ModelNames<Schema> = keyof Schema["models"];
 export class Table<Schema extends OneSchema = any> {
+  name: string;
+  constructor(params: TableConstructorParams<Schema>);
 
-    name: string;
-    constructor(params: TableConstructorParams<Schema>);
+  addContext(context?: {}): Table<Schema>;
+  addModel(name: string, fields: OneModelSchema): void;
 
-    addContext(context?: {}): Table<Schema>;
-    addModel(name: string, fields: OneModelSchema): void;
+  batchGet(batch: any, params?: OneParams): Promise<{}[]>;
+  batchWrite(batch: any, params?: OneParams): Promise<{}>;
+  clearContext(): Table<Schema>;
+  createTable(params?: {}): Promise<{}>;
+  deleteTable(confirmation: string): Promise<{}>;
+  describeTable(): Promise<{}>;
+  exists(): Promise<Boolean>;
+  getContext(): {};
+  generate(): string;
+  getLog(): any;
+  getKeys(): Promise<OneIndexSchema>;
+  getModel<T extends ModelNames<Schema> | any>(
+    name: T | ModelNames<Schema>
+  ): T extends ModelNames<Schema>
+    ? Model<Entity<Schema["models"][T]>>
+    : Model<T>;
+  getCurrentSchema(): {};
+  groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
+  listModels(): AnyModel[];
+  listTables(): string[];
+  readSchema(): Promise<OneSchema>;
+  readSchemas(): Promise<OneSchema[]>;
+  removeModel(name: string): void;
+  removeSchema(schema: OneSchema): Promise<void>;
+  saveSchema(schema?: OneSchema): Promise<OneSchema>;
+  setClient(client: {}): void;
+  setContext(context?: {}, merge?: boolean): Table<Schema>;
+  setGenerate(fn: () => string): void;
+  setLog(log: any): void;
+  setParams(params: OneParams): void;
+  setSchema(schema?: OneSchema): Promise<void>;
+  transact(op: string, transaction: any, params?: OneParams): Promise<void>;
+  ulid(): string;
+  updateTable(params?: {}): Promise<{}>;
+  uuid(): string;
 
-    batchGet(batch: any, params?: OneParams): Promise<{}[]>;
-    batchWrite(batch: any, params?: OneParams): Promise<{}>;
-    clearContext(): Table<Schema>;
-    createTable(params?: {}): Promise<{}>;
-    deleteTable(confirmation: string): Promise<{}>;
-    describeTable(): Promise<{}>;
-    exists(): Promise<Boolean>;
-    getContext(): {};
-    generate(): string;
-    getLog(): any;
-    getKeys(): Promise<OneIndexSchema>;
-    getModel<T extends ModelNames<Schema> | any>(name: T | ModelNames<Schema>): T extends ModelNames<Schema> ? Model<Entity<Schema["models"][T]>> : Model<T>;
-    getCurrentSchema(): {};
-    groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
-    listModels(): AnyModel[];
-    listTables(): string[];
-    readSchema(): Promise<OneSchema>;
-    readSchemas(): Promise<OneSchema[]>;
-    removeModel(name: string): void;
-    removeSchema(schema: OneSchema): Promise<void>;
-    saveSchema(schema?: OneSchema): Promise<OneSchema>;
-    setClient(client: {}): void;
-    setContext(context?: {}, merge?: boolean): Table<Schema>;
-    setGenerate(fn: () => string): void;
-    setLog(log: any): void;
-    setParams(params: OneParams): void;
-    setSchema(schema?: OneSchema): Promise<void>;
-    transact(op: string, transaction: any, params?: OneParams): Promise<void>;
-    ulid(): string;
-    updateTable(params?: {}): Promise<{}>;
-    uuid(): string;
+  deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
+  getItem(
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity | undefined>;
+  putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+  queryItems(
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<Paged<AnyEntity>>;
+  scanItems(
+    properties?: OneProperties,
+    params?: OneParams
+  ): Promise<Paged<AnyEntity>>;
+  updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 
-    deleteItem(properties: OneProperties, params?: OneParams): Promise<void>;
-    getItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
-    putItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    queryItems(properties: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    scanItems(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    updateItem(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+  child(context: {}): Table<Schema>;
 
-    child(context: {}): Table<Schema>;
+  create(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity>;
+  find(
+    modelName: string,
+    properties?: OneProperties,
+    params?: OneParams
+  ): Promise<Paged<AnyEntity>>;
+  get(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity | undefined>;
+  load(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity | undefined>;
+  init(
+    modelName: string,
+    properties?: OneProperties,
+    params?: OneParams
+  ): AnyEntity;
+  remove(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<void>;
+  scan(
+    modelName: string,
+    properties?: OneProperties,
+    params?: OneParams
+  ): Promise<Paged<AnyEntity>>;
+  update(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity>;
+  upsert(
+    modelName: string,
+    properties: OneProperties,
+    params?: OneParams
+  ): Promise<AnyEntity>;
 
-    create(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    find(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    get(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
-    load(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
-    init(modelName: string, properties?: OneProperties, params?: OneParams): AnyEntity;
-    remove(modelName: string, properties: OneProperties, params?: OneParams): Promise<void>;
-    scan(modelName: string, properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
-    update(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
-    upsert(modelName: string, properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
+  fetch(
+    models: string[],
+    properties?: OneProperties,
+    params?: OneParams
+  ): Promise<EntityGroup>;
 
-    fetch(models: string[], properties?: OneProperties, params?: OneParams): Promise<EntityGroup>;
-
-    marshall(item: AnyEntity | AnyEntity[], params?: OneParams) : AnyEntity;
-    unmarshall(item: AnyEntity | AnyEntity[], params?: OneParams) : AnyEntity;
+  marshall(item: AnyEntity | AnyEntity[], params?: OneParams): AnyEntity;
+  unmarshall(item: AnyEntity | AnyEntity[], params?: OneParams): AnyEntity;
 }
