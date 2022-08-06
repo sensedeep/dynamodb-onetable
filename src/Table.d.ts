@@ -2,7 +2,7 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from "./Model";
+import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged, Entity} from "./Model";
 
 export type EntityGroup = {
     [key: string]: AnyEntity[]
@@ -18,7 +18,7 @@ type TableConstructorParams<Schema extends OneSchema> = {
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void,
     metrics?: boolean | object,     //  Enable CloudWatch metrics.
     name?: string,                  //  Table name.
-    schema?: Schema,             //  Table models schema.
+    schema?: Schema,                //  Table models schema.
     senselogs?: {},                 //  SenseLogs instance for logging
     //  Transform record for read / write.
     transform?: (model: AnyModel, op: string, item: AnyEntity, properties: OneProperties, params?: OneParams, raw?: {}) => AnyEntity,
@@ -65,7 +65,7 @@ export class Table<Schema extends OneSchema = any> {
     generate(): string;
     getLog(): any;
     getKeys(): Promise<OneIndexSchema>;
-    getModel<T>(name: ModelNames<Schema>): Model<Entity<Schema["models"][T]>>;
+    getModel<T>(name: T extends ModelNames<Schema> ? T : ModelNames<Schema>): T extends string ? Model<Entity<Schema["models"][T]>> : Model<T>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
