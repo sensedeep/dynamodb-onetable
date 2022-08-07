@@ -1028,7 +1028,7 @@ export class Model {
                 }
             }
         }
-        if (params.hidden == true && rec[this.typeField] === undefined && !this.generic) {
+        if (params.hidden == true && rec[this.typeField] === undefined && !this.generic && this.block.fields == fields) {
             rec[this.typeField] = this.name
         }
         if (this.table.params.transform) {
