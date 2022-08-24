@@ -259,11 +259,11 @@ export class Schema {
         if (params.nulls == null) {
             params.nulls = false
         }
-        if (params.hidden == null) {
-            params.hidden = false
-        }
         if (params.timestamps == null) {
             params.timestamps = false
+        }
+        if (params.hidden == null) {
+            params.hidden = false
         }
         return params
     }
