@@ -209,7 +209,7 @@ export class Model {
                 }
                 if (field.type == 'object') {
                     field.block = {deps: [], fields: {}}
-                    this.prepModel(field.schema, field.block, name)
+                    this.prepModel(field.schema, field.block, pathname)
                     //  FUTURE - better to apply this to the field block
                     this.nested = true
                 } else {
@@ -1151,17 +1151,18 @@ export class Model {
                     if (op == 'put') {
                         value = value || field.default
                         if (value === undefined && field.required) {
-                            value = {}
+                            value = field.type == 'array' ? [] : {}
                         }
                     }
                     if (value !== undefined) {
-                        rec[name] = rec[name] || value
-                        this.collectProperties(op, field.block, index, value, params, context[name] || {}, rec[name])
+                        rec[name] = this.collectProperties(op, field.block, index, value, params, context[name] || {})
                     }
                 }
             }
         }
-        this.tunnelProperties(properties, params)
+        /*
+            Then process the non-schema properties at this level (non-recursive)
+        */
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties, params)
         this.runTemplates(op, index, block.deps, properties, params)
@@ -1195,13 +1196,7 @@ export class Model {
             NOTE: Value templates for unique items may need other properties when removing unique items
         */
         for (let [name, field] of Object.entries(block.fields)) {
-            if (field.schema) {
-                if (properties[name]) {
-                    rec[name] = Array.isArray(field.type) ? [] : {}
-                    this.selectProperties(op, field.block, index, properties[name], params, rec[name])
-                }
-                continue
-            }
+            if (field.schema) continue
             let omit = false
 
             if (block == this.block) {
@@ -1289,6 +1284,7 @@ export class Model {
      */
     addContext(op, fields, index, properties, params, context) {
         for (let field of Object.values(fields)) {
+            if (field.schema) continue
             if (op == 'put' || (field.attribute[0] != index.hash && field.attribute[0] != index.sort)) {
                 if (context[field.name] !== undefined) {
                     properties[field.name] = context[field.name]
@@ -1309,37 +1305,33 @@ export class Model {
             return
         }
         for (let field of Object.values(fields)) {
-            if (field.type == 'object' && field.schema) {
-                properties[field.name] = properties[field.name] || {}
-                this.setDefaults(op, field.block.fields, properties[field.name], params)
-            } else {
-                let value = properties[field.name]
+            if (field.schema) continue
+            let value = properties[field.name]
 
-                //  Set defaults and uuid fields
-                if (value === undefined && !field.value) {
-                    if (field.default !== undefined) {
-                        value = field.default
+            //  Set defaults and uuid fields
+            if (value === undefined && !field.value) {
+                if (field.default !== undefined) {
+                    value = field.default
 
-                    } else if (op == 'init') {
-                        if (!field.generate) {
-                            //  Set non-default, non-uuid properties to null
-                            value = null
-                        }
-
-                    } else if (field.generate) {
-                        if (field.generate === true) {
-                            value = this.table.generate()
-
-                        } else if (field.generate == 'uuid') {
-                            value = this.table.uuid()
-
-                        } else if (field.generate == 'ulid') {
-                            value = this.table.ulid()
-                        }
+                } else if (op == 'init') {
+                    if (!field.generate) {
+                        //  Set non-default, non-uuid properties to null
+                        value = null
                     }
-                    if (value !== undefined) {
-                        properties[field.name] = value
+
+                } else if (field.generate) {
+                    if (field.generate === true) {
+                        value = this.table.generate()
+
+                    } else if (field.generate == 'uuid') {
+                        value = this.table.uuid()
+
+                    } else if (field.generate == 'ulid') {
+                        value = this.table.ulid()
                     }
+                }
+                if (value !== undefined) {
+                    properties[field.name] = value
                 }
             }
         }
@@ -1352,7 +1344,7 @@ export class Model {
     convertNulls(op, fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
-            if (!field) continue
+            if (!field || field.schema) continue
             if (value === null && field.nulls !== true) {
                 if (field.required && (
                 //  create with null/undefined, or update with null property
@@ -1380,6 +1372,7 @@ export class Model {
      */
     runTemplates(op, index, deps, properties, params) {
         for (let field of deps) {
+            if (field.schema) continue
             let name = field.name
             if (field.isIndexed && (op != 'put' && op != 'update') &&
                     field.attribute[0] != index.hash && field.attribute[0] != index.sort) {
@@ -1483,7 +1476,7 @@ export class Model {
         }
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
-            if (!field) continue
+            if (!field || field.schema) continue
             if (params.validate || field.validate || field.enum) {
                 value = this.validateProperty(field, value, validation, params)
                 properties[name] = value
@@ -1491,7 +1484,7 @@ export class Model {
         }
         for (let field of Object.values(fields)) {
             //  If required and create, must be defined. If required and update, must not be null.
-            if (field.required && (
+            if (field.required && !field.schema && (
                 (op == 'put' && properties[field.name] == null) || (op == 'update' && properties[field.name] === null))) {
                 validation[field.name] = `Value not defined for required field "${field.name}"`
             }
@@ -1554,6 +1547,7 @@ export class Model {
 
     transformProperties(op, fields, properties, params, rec) {
         for (let [name, field] of Object.entries(fields)) {
+            if (field.schema) continue
             let value = rec[name]
             if (value !== undefined && !field.schema) {
                 rec[name] = this.transformWriteAttribute(op, field, value, properties, params)
