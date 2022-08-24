@@ -1043,8 +1043,12 @@ export class Model {
             //  Invoke custom data transform after reading
             return params.transform(this, 'read', name, value, properties)
         }
-        if (field.type == 'date') {
-            return value ? new Date(value) : null
+        if (field.type == 'date' && value != undefined) {
+            if (field.ttl) {
+                return new Date(value * 1000)
+            } else {
+                return new Date(value)
+            }
         }
         if (field.type == 'buffer' || field.type == 'arraybuffer' || field.type == 'binary') {
             return Buffer.from(value, 'base64')
