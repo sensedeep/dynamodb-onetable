@@ -221,9 +221,6 @@ export class Table {
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
         }
-        if (params.TimeToLiveSpecification) {
-            def.TimeToLiveSpecification = params.TimeToLiveSpecification
-        }
         if (params.StreamSpecification) {
             def.StreamSpecification = params.StreamSpecification
         }
@@ -297,17 +294,26 @@ export class Table {
     */
     async createTable(params = {}) {
         const def = this.getTableDefinition(params)
-        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         let result
+
+        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         if (this.V3) {
             result = await this.service.createTable(def)
         } else {
             result = await this.service.createTable(def).promise()
         }
+
+        /*
+            Wait for table to become active. Must do if setting a TTL attribute
+        */
+        if (params.TimeToLiveSpecification) {
+            params.wait = 5 * 60
+        }
         if (params.wait) {
             let deadline = new Date(Date.now() + params.wait * 1000)
+            let info
             do {
-                let info = await this.describeTable()
+                info = await this.describeTable()
                 if (info.Table.TableStatus == 'ACTIVE') {
                     break
                 }
@@ -315,7 +321,22 @@ export class Table {
                     throw new Error('Table has not become active')
                 }
                 await this.delay(1000)
-            } while (deadline < Date.now())
+            } while (Date.now() < deadline)
+        }
+
+        /*
+            Define a TTL attribute
+        */
+        if (params.TimeToLiveSpecification) {
+            let def = {
+                TableName: this.name,
+                TimeToLiveSpecification: params.TimeToLiveSpecification,
+            }
+            if (this.V3) {
+                await this.service.updateTimeToLive(def)
+            } else {
+                await this.service.updateTimeToLive(def).promise()
+            }
         }
         return result
     }
@@ -418,6 +439,17 @@ export class Table {
         if (def.GlobalSecondaryIndexUpdates.length == 0) {
             delete def.GlobalSecondaryIndexUpdates
 
+        }
+        if (params.TimeToLiveSpecification) {
+            let def = {
+                TableName: params.TableName,
+                TimeToLiveSpecification: params.TimeToLiveSpecification,
+            }
+            if (this.V3) {
+                await this.service.updateTimeToLive(def)
+            } else {
+                await this.service.updateTimeToLive(def).promise()
+            }
         }
         this.log.trace(`OneTable updateTable for "${this.name}"`, {def})
         if (this.V3) {
