@@ -7,6 +7,7 @@ import {DefaultSchema} from './schemas'
 // jest.setTimeout(7200 * 1000)
 
 let TableName = 'TableConstructorTestTable'
+// Schema need to be passed because its not in the constructor. Using any because it gets modified
 let table: Table
 
 test('Create table instance', async() => {

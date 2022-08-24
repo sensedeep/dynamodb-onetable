@@ -29,7 +29,7 @@ test('Create User', async() => {
     */
     user = await User.create({
         name: 'Peter Smith',
-        zip: 98011,
+        zip: '98011',
         address: '444 Cherry Tree Lane',
         city: 'Seattle',
     })

@@ -112,7 +112,7 @@ test('Get single user', async() => {
 
 test('Remove many users (returning ALL_OLD)', async() => {
     //  PK comes from context
-    let removed = await User.remove({}, {many: true})
+    let removed: any = await User.remove({}, {many: true})
     expect(removed).toHaveLength(3)
     if (removed) {
         expect(removed[0].email).toEqual('peter@example.com')

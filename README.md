@@ -246,8 +246,8 @@ let account: AccountType = {
     unknown: 42,           //  Error
 }
 
-//  Get an Account access model
-let Account = table.getModel<AccountType>('Account')
+//  Get an Account access model (<AccountType> is inferred)
+let Account = table.getModel('Account')
 
 let account = await Account.create({
     name: 'Acme',               //  OK

@@ -41,9 +41,9 @@ test('Describe Table', async() => {
 })
 
 test('Validate User model', async() => {
-    let Unknown: any
     await expect(async() => {
-        Unknown = table.getModel('Unknown')
+        // @ts-expect-error
+        User = table.getModel('Unknown')
     }).rejects.toThrow()
 
     User = table.getModel('User')
