@@ -1,7 +1,7 @@
 /*
     context.ts - Test context APIs
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
 import {TenantSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
@@ -9,6 +9,7 @@ import {TenantSchema} from './schemas'
 const table = new Table({
     name: 'ContextTestTable',
     client: Client,
+    partial: false,
     schema: TenantSchema,
     logger: true,
 })
@@ -21,7 +22,8 @@ test('Create table', async() => {
     }
 })
 
-let User = table.getModel('User')
+type UserType = Entity<typeof TenantSchema.models.User>
+let User = table.getModel<UserType>('User')
 let Account = table.getModel('Account')
 let account: any
 let user: any
@@ -112,10 +114,11 @@ test('Remove many users (returning ALL_OLD)', async() => {
     //  PK comes from context
     let removed = await User.remove({}, {many: true})
     expect(removed).toHaveLength(3)
-    expect(removed[0].email).toEqual('peter@example.com')
-    expect(removed[1].email).toEqual('patty@example.com')
-    expect(removed[2].email).toEqual('cu@example.com')
-
+    if (removed) {
+        expect(removed[0].email).toEqual('peter@example.com')
+        expect(removed[1].email).toEqual('patty@example.com')
+        expect(removed[2].email).toEqual('cu@example.com')
+    }
     users = await User.scan()
     expect(users.length).toBe(0)
 })

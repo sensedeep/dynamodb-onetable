@@ -9,6 +9,7 @@ import {TenantSchema} from './schemas'
 const table = new Table({
     name: 'TypescriptCountTestTable',
     client: Client,
+    partial: false,
     schema: TenantSchema,
 })
 const accountId = table.uuid()

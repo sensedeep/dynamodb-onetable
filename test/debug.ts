@@ -36,6 +36,7 @@ const schema: OneSchema = {
 const table = new Table({
     name: 'DebugTable',
     client: Client,
+    partial: false,
     schema,
     logger: true,
 })

@@ -35,6 +35,7 @@ type TableConstructorParams = {
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
+    partial?: boolean,              //  Allow partial updates of nested schemas. Default false.
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.

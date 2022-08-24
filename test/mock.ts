@@ -10,6 +10,7 @@ const table = new Table({
     name: "MockTable",
     client: Client,
     logger: true,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {

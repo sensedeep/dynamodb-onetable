@@ -31,6 +31,7 @@ const table = new Table({
     name: 'TestCrud',
     client: client,
     logger: true,
+    partial: false,
     schema: {
         format: 'onetable:1.1.0',
         version: '0.0.1',

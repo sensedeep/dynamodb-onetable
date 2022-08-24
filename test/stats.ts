@@ -11,6 +11,7 @@ const MaxUsers = 100
 const table = new Table({
     name: 'MetricsTestTable',
     client: Client,
+    partial: false,
     schema: TenantSchema,
 })
 let user: any

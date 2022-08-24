@@ -10,6 +10,7 @@ import {OneTableError} from '../src';
 const table = new Table({
     name: 'UniqueTestTable',
     client: Client,
+    partial: false,
     schema: UniqueSchema,
     logger: true,
 })

@@ -25,6 +25,7 @@ const schema = {
 const table = new Table({
     name: 'HookTable',
     client: Client,
+    partial: false,
     schema,
     logger: true,
     transform(model, op, item, properties, params, raw) {
@@ -59,7 +60,7 @@ test('Create Table', async() => {
 
 type UserType = Entity<typeof schema.models.User>
 let User = table.getModel<UserType>('User')
-let user: UserType = null
+let user: UserType
 let users: any
 
 test('Test Post Format', async() => {

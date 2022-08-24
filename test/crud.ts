@@ -10,10 +10,11 @@ const table = new Table({
     name: 'CrudTestTable',
     client: Client,
     schema: DefaultSchema,
+    partial: false,
     logger: true,
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 
@@ -40,8 +41,9 @@ test('Describe Table', async() => {
 })
 
 test('Validate User model', async() => {
+    let Unknown: any
     await expect(async() => {
-        User = table.getModel('Unknown')
+        Unknown = table.getModel('Unknown')
     }).rejects.toThrow()
 
     User = table.getModel('User')

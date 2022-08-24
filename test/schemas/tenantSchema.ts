@@ -21,7 +21,7 @@ export default {
         User: {
             pk:         { type: String, value: 'Account#${accountId}' },
             sk:         { type: String, value: '${_type}#${id}' },
-            accountId:  { type: String, required: true },
+            accountId:  { type: String },
             id:         { type: String, generate: 'ulid' },
             name:       { type: String, required: true },
             email:      { type: String, required: true },

@@ -15,6 +15,7 @@ const table = new Table({
     name: 'CryptoTestTable',
     client: Client,
     crypto: Crypto,
+    partial: false,
     schema: CryptoSchema,
     logger: true,
 })

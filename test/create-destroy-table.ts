@@ -8,6 +8,7 @@ const TableName = 'CreateDestroyTable'
 const table = new Table({
     name: TableName,
     client: Client,
+    partial: false,
     schema: FullSchema,
 })
 
@@ -37,6 +38,7 @@ test('Numeric Sort Key', async() => {
     let table = new Table({
         name: 'NumericSortKey',
         client: Client,
+        partial: false,
         schema: {
             version: '0.0.1',
             indexes: { primary: { hash: 'pk', sort: 'sk' }, },

@@ -12,6 +12,7 @@ import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 const table = new Table({
     name: 'InlineModelTypeScriptTestTable',
     client: Client,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {primary: {hash: 'pk'}},
@@ -26,7 +27,7 @@ const CardSchema = {
 } as const
 
 type CardType = Entity<typeof CardSchema>
-let Card: Model<CardType> = null
+let Card: Model<CardType>
 
 test('Create table', async () => {
     if (!(await table.exists())) {

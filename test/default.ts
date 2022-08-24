@@ -7,10 +7,11 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'DefaultTestTable',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 

@@ -9,7 +9,7 @@ import DynamoDB from 'aws-sdk/clients/dynamodb'
 
 // jest.setTimeout(7200 * 1000)
 
-const PORT = parseInt(process.env.DYNAMODB_PORT)
+const PORT = parseInt(process?.env?.DYNAMODB_PORT || '4567')
 
 const v2Client = new DynamoDB.DocumentClient({
     endpoint: `http://localhost:${PORT}`,
@@ -24,11 +24,12 @@ const table = new Table({
     name: 'DataTestTable',
     client: v2Client,
     // client: Client,
+    partial: false,
     schema: DataTypesSchema,
     logger: true,
 })
 
-let Item = null
+let Item
 let item: any
 
 test('Create Table', async() => {

@@ -11,8 +11,9 @@ import {NestedSchema} from './schemas'
 const table = new Table({
     name: 'ParamsTestTable',
     client: Client,
-    schema: NestedSchema,
+    partial: false,
     logger: true,
+    schema: NestedSchema,
     timestamps: true,
 })
 
@@ -29,7 +30,7 @@ const Properties = {
     tokens: ['red', 'white', 'blue'],
 }
 
-let User = null
+let User
 let user: any
 let users: any[]
 

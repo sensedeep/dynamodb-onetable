@@ -11,6 +11,7 @@ const MaxSegments = 4
 const table = new Table({
     name: 'ParallelTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 const User = table.getModel('User')
@@ -32,14 +33,15 @@ test('Prepare data', async() => {
 })
 
 test('Stub', async() => {
-    let promises = []
+    let promises: any = []
     for (let segment = 0; segment < MaxSegments; segment++) {
-        promises.push(table.scanItems({}, {
+        let promise = table.scanItems({}, {
             segment,
             segments: MaxSegments,
             parse: true,
             hidden: false,
-        }))
+        })
+        promises.push(promise)
     }
     let items = await Promise.all(promises)
     expect(items.length).toBe(MaxSegments)

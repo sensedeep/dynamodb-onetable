@@ -9,6 +9,7 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'UpdateTableTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 

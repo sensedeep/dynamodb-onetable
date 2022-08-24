@@ -6,6 +6,7 @@ import { Client, Table } from './utils/init';
 const table = new Table({
     name: 'TimestampsTable',
     client: Client,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {
@@ -28,7 +29,7 @@ const table = new Table({
     },
 })
 
-let User = null
+let User
 let user: any
 
 test('Create Table', async() => {

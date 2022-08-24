@@ -10,6 +10,7 @@ import {Client, isV2, isV3, Table} from './utils/init'
 const table = new Table({
     name: 'BatchTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 const User = table.getModel('User')

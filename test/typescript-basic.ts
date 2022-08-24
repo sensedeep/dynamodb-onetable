@@ -13,6 +13,7 @@ describe('TypeScript', () => {
     const table = new Table({
         name: 'TypeScriptCrudTestTable',
         client: Client,
+        partial: false,
         schema: NestedSchema,
     })
 

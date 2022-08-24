@@ -9,6 +9,7 @@ import {FullSchema} from './schemas'
 const table = new Table({
     name: 'PackedAttributeWithFollowTable',
     client: Client,
+    partial: false,
     schema: FullSchema,
 })
 

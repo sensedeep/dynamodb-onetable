@@ -9,6 +9,7 @@ import {NestedSchema} from './schemas'
 const table = new Table({
     name: 'NestedTestTable',
     client: Client,
+    partial: false,
     schema: NestedSchema,
     logger: true,
 })
@@ -28,7 +29,7 @@ const Properties = {
     tokens: ['red', 'white', 'blue']
 }
 
-let User = null
+let User
 let user: any
 let users: any[]
 

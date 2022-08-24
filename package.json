@@ -1,6 +1,6 @@
 {
     "name": "dynamodb-onetable",
-    "version": "2.4.0",
+    "version": "2.4.1",
     "description": "DynamoDB access library for single-table designs",
     "main": "dist/cjs/index.js",
     "module": "dist/mjs/index.js",
@@ -46,9 +46,10 @@
         "@aws-sdk/util-dynamodb": "^3.72.0"
     },
     "devDependencies": {
-        "aws-sdk": "^2.1117.0",
         "@types/jest": "^27.4.1",
         "@types/node": "^17.0.25",
+        "utility-types": "^3.10.0",
+        "aws-sdk": "^2.1117.0",
         "dataloader": "^2.1.0",
         "dynamo-db-local": "^4.1.0",
         "eslint": "^8.13.0",

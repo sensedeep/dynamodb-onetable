@@ -12,6 +12,7 @@ const PerPage = 50
 const table = new Table({
     name: 'PaginationTestTable',
     client: Client,
+    partial: false,
     schema: PagedSchema,
 })
 

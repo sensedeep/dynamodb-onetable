@@ -13,6 +13,7 @@ import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, O
 const table = new Table({
     name: 'TypescriptExtrasTestTable',
     client: Client,
+    partial: false,
     schema: TenantSchema,
 })
 
