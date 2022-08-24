@@ -155,7 +155,6 @@ export class Expression {
         }
         //  Pathname may contain a '.'
         let path = attribute[0]
-        let att = path.split('.').shift()
 
         if (path == this.hash || path == this.sort) {
             if (op == 'find') {
