@@ -25,6 +25,7 @@ const Schema = {
 describe("Typescript infer", () => {
     const table = new Table({
         name: 'test',
+        partial: false,
         schema: Schema,
     })
 
@@ -32,7 +33,7 @@ describe("Typescript infer", () => {
 
     const User = table.getModel('User');
     const User1 = table.getModel<UserType>('User');
-    
+
     test('Get model', () => {
         expect(async() => {
             // @ts-expect-error only allow models that exist
@@ -41,7 +42,7 @@ describe("Typescript infer", () => {
             const User3 = table.getModel<UserType>('User1');
         }).rejects.toThrow()
     })
-    
+
     test('Create', async() => {
         const properties = {
             // name: 'Michael',
