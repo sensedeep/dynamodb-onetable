@@ -23,16 +23,16 @@ test('Create Table', async() => {
 
 type UserType = Entity<typeof TenantSchema.models.User>
 let User = table.getModel<UserType>('User')
-let user: UserType = null
+let user: UserType
 
 type AccountType = Entity<typeof TenantSchema.models.Account>
 let Account = table.getModel<AccountType>('Account')
-let account: AccountType = null
+let account: AccountType
 
 let userData = [
-    {accountId: null, name: 'Peter Smith', email: 'peter@example.com' },
-    {accountId: null, name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: null, name: 'Cu Later', email: 'cu@example.com' },
+    {accountId: '', name: 'Peter Smith', email: 'peter@example.com' },
+    {accountId: '', name: 'Patty O\'Furniture', email: 'patty@example.com' },
+    {accountId: '', name: 'Cu Later', email: 'cu@example.com' },
 ]
 
 test('Create Account and Users', async() => {
