@@ -44,10 +44,11 @@ const Crypto = {
     Single-table schema and setup. This is used for general access and by `createTable`
  */
 const table = new Table({
-    name: 'TestOverview',
     client: client,
     crypto: Crypto,
     logger: true,
+    name: 'TestOverview',
+    partial: false,
     schema: Schema,
 })
 

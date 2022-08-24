@@ -27,6 +27,7 @@ const client = new DynamoDB.DocumentClient({
 const table = new Table({
     name: 'V2TestTable',
     client: client,
+    partial: false,
     schema: DefaultSchema,
     logger: (level, message, context) => {
         if (level == 'trace' || level == 'data') return
@@ -35,7 +36,7 @@ const table = new Table({
     }
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 

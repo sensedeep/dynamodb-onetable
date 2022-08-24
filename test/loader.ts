@@ -10,6 +10,7 @@ import {Client, dynamoExecutedCommandsTracer, isV2, isV3, Table} from './utils/i
 const table = new Table({
     name: 'LoaderTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
     dataloader: DataLoader
 });

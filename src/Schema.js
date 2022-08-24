@@ -17,6 +17,7 @@ export class Schema {
 
     constructor(table, schema) {
         this.table = table
+        this.keyTypes = {}
         table.schema = this
         Object.defineProperty(this, 'table', {enumerable: false})
         this.params = table.getSchemaParams()
@@ -125,11 +126,13 @@ export class Schema {
     createUniqueModel() {
         let {indexes, table} = this
         let primary = indexes.primary
+        let type = this.keyTypes[primary.hash] || 'string'
         let fields = {
-            [primary.hash]: {type: String}
+            [primary.hash]: {type}
         }
         if (primary.sort) {
-            fields[primary.sort] = {type: String}
+            let type = this.keyTypes[primary.sort] || 'string'
+            fields[primary.sort] = {type}
         }
         this.uniqueModel = new Model(table, UniqueModel, {fields, timestamps: false})
     }
@@ -141,9 +144,11 @@ export class Schema {
     createGenericModel() {
         let {indexes, table} = this
         let primary = indexes.primary
-        let fields = {[primary.hash]: {type: String}}
+        let type = this.keyTypes[primary.hash] || 'string'
+        let fields = {[primary.hash]: {type}}
         if (primary.sort) {
-            fields[primary.sort] = {type: String}
+            type = this.keyTypes[primary.sort] || 'string'
+            fields[primary.sort] = {type}
         }
         this.genericModel = new Model(table, GenericModel, {fields, timestamps: false, generic: true})
     }
@@ -221,6 +226,9 @@ export class Schema {
             return this.indexes
         }
         let info = await this.table.describeTable()
+        for (let def of info.Table.AttributeDefinitions) {
+            this.keyTypes[def.AttributeName] = (def.AttributeType == 'N') ? 'number' : 'string'
+        }
         let indexes = {primary: {}}
         for (let key of info.Table.KeySchema) {
             let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
@@ -251,11 +259,11 @@ export class Schema {
         if (params.nulls == null) {
             params.nulls = false
         }
-        if (params.hidden == null) {
-            params.hidden = false
-        }
         if (params.timestamps == null) {
             params.timestamps = false
+        }
+        if (params.hidden == null) {
+            params.hidden = false
         }
         return params
     }

@@ -7,6 +7,7 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'LowLevelTableApiTestTable',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 

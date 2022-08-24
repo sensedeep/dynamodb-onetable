@@ -27,6 +27,7 @@ jest.setTimeout(7200 * 1000)
 const table = new Table({
     name: 'regress-1',
     client: Client,
+    partial: false,
     schema,
     nulls: false,
     isoDates: true,

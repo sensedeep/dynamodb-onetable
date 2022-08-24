@@ -4,6 +4,7 @@ import {ArrayItemsSchema} from './schemas';
 const table = new Table({
     name: 'ArrayItemsTestTable',
     client: Client,
+    partial: false,
     schema: ArrayItemsSchema,
 })
 
@@ -21,7 +22,7 @@ const expected = {
   ]
 }
 
-let Model = null
+let Model = table.getModel('TestModel')
 let item: any
 
 test('Create Table', async () => {
@@ -30,7 +31,6 @@ test('Create Table', async () => {
         expect(await table.exists()).toBe(true)
     }
 
-    Model = table.getModel('TestModel')
 })
 
 test('Create', async () => {

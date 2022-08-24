@@ -10,6 +10,7 @@ const table = new Table({
     name: 'CrudTestTable',
     client: Client,
     schema: DefaultSchema,
+    partial: false,
     logger: true,
 })
 

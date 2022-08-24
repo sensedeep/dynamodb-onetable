@@ -7,11 +7,12 @@ import {SingleKeySchema} from './schemas'
 const table = new Table({
     name: 'SingleKeyTestTable',
     client: Client,
+    partial: false,
     schema: SingleKeySchema,
     logger: true,
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 

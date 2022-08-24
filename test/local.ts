@@ -9,6 +9,7 @@ import {LocalSchema} from './schemas'
 const table = new Table({
     name: 'LocalTestTable',
     client: Client,
+    partial: false,
     schema: LocalSchema,
     logger: true,
 })
@@ -17,7 +18,7 @@ const Properties = {
     name: 'Peter Smith',
     email: 'peter@example.com',
 }
-let User = null
+let User
 let user: any
 let users: any[]
 

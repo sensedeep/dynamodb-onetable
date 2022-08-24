@@ -8,6 +8,7 @@ import { Client, Table } from './utils/init'
 const table = new Table({
     name: 'TransformTestTable',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
     transform(model: AnyModel, op: string, item: AnyEntity) {
         if (op === 'read') {
@@ -24,8 +25,8 @@ const table = new Table({
     }
 })
 
-let User = null
-let user = null
+let User
+let user
 
 describe('Table Transform', () => {
     test('Create Table', async () => {

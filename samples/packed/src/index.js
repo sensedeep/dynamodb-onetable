@@ -33,6 +33,7 @@ const table = new Table({
     name: 'TestCrud',
     client: client,
     logger: true,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {

@@ -190,7 +190,7 @@ async function test() {
     /*
         For maintenance, useful to be able to query by entity type. This is not a costly scan.
     */
-    let accounts = await Account.find({}, {index: 'gs1'})
+    let accounts = await Account.find({}, {index: 'gs1', follow: true})
     users = await User.find({}, {index: 'gs1'})
     invoices = await Invoice.find({}, {index: 'gs1'})
 

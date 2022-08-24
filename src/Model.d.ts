@@ -221,6 +221,7 @@ export type OneParams = {
     maxPages?: number,
     next?: object,
     parse?: boolean,
+    partial?: boolean,
     postFormat?: (model: AnyModel, cmd: {}) => {},
     prev?: object,
     push?: object,

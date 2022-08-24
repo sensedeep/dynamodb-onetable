@@ -8,6 +8,7 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'StubTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 const User = table.getModel('User')

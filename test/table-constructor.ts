@@ -13,6 +13,7 @@ let table: Table
 test('Create table instance', async() => {
     table = new Table({
         name: TableName,
+        partial: false,
     })
     expect(table instanceof Table).toBe(true)
     expect(table.name).toBe(TableName)
@@ -22,7 +23,7 @@ test('Create table instance', async() => {
 test('Create table args', async() => {
     await expect(async () => {
         //  Missing essential args
-        table = new Table({})
+        table = new Table({partial: false})
     }).rejects.toThrow()
 
     /* TS now catches this
@@ -44,6 +45,7 @@ test('Create table with various params', async() => {
             console.log(`${new Date().toLocaleString()}: ${type}: ${message}`)
             console.log(JSON.stringify(context, null, 4) + '\n')
         },
+        partial: false,
         schema: DefaultSchema,
     })
     expect(table instanceof Table).toBe(true)
@@ -70,6 +72,7 @@ test('Create Table', async() => {
 test('Create table with provisioned throughput', async() => {
     table = new Table({
         name: TableName,
+        partial: false,
         schema: DefaultSchema,
         client: Client,
     })
@@ -89,6 +92,7 @@ test('Create table with GSI and project keys', async() => {
     table = new Table({
         name: TableName,
         client: Client,
+        partial: false,
         schema: {
             version: '0.0.1',
             indexes: {
@@ -118,6 +122,7 @@ test('Create table with LSI and project', async() => {
         table = new Table({
             name: TableName,
             client: Client,
+            partial: false,
             schema: {
                 format: 'onetable:1.1.0',
                 version: '0.0.1',
@@ -144,6 +149,7 @@ test('Create table with LSI', async() => {
     table = new Table({
         name: TableName,
         client: Client,
+        partial: false,
         schema: {
             format: 'onetable:1.1.0',
             version: '0.0.1',

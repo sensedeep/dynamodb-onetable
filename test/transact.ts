@@ -10,6 +10,7 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'TransactTest',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
 })
 const User = table.getModel('User')
@@ -57,7 +58,7 @@ test('Transaction get', async() => {
     expect(items.length).toBe(data.length)
 
     for (let item of items) {
-        let datum = data.find(i => i.name == item.name)
+        let datum : any = data.find(i => i.name == item.name)
         expect(item).toMatchObject(datum)
     }
 })

@@ -7,7 +7,7 @@ const table = new Table({
     name: 'ValueFunctionTestTable',
     client: Client,
     logger: true,
-    timestamps: true,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {
@@ -25,10 +25,11 @@ const table = new Table({
                 name: { type: String },
             }
         }
-    }
+    },
+    timestamps: true,
 })
 
-let User = null
+let User
 
 test('Create Table', async() => {
     if (!(await table.exists())) {

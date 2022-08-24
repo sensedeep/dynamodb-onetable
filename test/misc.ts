@@ -7,6 +7,7 @@ import {DefaultSchema} from './schemas'
 const table = new Table({
     name: 'MiscTestTable',
     client: Client,
+    partial: false,
     schema: DefaultSchema,
     logger: true,
 })

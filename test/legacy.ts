@@ -8,6 +8,7 @@ import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 const table = new Table({
     name: "LegacyTestTable",
     client: Client,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {

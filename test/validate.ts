@@ -9,11 +9,12 @@ import {ValidationSchema} from './schemas'
 const table = new Table({
     name: 'ValidateTestTable',
     client: Client,
+    partial: false,
     schema: ValidationSchema,
     logger: false,
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 

@@ -66,38 +66,26 @@ export class Expression {
         let {op, params, properties} = this
         let fields = this.model.block.fields
         if (op == 'find') {
-            this.addFilters()
+            this.addWhereFilters()
 
         } else if (op == 'delete' || op == 'put' || op == 'update') {
             this.addConditions(op)
 
         } else if (op == 'scan') {
-            this.addFilters()
+            this.addWhereFilters()
             /*
                 Setup scan filters for properties outside the model.
                 Use the property name here as there can't be a mapping.
             */
             for (let [name, value] of Object.entries(this.properties)) {
                 if (fields[name] == null && value != null) {
-                    this.addFilter(name, value)
+                    this.addGenericFilter(name, value)
                     this.already[name] = true
                 }
             }
         }
 
-        /*
-            Parse the API properties. Only accept properties defined in the schema unless generic.
-        */
-        for (let [name, value] of Object.entries(properties)) {
-            if (this.already[name]) {
-                continue
-            }
-            if (fields[name]) {
-                this.add(fields[name], value)
-            } else if (this.model.generic) {
-                this.add({attribute: [name], name}, value)
-            }
-        }
+        this.addProperties(op, fields, properties)
 
         /*
             Emit mapped attributes that don't correspond to schema fields.
@@ -109,7 +97,7 @@ export class Expression {
                 }
             }
             for (let [k,v] of Object.entries(this.mapped)) {
-                this.add({attribute: [k], name: k, filter: false}, v, properties)
+                this.add(properties, {attribute: [k], name: k, filter: false}, v, properties)
             }
         }
         if (params.fields) {
@@ -125,11 +113,31 @@ export class Expression {
         }
     }
 
+    addProperties(op, fields, properties) {
+        for (let [name, value] of Object.entries(properties)) {
+            if (this.already[name]) {
+                continue
+            }
+            if (fields[name]) {
+                if (op != 'put' && this.table.partial && this.params.partial !== false) {
+                    if (fields[name].schema) {
+                        this.addProperties(op, fields[name].block.fields, value)
+                    } else {
+                        this.add(properties, fields[name], value)
+                    }
+                } else {
+                    this.add(properties, fields[name], value)
+                }
+            } else if (this.model.generic) {
+                this.add(properties, {attribute: [name], name}, value)
+            }
+        }
+    }
+
     /*
         Add a field to the command expression
      */
-    add(field, value) {
-        let properties = this.properties
+    add(properties, field, value) {
         let op = this.op
         let attribute = field.attribute
 
@@ -146,16 +154,16 @@ export class Expression {
             return
         }
         //  Pathname may contain a '.'
-        let pathname = attribute[0]
-        let att = pathname.split('.').shift()
+        let path = attribute[0]
+        let att = path.split('.').shift()
 
-        if (att == this.hash || att == this.sort) {
+        if (path == this.hash || path == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
 
             } else if (op == 'scan') {
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(att, value)
+                    this.addFilter(field, value)
                 }
 
             } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
@@ -163,7 +171,7 @@ export class Expression {
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.puts[att] = value
+                this.puts[path] = value
             }
 
         } else {
@@ -172,13 +180,13 @@ export class Expression {
                 if (properties[field.name] !== undefined && field.filter !== false) {
                     if (!this.params.batch) {
                         //  Batch does not support filter expressions
-                        this.addFilter(att, value)
+                        this.addFilter(field, value)
                     }
                 }
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.puts[att] = value
+                this.puts[path] = value
 
             } else if (op == 'update') {
                 this.addUpdate(field, value)
@@ -275,18 +283,29 @@ export class Expression {
     }
 
     /*
-        Add filter expressions for find and scan
+        Add where filter expressions for find and scan
      */
-    addFilters() {
+    addWhereFilters() {
         if (this.params.where) {
             this.filters.push(this.expand(this.params.where))
         }
     }
 
+    addFilter(field, value) {
+        let {filters} = this
+        let att = field.attribute[0]
+        let pathname = field.pathname || att
+        if (pathname == this.hash || pathname == this.sort) {
+            return
+        }
+        let [target, variable] = this.prepareKeyValue(pathname, value)
+        filters.push(`${target} = ${variable}`)
+    }
+
     /*
-        Add filters for non-key attributes for find and scan
+        Add filters when model not known
      */
-    addFilter(att, value) {
+    addGenericFilter(att, value) {
         this.filters.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
     }
 
@@ -319,10 +338,26 @@ export class Expression {
         }
     }
 
+    prepareKey(key) {
+        this.already[key] = true
+        return this.makeTarget(this.model.block.fields, key)
+    }
+
+    prepareKeyValue(key, value) {
+        let target = this.prepareKey(key)
+        let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
+        if (requiresExpansion) {
+            return [target, this.expand(value)]
+        } else {
+            return [target, this.addValueExp(value)]
+        }
+    }
+
     addUpdate(field, value) {
         let {params, updates} = this
         let att = field.attribute[0]
-        if (att == this.hash || att == this.sort) {
+        let pathname = field.pathname || att
+        if (pathname == this.hash || pathname == this.sort) {
             return
         }
         if (field.name == this.model.typeField) {
@@ -334,65 +369,49 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        updates.set.push(`#_${this.addName(att)} = :_${this.addValue(value)}`)
+        let [target, variable] = this.prepareKeyValue(pathname, value)
+        updates.set.push(`${target} = ${variable}`)
     }
 
     addUpdates() {
         let {params, updates} = this
         let fields = this.model.block.fields
 
-        const assertIsNotPartition =  (key, op) => {
+        const assertIsNotPartition = (key, op) => {
             if (key == this.hash || key == this.sort) {
                 throw new OneTableArgError(`Cannot ${op} hash or sort`)
-            }
-        }
-
-        const prepareKey = (key) => {
-            this.already[key] = true
-            return this.makeTarget(fields, key)
-        }
-
-        const prepareKeyValue = (key, value) => {
-            let target = prepareKey(key)
-
-            let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
-            if (requiresExpansion) {
-                return [target, this.expand(value)]
-            } else {
-                return [target, this.addValueExp(value)]
             }
         }
 
         if (params.add) {
             for (let [key, value] of Object.entries(params.add)) {
                 assertIsNotPartition(key, 'add')
-                const [target, variable] = prepareKeyValue(key, value)
+                const [target, variable] = this.prepareKeyValue(key, value)
                 updates.add.push(`${target} ${variable}`)
             }
         }
         if (params.delete) {
             for (let [key, value] of Object.entries(params.delete)) {
                 assertIsNotPartition(key, 'delete')
-                const [target, variable] = prepareKeyValue(key, value)
+                const [target, variable] = this.prepareKeyValue(key, value)
                 updates.delete.push(`${target} ${variable}`)
             }
         }
         if (params.remove) {
             params.remove = [].concat(params.remove) // enforce array
-            let fields = this.model.block.fields
             for (let key of params.remove) {
                 assertIsNotPartition(key, 'remove')
                 if (fields.required) {
                     throw new OneTableArgError('Cannot remove required field')
                 }
-                const target = prepareKey(key)
+                const target = this.prepareKey(key)
                 updates.remove.push(`${target}`)
             }
         }
         if (params.set) {
             for (let [key, value] of Object.entries(params.set)) {
                 assertIsNotPartition(key, 'set')
-                const [target, variable] = prepareKeyValue(key, value)
+                const [target, variable] = this.prepareKeyValue(key, value)
                 updates.set.push(`${target} = ${variable}`)
             }
         }
@@ -401,7 +420,7 @@ export class Expression {
                 assertIsNotPartition(key, 'push')
                 let empty = this.addValueExp([])
                 let items = this.addValueExp([].concat(value)) // enforce array on values
-                const target = prepareKey(key)
+                const target = this.prepareKey(key)
                 updates.set.push(`${target} = list_append(if_not_exists(${target}, ${empty}), ${items})`)
             }
         }

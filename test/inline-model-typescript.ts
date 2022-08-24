@@ -13,6 +13,7 @@ import {AWS, Client, Entity, Model, Table, dump, print} from './utils/init'
 const table = new Table<any>({
     name: 'InlineModelTypeScriptTestTable',
     client: Client,
+    partial: false,
     schema: {
         version: '0.0.1',
         indexes: {primary: {hash: 'pk'}},

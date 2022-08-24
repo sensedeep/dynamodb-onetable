@@ -12,6 +12,7 @@ import {MappedSchema} from './schemas'
 const table = new Table({
     name: 'MappingAndPackingTestTable',
     client: Client,
+    partial: false,
     schema: MappedSchema,
     // _logger: true,
 })
@@ -23,7 +24,7 @@ test('Create Table', async() => {
     }
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 

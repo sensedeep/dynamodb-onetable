@@ -9,6 +9,7 @@ import { AWS, Client, Table, print, dump, delay, Model, isV2 } from "./utils/ini
 const table = new Table({
     name: "MarshallTestTable",
     client: Client,
+    partial: false,
     schema: {
         format: "onetable:1.1.0",
         version: "0.0.1",

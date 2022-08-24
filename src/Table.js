@@ -95,21 +95,20 @@ export class Table {
     }
 
     setParams(params) {
-        //  DEPRECATED - these should be supplied by the schema.params
-        if (params.createdField != null || this.hidden != null || this.isoDates != null || this.nulls != null ||
+        //  DEPRECATED - these should be supplied by the schema.params (not hidden)
+        if (params.createdField != null || this.isoDates != null || this.nulls != null ||
                 this.timestamps != null || this.typeField != null || this.updatedField != null) {
             console.warn('OneTable: Using deprecated Table constructor parameters. Define in the schema.params instead.')
             //  FUTURE 2.3
             //  throw new OneTableArgError('Using deprecated Table constructor parameters. Define in the schema.params instead.')
         }
+        //  DEPRECATE - these should be specified via the Schema params
         this.createdField = params.createdField || 'created'
-        this.hidden = params.hidden != null ? params.hidden : true
         this.isoDates = params.isoDates || false
         this.nulls = params.nulls || false
         this.timestamps = params.timestamps != null ? params.timestamps : false
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
-        this.warn = params.warn || true
 
         if (params.uuid) {
             console.warn('OneTable: Using deprecated Table constructor "uuid" parameter. Use a "generate" function instead or ' +
@@ -117,8 +116,22 @@ export class Table {
             params.generate = params.generate | params.uuid
         }
 
+        //  MOB - warn if unset. Revert default to true in future
+        if (params.partial == null) {
+            console.warn('OneTable: Must set Table constructor "partial" param to true or false. ' +
+                'This param permits updating partial nested schemas. Currently defaults to false, ' +
+                'but in a future version will default to true. ' +
+                'Set to false to future proof or set to true for the new behavior.')
+            //  FUTURE 2.5 - change default to true
+            params.partial = false
+        }
+        this.hidden = params.hidden != null ? params.hidden : true
+        this.partial = params.partial
+        this.warn = params.warn || true
+
         if (typeof params.generate == 'function') {
             this.generate = params.generate || this.uuid
+
         } else if (params.generate) {
             //  FUTURE throw exception
             console.warn('OneTable: Generate can only be a function')
@@ -144,12 +157,17 @@ export class Table {
 
     setSchemaParams(params) {
         this.createdField = params.createdField || 'created'
-        this.hidden = params.hidden != null ? params.hidden : true
         this.isoDates = params.isoDates || false
         this.nulls = params.nulls || false
         this.timestamps = params.timestamps != null ? params.timestamps : false
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
+
+        if (params.hidden != null) {
+            console.warn(`Schema hidden params should be specified via the Table constructor params`)
+        }
+        //  DEPRECATE
+        this.hidden = params.hidden != null ? params.hidden : true
     }
 
     getSchemaParams() {
@@ -220,9 +238,6 @@ export class Table {
             }
         } else {
             def.BillingMode = 'PAY_PER_REQUEST'
-        }
-        if (params.TimeToLiveSpecification) {
-            def.TimeToLiveSpecification = params.TimeToLiveSpecification
         }
         if (params.StreamSpecification) {
             def.StreamSpecification = params.StreamSpecification
@@ -297,17 +312,26 @@ export class Table {
     */
     async createTable(params = {}) {
         const def = this.getTableDefinition(params)
-        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         let result
+
+        this.log.trace(`OneTable createTable for "${this.name}"`, {def})
         if (this.V3) {
             result = await this.service.createTable(def)
         } else {
             result = await this.service.createTable(def).promise()
         }
+
+        /*
+            Wait for table to become active. Must do if setting a TTL attribute
+        */
+        if (params.TimeToLiveSpecification) {
+            params.wait = 5 * 60
+        }
         if (params.wait) {
             let deadline = new Date(Date.now() + params.wait * 1000)
+            let info
             do {
-                let info = await this.describeTable()
+                info = await this.describeTable()
                 if (info.Table.TableStatus == 'ACTIVE') {
                     break
                 }
@@ -315,7 +339,22 @@ export class Table {
                     throw new Error('Table has not become active')
                 }
                 await this.delay(1000)
-            } while (deadline < Date.now())
+            } while (Date.now() < deadline)
+        }
+
+        /*
+            Define a TTL attribute
+        */
+        if (params.TimeToLiveSpecification) {
+            let def = {
+                TableName: this.name,
+                TimeToLiveSpecification: params.TimeToLiveSpecification,
+            }
+            if (this.V3) {
+                await this.service.updateTimeToLive(def)
+            } else {
+                await this.service.updateTimeToLive(def).promise()
+            }
         }
         return result
     }
@@ -418,6 +457,17 @@ export class Table {
         if (def.GlobalSecondaryIndexUpdates.length == 0) {
             delete def.GlobalSecondaryIndexUpdates
 
+        }
+        if (params.TimeToLiveSpecification) {
+            let def = {
+                TableName: params.TableName,
+                TimeToLiveSpecification: params.TimeToLiveSpecification,
+            }
+            if (this.V3) {
+                await this.service.updateTimeToLive(def)
+            } else {
+                await this.service.updateTimeToLive(def).promise()
+            }
         }
         this.log.trace(`OneTable updateTable for "${this.name}"`, {def})
         if (this.V3) {
