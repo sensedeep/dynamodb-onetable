@@ -1068,6 +1068,8 @@ export class Model {
             params.fallback = true
             return properties
         }
+        //  DEPRECATE
+        this.tunnelProperties(properties, params)
 
         let rec = this.collectProperties(op, this.block, index, properties, params)
         if (params.fallback) {
@@ -1137,6 +1139,9 @@ export class Model {
         if (!context) {
             context = params.context || this.table.context
         }
+        /*
+            First process nested schemas recursively
+        */
         if (this.nested && !KeysOnly[op]) {
             //  Process nested schema recursively
             for (let field of Object.values(fields)) {
@@ -1168,11 +1173,11 @@ export class Model {
     }
 
     /*
-        For typescript, we cannot use properties: {name: [between], name: {begins}}
-        so tunnel from the params. Works for between, begins, < <= = >= >
+        DEPRECATE - not needed anymore
     */
     tunnelProperties(properties, params) {
         if (params.tunnel) {
+            console.warn('WARNING: tunnel properties should not be required for typescript and will be removed soon.')
             for (let [kind, settings] of Object.entries(params.tunnel)) {
                 for (let [key, value] of Object.entries(settings)) {
                     properties[key] = {[kind]: value}
