@@ -2,7 +2,9 @@
     Table.d.ts -- Hand crafted type defintions for Table
 */
 
-import { AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged, Entity} from "./Model";
+import {
+    AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged, Entity
+} from "./Model";
 
 export type EntityGroup = {
     [key: string]: AnyEntity[]
@@ -30,16 +32,17 @@ type TableConstructorParams<Schema extends OneSchema> = {
     // https://www.npmjs.com/package/dataloader DataLoader constructor
     dataloader?: new (batchLoadFn: any, options?: any) => any
 
+    partial?: boolean,              //  Allow partial updates of nested schemas. Default false.
+    warn?: boolean,                 //  Issue warnings
+    hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
+
     //  DEPRECATED 2.3 - Should now be specified via the schema.params
     createdField?: string,          //  Name of "created" timestamp attribute.
-    hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
-    partial?: boolean,              //  Allow partial updates of nested schemas. Default false.
     timestamps?: boolean,           //  Make "created" and "updated" timestamps. Default true.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute.
-    warn?: boolean,                 //  Issue warnings
 
     //  DEPRECATED 2.3 - Defer to generate
     uuid?: (() => string) | string, //  Function to create a UUID if field schema requires it.

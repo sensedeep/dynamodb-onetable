@@ -95,7 +95,7 @@ export class Table {
     }
 
     setParams(params) {
-        //  DEPRECATED - these should be supplied by the schema.params (not hidden)
+        //  DEPRECATED - these should be supplied by the schema.params
         if (params.createdField != null || this.isoDates != null || this.nulls != null ||
                 this.timestamps != null || this.typeField != null || this.updatedField != null) {
             console.warn('OneTable: Using deprecated Table constructor parameters. Define in the schema.params instead.')
