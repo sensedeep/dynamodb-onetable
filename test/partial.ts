@@ -1,10 +1,13 @@
 /*
     partial.ts - Partial updates
+
  */
-import {AWS, Client, Entity, Table, dump} from './utils/init'
+import {Client, Entity, Table, dump} from './utils/init'
 import {OneSchema} from '../src/index.js'
 
 jest.setTimeout(7200 * 1000)
+
+//  Cannot type as OneSchema -- it breaks things
 
 const Schema = {
     format: 'onetable:1.1.0',
@@ -15,18 +18,29 @@ const Schema = {
     },
     models: {
         User: {
+            /*
+                Rules:
+                - Default params should not be required
+                - Generate params should not be required
+                - Nested schemas do not require default {}
+            */
             pk:          { type: 'string', value: '${_type}#${id}' },
             sk:          { type: 'string', value: '${_type}#' },
-            id:          { type: 'string', generate: 'ulid' },
+            id:          { type: 'string', required: true, generate: 'ulid' },
             email:       { type: 'string', required: true },
+            status:      { type: 'string', required: true, default: 'active' },
             address:     { type: Object, schema: {
                 street:  { type: 'string' },
                 zip:     { type: 'number' },
+                box:     { type: Object, schema: {
+                    start: { type: Date },
+                    end: { type: Date },
+                }}
             }}
         }
     } as const,
     params: { },
-}
+} as const
 
 const table = new Table({
     name: 'PartialTableTest',
@@ -51,9 +65,12 @@ test('Create Table', async() => {
 test('Create User', async() => {
     user = await User.create({
         email: 'user@example.com',
+        id: '42',
+        status: 'active',
         address: {
-            street: '42 Park Ave', 
+            street: '42 Park Ave',
             zip: 12345,
+            box: {},
         }
     })
     expect(user.email).toBe('user@example.com')
@@ -66,6 +83,7 @@ test('Get User', async() => {
         id: user.id,
         address: {
             zip: 12345,
+            box: {},
         }
     })
     expect(user.email).toBe('user@example.com')
@@ -90,7 +108,13 @@ test('Find User', async() => {
 test('Update Email', async() => {
     user = await User.update({
         id: user.id,
-        email: 'ralph@example.com', 
+        email: 'ralph@example.com',
+        address: {
+            box: {
+                start: new Date(),
+                end: new Date()
+            }
+        }
     })
     expect(user.email).toBe('ralph@example.com')
     expect(user.address.street).toBe('42 Park Ave')

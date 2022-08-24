@@ -1229,7 +1229,10 @@ export class Model {
                 rec[name] = properties[name]
             }
         }
-        this.addProjectedProperties(op, properties, params, project, rec)
+        if (block == this.block) {
+            //  Only do at top level
+            this.addProjectedProperties(op, properties, params, project, rec)
+        }
     }
 
     getProjection(index) {
