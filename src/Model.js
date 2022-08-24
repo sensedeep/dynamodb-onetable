@@ -370,8 +370,7 @@ export class Model {
             } else if (result.Attributes) {
                 items = [result.Attributes]
                 break
-            }
-            else if (params.count || params.select == 'COUNT') {
+            } else if (params.count || params.select == 'COUNT') {
                 count += result.Count
             }
             if (params.progress) {
