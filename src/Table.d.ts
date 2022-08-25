@@ -49,6 +49,7 @@ type TableConstructorParams<Schema extends OneSchema> = {
 };
 
 type ModelNames<Schema> = keyof Schema["models"];
+type ExtractModel<M> = M extends Entity<infer X> ? X : never
 
 export class Table<Schema extends OneSchema = any> {
     name: string;
@@ -69,7 +70,7 @@ export class Table<Schema extends OneSchema = any> {
     generate(): string;
     getLog(): any;
     getKeys(): Promise<OneIndexSchema>;
-    getModel<T>(name: T extends ModelNames<Schema> ? T : ModelNames<Schema>): T extends string ? Model<Entity<Schema["models"][T]>> : Model<T>;
+    getModel<T>(name: T extends ModelNames<Schema> ? T : ModelNames<Schema>): T extends string ? Model<Entity<Schema["models"][T]>> : Model<Entity<ExtractModel<T>>>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
     listModels(): AnyModel[];
