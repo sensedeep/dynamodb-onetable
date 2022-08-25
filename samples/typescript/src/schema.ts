@@ -34,7 +34,7 @@ export default {
         User: {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'user#${email}' },
-            accountId:  { type: String, required: true },
+            accountId:  { type: String },
             id:         { type: String, generate: 'ulid', validate: Match.ulid },
             name:       { type: String, required: true, validate: Match.name },
             email:      { type: String, required: true, validate: Match.email, crypt: true },
@@ -69,7 +69,7 @@ export default {
             pk:         { type: String, value: 'account#${accountId}' },
             sk:         { type: String, value: 'invoice#${id}' },
 
-            accountId:  { type: String, required: true },
+            accountId:  { type: String },
             date:       { type: Date },
             id:         { type: String, generate: 'ulid' },
             product:    { type: String },
@@ -80,9 +80,9 @@ export default {
             gs1pk:      { type: String, value: 'invoice#' },
             gs1sk:      { type: String, value: 'invoice#${date}#${id}' },
         }
-    },
+    } as const,
     params: {
         timestamps: true,
         isoDates: true,
     }
-}
+} as const

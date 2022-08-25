@@ -13,9 +13,9 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 
 //  To debug locally
 import Dynamo from '../../../dist/mjs/Dynamo.js'
-import { Entity, OneSchema, OneTableArgError, OneTableError, Table} from '../../../dist/mjs/index.js'
+import { Entity, Table} from '../../../src/index.js'
 
-import Schema from './schema.js'
+import Schema from './schema'
 
 //  Local DynamoDB connection port
 const PORT = 4567
@@ -76,10 +76,10 @@ async function test() {
     /*
         Create typed models. We can also access items using the table APIs. E.g. table.get('User', ...)
     */
-    const Account = table.getModel<AccountType>('Account')
-    const Invoice = table.getModel<InvoiceType>('Invoice')
-    const Product = table.getModel<ProductType>('Product')
-    const User = table.getModel<UserType>('User')
+    const Account = table.getModel('Account')
+    const Invoice = table.getModel('Invoice')
+    const Product = table.getModel('Product')
+    const User = table.getModel('User')
 
     /*
         Create account. This will allocate an account ID (ULID) and create item in primary and
@@ -93,9 +93,9 @@ async function test() {
     table.setContext({accountId: account.id})
 
     /*
-        Create user. This will allocate a user ID, get the accountId from the context.
+        Create user. This will allocate a user ID and get the accountId from the context.
      */
-    let user = await User.create({name: 'Road Runner', email: 'roadrunner@acme.com', address: {}})
+    let user = await User.create({name: 'Road Runner', email: 'roadrunner@acme.com'})
 
     user = await User.get({email: 'roadrunner@acme.com'})
 
