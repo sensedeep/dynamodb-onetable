@@ -32,14 +32,14 @@ describe("Typescript infer", () => {
     type UserType = Entity<typeof Schema.models.User>
 
     const User = table.getModel('User');
-    const User1 = table.getModel<UserType>('User');
+    const User1 = table.getModel('User');
 
     test('Get model', () => {
         expect(async() => {
             // @ts-expect-error only allow models that exist
             const User2 = table.getModel('User1');
             // @ts-expect-error only allow models that exist
-            const User3 = table.getModel<UserType>('User1');
+            const User3 = table.getModel('User1');
         }).rejects.toThrow()
     })
 

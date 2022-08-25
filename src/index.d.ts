@@ -6,7 +6,6 @@ import {
     AnyEntity,
     AnyModel,
     Entity,
-    EntityParameters,
     Model,
     OneField,
     OneIndexSchema,
@@ -15,6 +14,7 @@ import {
     OneProperties,
     OneSchema,
     OneType,
+    OneTypedModel,
     Paged
 } from './Model'
 
@@ -29,7 +29,6 @@ export {
     AnyEntity,
     AnyModel,
     Entity,
-    EntityParameters,
     Model,
     OneTableArgError,
     OneTableError,
@@ -40,6 +39,7 @@ export {
     OneProperties,
     OneSchema,
     OneType,
+    OneTypedModel,
     Paged,
     Table,
     ULID,

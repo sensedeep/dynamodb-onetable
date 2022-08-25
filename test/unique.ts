@@ -15,12 +15,13 @@ const table = new Table({
     logger: true,
 })
 
-type UserEntity = Entity<typeof UniqueSchema.models.User>;
-type UserModel = Model<UserEntity>
+type UserType = Entity<typeof UniqueSchema.models.User>;
+type UserModel = Model<UserType>
 
-let User: UserModel
-let user: UserEntity
-let users: UserEntity[]
+// let User: UserModel
+let User: Model<Entity<typeof UniqueSchema.models.User>>
+let user: UserType
+let users: UserType[]
 
 test('Create Table', async() => {
     if (!(await table.exists())) {

@@ -23,7 +23,7 @@ test('Create table', async() => {
 })
 
 type UserType = Entity<typeof TenantSchema.models.User>
-let User = table.getModel<UserType>('User')
+let User = table.getModel('User')
 let Account = table.getModel('Account')
 let account: any
 let user: any

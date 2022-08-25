@@ -17,6 +17,6 @@ export default {
             age:          { type: Number },
             interpolated: { type: String, value: '${name}#${email}', unique: true },
         }
-    },
+    } as const,
     params: {},
-}
+} as const

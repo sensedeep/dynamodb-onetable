@@ -86,7 +86,7 @@ export type OneSchemaParams = {
     hidden?: boolean,               //  Hide key attributes in Javascript properties. Default false.
     isoDates?: boolean,             //  Set to true to store dates as Javascript ISO Date strings. Default false.
     nulls?: boolean,                //  Store nulls in database attributes. Default false.
-    timestamps?: boolean | string,  //  Make "created" and "updated" timestamps. Set to true, 'create' or 'update'. Default true
+    timestamps?: boolean | string,  //  Make "created" and "updated" timestamps. Set to true, 'create' or 'update'. Default true.
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute. Default 'updated'.
 }
@@ -94,12 +94,15 @@ export type OneSchemaParams = {
 /*
     Schema Models with field properties that contain field signatures (above) including "type" and "required".
  */
-type OneTypedModel = Record<string, OneField>;
+export type OneTypedModel = Record<string, OneField>;
 
 /*
     Entity field signature generated from the schema
+    MOB - rename EntityFieldType
+    MOB - null here should not be permitted except for non-required properties
+    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : (EntityFieldFromType<T> | null);
  */
-type EntityField<T extends OneField> =
+export type EntityField<T extends OneField> =
     T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : (EntityFieldFromType<T> | null);
 
 type EntityFieldFromType<T extends OneField> =
@@ -130,30 +133,56 @@ export type Optional<T extends OneTypedModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]>
 };
 
+/*
+    Select properties with generated values
+*/
 export type Generated<T extends OneTypedModel> = {
-    -readonly [P in keyof T as T[P]['generate'] extends true ? P : never]?: EntityField<T[P]>
+    -readonly [P in keyof T as T[P]['generate'] extends (string | boolean) ? P : never]?: EntityField<T[P]>
 };
 
-type ExtractModel<M> = M extends Entity<infer X> ? X : never
+/*
+    Select properties with default values
+*/
+type DefinedValue = string | number | bigint | boolean | symbol | object
+export type Defaulted<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['default'] extends DefinedValue ? P : never]: EntityField<T[P]>
+};
 
 /*
-    Merge two types
+    Select value template properties
+*/
+export type ValueTemplates<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['value'] extends string ? P : never]: EntityField<T[P]>
+};
+
+/*
+    Select timestamp properties
+*/
+export type TimestampValue<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['timestamp'] extends true ? P : never]: EntityField<T[P]>
+};
+
+/*
+    Merge the properties of two types given preference to A.
 */
 type Merge<A extends any, B extends any> = {
     [P in keyof (A & B)]: P extends keyof A ? A[P] : (P extends keyof B ? B[P] : never)
 };
 
-
 /*
     Create entity type which includes required and optional types
+    An entity type is not used by the user and is only required internally.
 
-    The following works, but the intellisense types are terrible. Merge does a better job.
-    type Entity<T extends OneTypedModel> = Required<T> & Optional<T>
+    type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
+
+    Merge gives better intellisense, but breaks <infer X> used below.
+    Can anyone provide a solution to get merge to work with <infer X>?
 */
-type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
+type Entity<M extends OneTypedModel> = Required<M> & Optional<M>
 
 /*
     Entity Parameters are partial Entities.
+    MOB - rename ModelParameters. Rename <Entity> to <E>
  */
 export type EntityParameters<Entity> = Partial<Entity>
 
@@ -263,21 +292,58 @@ export type AnyModel = {
     get(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     load(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
     init(properties?: OneProperties, params?: OneParams): AnyEntity;
-    remove(properties: OneProperties, params?: OneParams): Promise<AnyEntity | undefined>;
+    remove(properties: OneProperties, params?: OneParams): Promise<AnyEntity | Array<AnyEntity> | undefined>;
     scan(properties?: OneProperties, params?: OneParams): Promise<Paged<AnyEntity>>;
     update(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
     upsert(properties: OneProperties, params?: OneParams): Promise<AnyEntity>;
 };
 
-type CreateProperties<T> = Omit<T, keyof Generated<ExtractModel<T>>> | Generated<ExtractModel<T>>
+type ExtractModel<M> = M extends Entity<infer X> ? X : never
+type GetKeys<T> = T extends T ? keyof T: never;
+
+export type OptionalOrNull<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]> | null
+};
+
+/*
+    Create the type for create properties.
+    Allow, but not require: generated, defaulted and value templates
+    Require all other required properties and allow all optional properties
+*/
+type EntityParametersForCreate<T extends OneTypedModel> =
+    Omit<
+        Omit<
+            Omit<
+                Omit<
+                    Required<T>,
+                    GetKeys<Defaulted<T>>
+                >,
+                GetKeys<Generated<T>>
+            >, GetKeys<ValueTemplates<T>>
+        >, GetKeys<TimestampValue<T>>
+    > & Optional<T> & Partial<Generated<T>> & Partial<Defaulted<T>> & Partial<ValueTemplates<T>> & Partial<TimestampValue<T>>
+
+/*
+WORKS
+type EntityParametersForCreate<M extends OneTypedModel> = Required<M> & Optional<M>
+*/
+
+type EntityParametersForUpdate<T extends OneTypedModel> = Merge<Required<T>, OptionalOrNull<T>>
+
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-    create(properties: T, params?: OneParams): Promise<T>;
+
+    create(properties: EntityParametersForCreate<ExtractModel<T>>, params?: OneParams): Promise<T>;
+
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
+
+    //  MOB - does it return undefined or null?
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
+    //  MOB - does it return undefined or null?
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
-    remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
+    //  MOB - does it return undefined or null?
+    remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | Array<T> | undefined>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
     update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
     upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T>;

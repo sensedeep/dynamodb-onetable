@@ -1,9 +1,9 @@
 /*
-    partial.ts - Partial updates
-
+    typescript-types.ts - Typescript typings
  */
-import {Client, Entity, Table, dump} from './utils/init'
-import {OneSchema} from '../src/index.js'
+import {Client, Table, dump} from './utils/init'
+
+import {Entity, Model} from '../src/index.js'
 
 jest.setTimeout(7200 * 1000)
 
@@ -16,34 +16,33 @@ const Schema = {
     },
     models: {
         User: {
-            /*
-                Rules:
-                - Default params should not be required
-                - Generate params should not be required
-                - Nested schemas do not require default {}
-            */
             pk:          { type: 'string', value: '${_type}#${id}' },
             sk:          { type: 'string', value: '${_type}#' },
             id:          { type: 'string', required: true, generate: 'ulid' },
             email:       { type: 'string', required: true },
+            opt:         { type: 'string' },
+            def:         { type: 'string', required: true, default: 0 },
             status:      { type: 'string', required: true, default: 'active' },
-            address:     { type: Object, schema: {
+            created:     { type: Date, timestamp: true },
+            temp:        { type: 'string', value: 'abcdef', required: true },
+            address:     { type: 'object', required: true, default: {}, schema: {
                 street:  { type: 'string' },
                 zip:     { type: 'number' },
-                box:     { type: Object, schema: {
+                box:     { type: 'object', default: {}, schema: {
                     start: { type: 'date' },
                     end: { type: 'date' },
                 }}
-            }}
+            }},
         }
     } as const,
     params: { },
 } as const
 
 const table = new Table({
-    name: 'PartialTableTest',
+    name: 'TypeScriptTypes',
     client: Client,
     partial: true,
+    //  MOB - want schema typed here
     schema: Schema,
     logger: true,
 })
@@ -51,6 +50,7 @@ const table = new Table({
 type UserType = Entity<typeof Schema.models.User>
 let User = table.getModel('User')
 let userId
+
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -62,18 +62,18 @@ test('Create Table', async() => {
 test('Create User', async() => {
     let user = await User.create({
         email: 'user@example.com',
+        opt: '42',
         id: '42',
+        created: new Date(),
         status: 'active',
         address: {
             street: '42 Park Ave',
             zip: 12345,
-            box: {},
         }
     })
-    expect(user).toBeDefined()
     expect(user.email).toBe('user@example.com')
-    expect(user.address?.street).toBe('42 Park Ave')
-    expect(user.address?.zip).toBe(12345)
+    expect(user.address.street).toBe('42 Park Ave')
+    expect(user.address.zip).toBe(12345)
     userId = user.id
 })
 
@@ -87,8 +87,8 @@ test('Get User', async() => {
     })
     expect(user).toBeDefined()
     expect(user?.email).toBe('user@example.com')
-    expect(user?.address?.street).toBe('42 Park Ave')
-    expect(user?.address?.zip).toBe(12345)
+    expect(user?.address.street).toBe('42 Park Ave')
+    expect(user?.address.zip).toBe(12345)
 })
 
 test('Find User', async() => {
@@ -101,10 +101,11 @@ test('Find User', async() => {
     expect(users.length).toBe(1)
     let user = users[0]
     expect(user.email).toBe('user@example.com')
-    expect(user.address?.street).toBe('42 Park Ave')
-    expect(user.address?.zip).toBe(12345)
+    expect(user.address.street).toBe('42 Park Ave')
+    expect(user.address.zip).toBe(12345)
 })
 
+//  MOB - must test null
 test('Update Email', async() => {
     let user = await User.update({
         id: userId,
@@ -117,15 +118,14 @@ test('Update Email', async() => {
         }
     })
     expect(user.email).toBe('ralph@example.com')
-    expect(user.address?.street).toBe('42 Park Ave')
-    expect(user.address?.zip).toBe(12345)
+    expect(user.address.street).toBe('42 Park Ave')
+    expect(user.address.zip).toBe(12345)
 
     //  Check with get
     let u2 = await User.get({id: userId})
-    expect(u2).toBeDefined()
     expect(u2?.email).toBe('ralph@example.com')
-    expect(u2?.address?.street).toBe('42 Park Ave')
-    expect(u2?.address?.zip).toBe(12345)
+    expect(u2?.address.street).toBe('42 Park Ave')
+    expect(u2?.address.zip).toBe(12345)
 })
 
 test('Update Zip Only', async() => {
@@ -137,8 +137,8 @@ test('Update Zip Only', async() => {
         }
     })
     expect(user.email).toBe('ralph@example.com')
-    expect(user.address?.street).toBe('42 Park Ave')
-    expect(user.address?.zip).toBe(99999)
+    expect(user.address.street).toBe('42 Park Ave')
+    expect(user.address.zip).toBe(99999)
 })
 
 test('Update Zip Only', async() => {
@@ -150,8 +150,8 @@ test('Update Zip Only', async() => {
         }
     }, {partial: false})
     expect(user.email).toBe('ralph@example.com')
-    expect(user.address?.street).toBe(undefined)
-    expect(user.address?.zip).toBe(22222)
+    expect(user.address.street).toBe(undefined)
+    expect(user.address.zip).toBe(22222)
 })
 
 test('Destroy Table', async() => {

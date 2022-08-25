@@ -35,7 +35,7 @@ let account: Account = {
 
 //  Create a model to get/find/update...
 
-let AccountModel = table.getModel<'Account'>('Account')
+let AccountModel = table.getModel('Account')
 
 let account = await AccountModel.update({
     name: 'Acme',               //  OK

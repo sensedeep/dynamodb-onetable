@@ -59,7 +59,7 @@ test('Create Table', async() => {
 })
 
 type UserType = Entity<typeof schema.models.User>
-let User = table.getModel<UserType>('User')
+let User = table.getModel('User')
 let user: UserType
 let users: any
 

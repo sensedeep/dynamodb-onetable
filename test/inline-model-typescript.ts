@@ -28,7 +28,7 @@ const CardSchema = {
 } as const
 
 type CardType = Entity<typeof CardSchema>
-let Card: Model<CardType>
+let Card: Model<Entity<typeof CardSchema>>
 
 test('Create table', async () => {
     if (!(await table.exists())) {
@@ -67,7 +67,7 @@ test('Add model', async() =>{
     expect(models.length - base.length).toBe(1)
     expect(models[models.length - 1]).toBe('Card')
 
-    let Card = table.getModel<CardType>('Card')
+    let Card = table.getModel('Card')
     expect(Card).toBeDefined()
     let card = await Card.create({id: 99, issuer: 'amex'})
     expect(card.issuer).toBe('amex')
