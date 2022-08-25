@@ -98,12 +98,9 @@ export type OneTypedModel = Record<string, OneField>;
 
 /*
     Entity field signature generated from the schema
-    MOB - rename EntityFieldType
-    MOB - null here should not be permitted except for non-required properties
-    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : (EntityFieldFromType<T> | null);
  */
-export type EntityField<T extends OneField> =
-    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : (EntityFieldFromType<T> | null);
+type EntityField<T extends OneField> =
+    T['enum'] extends readonly EntityFieldFromType<T>[] ? T['enum'][number] : (EntityFieldFromType<T>);
 
 type EntityFieldFromType<T extends OneField> =
       T['type'] extends (ArrayConstructor | 'array') ? ArrayItemType<T>[]
@@ -131,6 +128,10 @@ export type Required<T extends OneTypedModel> = {
 */
 export type Optional<T extends OneTypedModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]>
+};
+
+type OptionalOrNull<T extends OneTypedModel> = {
+    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: (EntityField<T[P]> | null)
 };
 
 /*
@@ -173,23 +174,20 @@ type Merge<A extends any, B extends any> = {
     Create entity type which includes required and optional types
     An entity type is not used by the user and is only required internally.
 
-    type Entity<T extends OneTypedModel> = Merge<Required<T>, Optional<T>>
-
-    Merge gives better intellisense, but breaks <infer X> used below.
-    Can anyone provide a solution to get merge to work with <infer X>?
+    Merge gives better intellisense, but requires Flatten to make <infer X> work.
 */
-type Entity<M extends OneTypedModel> = Required<M> & Optional<M>
+type Flatten<T> = { [P in keyof T]: T[P] };
+type Entity<T extends OneTypedModel> = Flatten<Merge<Required<T>, Optional<T>>>
 
 /*
     Entity Parameters are partial Entities.
-    MOB - rename ModelParameters. Rename <Entity> to <E>
  */
-export type EntityParameters<Entity> = Partial<Entity>
+type EntityParameters<Entity> = Partial<Entity>
 
 /*
     Special case for find to allow query operators
 */
-export type EntityParametersForFind<T> = Partial<{
+type EntityParametersForFind<T> = Partial<{
     [K in keyof T]: T[K]
         | Begins<T, K>
         | BeginsWith<T, K>
@@ -202,15 +200,15 @@ export type EntityParametersForFind<T> = Partial<{
         | GreaterThan<T, K>
 }>
 
-export type Begins<T, K extends keyof T> = { begins: T[K] }
-export type BeginsWith<T, K extends keyof T> = { begins_with: T[K] }
-export type Between<T, K extends keyof T> = { between: [T[K], T[K]] }
-export type LessThan<T, K extends keyof T> = { '<': T[K] }
-export type LessThanOrEqual<T, K extends keyof T> = { '<=': T[K] }
-export type Equal<T, K extends keyof T> = { '=': T[K] }
-export type NotEqual<T, K extends keyof T> = { '<>': T[K] }
-export type GreaterThanOrEqual<T, K extends keyof T> = { '>=': T[K] }
-export type GreaterThan<T, K extends keyof T> = { '>': T[K] }
+type Begins<T, K extends keyof T> = { begins: T[K] }
+type BeginsWith<T, K extends keyof T> = { begins_with: T[K] }
+type Between<T, K extends keyof T> = { between: [T[K], T[K]] }
+type LessThan<T, K extends keyof T> = { '<': T[K] }
+type LessThanOrEqual<T, K extends keyof T> = { '<=': T[K] }
+type Equal<T, K extends keyof T> = { '=': T[K] }
+type NotEqual<T, K extends keyof T> = { '<>': T[K] }
+type GreaterThanOrEqual<T, K extends keyof T> = { '>=': T[K] }
+type GreaterThan<T, K extends keyof T> = { '>': T[K] }
 
 /*
     Any entity. Essentially untyped.
@@ -301,14 +299,12 @@ export type AnyModel = {
 type ExtractModel<M> = M extends Entity<infer X> ? X : never
 type GetKeys<T> = T extends T ? keyof T: never;
 
-export type OptionalOrNull<T extends OneTypedModel> = {
-    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]> | null
-};
-
 /*
     Create the type for create properties.
     Allow, but not require: generated, defaulted and value templates
     Require all other required properties and allow all optional properties
+
+    type EntityParametersForCreate<M extends OneTypedModel> = Required<M> & Optional<M>
 */
 type EntityParametersForCreate<T extends OneTypedModel> =
     Omit<
@@ -323,28 +319,17 @@ type EntityParametersForCreate<T extends OneTypedModel> =
         >, GetKeys<TimestampValue<T>>
     > & Optional<T> & Partial<Generated<T>> & Partial<Defaulted<T>> & Partial<ValueTemplates<T>> & Partial<TimestampValue<T>>
 
-/*
-WORKS
-type EntityParametersForCreate<M extends OneTypedModel> = Required<M> & Optional<M>
-*/
-
-type EntityParametersForUpdate<T extends OneTypedModel> = Merge<Required<T>, OptionalOrNull<T>>
+type EntityParametersForUpdate<T extends OneTypedModel> = Partial<Required<T> & OptionalOrNull<T>>
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
-
     create(properties: EntityParametersForCreate<ExtractModel<T>>, params?: OneParams): Promise<T>;
-
     find(properties?: EntityParametersForFind<T>, params?: OneParams): Promise<Paged<T>>;
-
-    //  MOB - does it return undefined or null?
     get(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
-    //  MOB - does it return undefined or null?
     load(properties: EntityParameters<T>, params?: OneParams): Promise<T | undefined>;
     init(properties?: EntityParameters<T>, params?: OneParams): T;
-    //  MOB - does it return undefined or null?
     remove(properties: EntityParameters<T>, params?: OneParams): Promise<T | Array<T> | undefined>;
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
-    update(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    update(properties: EntityParametersForUpdate<ExtractModel<T>>, params?: OneParams): Promise<T>;
     upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
 }
