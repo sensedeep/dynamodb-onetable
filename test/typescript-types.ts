@@ -3,9 +3,9 @@
  */
 import {Client, Table, dump} from './utils/init'
 
-import {Entity, Model} from '../src/index.js'
+import {Entity, GetType, Model, OneSchema, OneModel} from '../src/index.js'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const Schema = {
     format: 'onetable:1.1.0',
@@ -23,7 +23,7 @@ const Schema = {
             opt:         { type: 'string' },
             def:         { type: 'string', required: true, default: 0 },
             status:      { type: 'string', required: true, default: 'active' },
-            created:     { type: Date, timestamp: true },
+            created:     { type: 'date', timestamp: true },
             temp:        { type: 'string', value: 'abcdef', required: true },
             address:     { type: 'object', required: true, default: {}, schema: {
                 street:  { type: 'string' },
@@ -36,13 +36,12 @@ const Schema = {
         }
     } as const,
     params: { },
-} as const
+}
 
 const table = new Table({
     name: 'TypeScriptTypes',
     client: Client,
     partial: true,
-    //  MOB - want schema typed here
     schema: Schema,
     logger: true,
 })
@@ -50,7 +49,6 @@ const table = new Table({
 type UserType = Entity<typeof Schema.models.User>
 let User = table.getModel('User')
 let userId
-
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -105,7 +103,6 @@ test('Find User', async() => {
     expect(user.address.zip).toBe(12345)
 })
 
-//  MOB - must test null
 test('Update Email', async() => {
     let user = await User.update({
         id: userId,

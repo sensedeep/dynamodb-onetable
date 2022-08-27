@@ -22,7 +22,7 @@ export type OneType =
 /*
     Schema.indexes signature
  */
-export type OneIndexSchema = {
+export type OneIndex = {
     hash?: string,
     sort?: string,
     description?: string,
@@ -45,11 +45,12 @@ export type OneField = {
     nulls?: boolean,
     reference?: string,
     required?: boolean,
+    timestamp?: boolean,
     type: OneType,
     unique?: boolean,
     validate?: RegExp | string | boolean,
     value?: boolean | string,
-    schema?: OneModelSchema,
+    schema?: OneModel,
     ttl?: boolean,
     items?: OneField
 
@@ -60,7 +61,7 @@ export type OneField = {
 /*
     Schema.models signature
  */
-export type OneModelSchema = {
+export type OneModel = {
     [key: string]: OneField
 };
 
@@ -73,10 +74,10 @@ export type OneSchema = {
     format?: string,
     params?: OneSchemaParams,
     models: {
-        [key: string]: OneModelSchema
+        [key: string]: OneModel
     },
     indexes: {
-        [key: string]: OneIndexSchema
+        [key: string]: OneIndex
     },
     queries?: {},
 };
@@ -90,11 +91,6 @@ export type OneSchemaParams = {
     typeField?: string,             //  Name of model type attribute. Default "_type".
     updatedField?: string,          //  Name of "updated" timestamp attribute. Default 'updated'.
 }
-
-/*
-    Schema Models with field properties that contain field signatures (above) including "type" and "required".
- */
-export type OneTypedModel = Record<string, OneField>;
 
 /*
     Entity field signature generated from the schema
@@ -119,25 +115,25 @@ type ArrayItemType<T extends OneField> =
 /*
     Select the required properties from a model
 */
-export type Required<T extends OneTypedModel> = {
+export type Required<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? P : never]: EntityField<T[P]>
 };
 
 /*
     Select the optional properties from a model
 */
-export type Optional<T extends OneTypedModel> = {
+export type Optional<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]>
 };
 
-type OptionalOrNull<T extends OneTypedModel> = {
+type OptionalOrNull<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: (EntityField<T[P]> | null)
 };
 
 /*
     Select properties with generated values
 */
-export type Generated<T extends OneTypedModel> = {
+export type Generated<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['generate'] extends (string | boolean) ? P : never]?: EntityField<T[P]>
 };
 
@@ -145,21 +141,21 @@ export type Generated<T extends OneTypedModel> = {
     Select properties with default values
 */
 type DefinedValue = string | number | bigint | boolean | symbol | object
-export type Defaulted<T extends OneTypedModel> = {
+export type Defaulted<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['default'] extends DefinedValue ? P : never]: EntityField<T[P]>
 };
 
 /*
     Select value template properties
 */
-export type ValueTemplates<T extends OneTypedModel> = {
+export type ValueTemplates<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['value'] extends string ? P : never]: EntityField<T[P]>
 };
 
 /*
     Select timestamp properties
 */
-export type TimestampValue<T extends OneTypedModel> = {
+export type TimestampValue<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['timestamp'] extends true ? P : never]: EntityField<T[P]>
 };
 
@@ -173,11 +169,10 @@ type Merge<A extends any, B extends any> = {
 /*
     Create entity type which includes required and optional types
     An entity type is not used by the user and is only required internally.
-
     Merge gives better intellisense, but requires Flatten to make <infer X> work.
 */
 type Flatten<T> = { [P in keyof T]: T[P] };
-type Entity<T extends OneTypedModel> = Flatten<Merge<Required<T>, Optional<T>>>
+type Entity<T extends OneModel> = Flatten<Merge<Required<T>, Optional<T>>>
 
 /*
     Entity Parameters are partial Entities.
@@ -218,9 +213,9 @@ export type AnyEntity = {
 };
 
 type ModelConstructorOptions = {
-    fields?: OneModelSchema
+    fields?: OneModel
     indexes?: {
-        [key: string]: OneIndexSchema
+        [key: string]: OneIndex
     },
     timestamps?: boolean | string,
 };
@@ -304,9 +299,9 @@ type GetKeys<T> = T extends T ? keyof T: never;
     Allow, but not require: generated, defaulted and value templates
     Require all other required properties and allow all optional properties
 
-    type EntityParametersForCreate<M extends OneTypedModel> = Required<M> & Optional<M>
+    type EntityParametersForCreate<M extends OneModel> = Required<M> & Optional<M>
 */
-type EntityParametersForCreate<T extends OneTypedModel> =
+type EntityParametersForCreate<T extends OneModel> =
     Omit<
         Omit<
             Omit<
@@ -319,7 +314,7 @@ type EntityParametersForCreate<T extends OneTypedModel> =
         >, GetKeys<TimestampValue<T>>
     > & Optional<T> & Partial<Generated<T>> & Partial<Defaulted<T>> & Partial<ValueTemplates<T>> & Partial<TimestampValue<T>>
 
-type EntityParametersForUpdate<T extends OneTypedModel> = Partial<Required<T> & OptionalOrNull<T>>
+type EntityParametersForUpdate<T extends OneModel> = Partial<Required<T> & OptionalOrNull<T>>
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);

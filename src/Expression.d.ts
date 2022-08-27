@@ -1,4 +1,4 @@
-import { OneParams, OneProperties, OneIndexSchema } from './Model'
+import { OneParams, OneProperties, OneIndex } from './Model'
 export class Expression<ModelT> {
     constructor(model: ModelT, op: string, properties: OneProperties, params?: OneParams);
     add(field: string, value: any): void;
@@ -17,5 +17,5 @@ export class Expression<ModelT> {
     addConditions(op: string): void;
     addFilters(): void;
     addUpdates(): void;
-    selectIndex(indexes: Record<string, OneIndexSchema>): OneIndexSchema;
+    selectIndex(indexes: Record<string, OneIndex>): OneIndex;
 }

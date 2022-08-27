@@ -6,7 +6,7 @@ import {TenantSchema} from './schemas'
 
 //  Test these are exported from index
 
-import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModelSchema, OneSchema, Paged} from '../src/index.js'
+import { AnyEntity, AnyModel, Model, OneParams, OneProperties, OneModel, OneSchema, Paged} from '../src/index.js'
 
 // jest.setTimeout(7200 * 1000)
 

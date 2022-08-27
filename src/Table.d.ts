@@ -3,7 +3,7 @@
 */
 
 import {
-    AnyEntity, AnyModel, Model, OneIndexSchema, OneParams, OneProperties, OneModelSchema, OneSchema, Paged, Entity
+    AnyEntity, AnyModel, Model, OneIndex, OneParams, OneProperties, OneModel, OneSchema, Paged, Entity
 } from "./Model";
 
 export type EntityGroup = {
@@ -56,7 +56,7 @@ export class Table<Schema extends OneSchema = any> {
     constructor(params: TableConstructorParams<Schema>);
 
     addContext(context?: {}): Table<Schema>;
-    addModel(name: string, fields: OneModelSchema): void;
+    addModel(name: string, fields: OneModel): void;
 
     batchGet(batch: any, params?: OneParams): Promise<{}[]>;
     batchWrite(batch: any, params?: OneParams): Promise<{}>;
@@ -69,7 +69,7 @@ export class Table<Schema extends OneSchema = any> {
     getContext(): {};
     generate(): string;
     getLog(): any;
-    getKeys(): Promise<OneIndexSchema>;
+    getKeys(): Promise<OneIndex>;
     getModel<T>(name: T extends ModelNames<Schema> ? T : ModelNames<Schema>): T extends string ? Model<Entity<Schema["models"][T]>> : Model<Entity<ExtractModel<T>>>;
     getCurrentSchema(): {};
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup;
