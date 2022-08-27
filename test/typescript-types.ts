@@ -3,7 +3,7 @@
  */
 import {Client, Table, dump} from './utils/init'
 
-import {Entity, GetType, Model, OneSchema, OneModel} from '../src/index.js'
+import {Entity, Model, OneSchema, OneModel} from '../src/index.js'
 
 // jest.setTimeout(7200 * 1000)
 
