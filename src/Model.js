@@ -1044,7 +1044,8 @@ export class Model {
         }
         if (field.type == 'date' && value != undefined) {
             if (field.ttl) {
-                return new Date(value * 1000)
+                //  Parse incase stored as ISO string
+                return new Date(new Date(value).getTime() * 1000)
             } else {
                 return new Date(value)
             }
