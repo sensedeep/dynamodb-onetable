@@ -92,9 +92,10 @@ export class Schema {
                     if (index.sort == null) {
                         throw new OneTableArgError('LSIs must define a sort attribute')
                     }
+                    /*
                     if (index.project) {
                         throw new OneTableArgError('Unexpected project definition for LSI')
-                    }
+                    } */
                     index.hash = primary.hash
                     lsi++
 
