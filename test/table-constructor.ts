@@ -118,31 +118,33 @@ test('Create table with GSI and project keys', async() => {
 })
 
 test('Create table with LSI and project', async() => {
-    await expect(async() => {
-        table = new Table({
-            name: TableName,
-            client: Client,
-            partial: false,
-            schema: {
-                format: 'onetable:1.1.0',
-                version: '0.0.1',
-                indexes: {
-                    primary: { hash: 'pk', sort: 'sk' },
-                    //  Should fail -- projects not legal
-                    ls1: { type: 'local', sort: 'email', project: 'all' },
-                },
-                models: {
-                    User: {
-                        pk:     { type: String, value: 'user#${email}' },
-                        sk:     { type: String, value: 'user#' },
-                        name:   { type: String },
-                        email:  { type: String },
-                    }
-                },
-                params: {}
-            }
-        })
-    }).rejects.toThrow()
+    table = new Table({
+        name: TableName,
+        client: Client,
+        partial: false,
+        schema: {
+            format: 'onetable:1.1.0',
+            version: '0.0.1',
+            indexes: {
+                primary: { hash: 'pk', sort: 'sk' },
+                ls1: { type: 'local', sort: 'email', project: 'all' },
+            },
+            models: {
+                User: {
+                    pk:     { type: String, value: 'user#${email}' },
+                    sk:     { type: String, value: 'user#' },
+                    name:   { type: String },
+                    email:  { type: String },
+                }
+            },
+            params: {}
+        }
+    })
+    expect(table instanceof Table).toBe(true)
+    await table.createTable()
+    expect(await table.exists()).toBe(true)
+    await table.deleteTable('DeleteTableForever')
+    expect(await table.exists()).toBe(false)
 })
 
 test('Create table with LSI', async() => {

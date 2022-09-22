@@ -1,6 +1,8 @@
 import {Client, Table} from './utils/init'
 import {ArrayItemsSchema} from './schemas'
 
+// jest.setTimeout(7200 * 1000)
+
 const table = new Table({
     name: 'ArrayItemsTestTable',
     client: Client,
