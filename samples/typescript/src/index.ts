@@ -117,7 +117,7 @@ async function test() {
     user = await User.update({email: 'roadrunner@acme.com'}, {set: {'address.zip': '{"98034"}'}})
 
     /*
-        Different ways to update properties. Add will atomically add 10 to the balance as will the `set` expression.
+        Different ways to update properties. Add will automically add 10 to the balance as will the `set` expression.
     */
     user = await User.update({email: 'roadrunner@acme.com', balance: 110})
     user = await User.update({email: 'roadrunner@acme.com'}, {add: {balance: 10}})
