@@ -1078,7 +1078,6 @@ export class Table {
             } else {
                 item = this.unmarshallv2(item)
             }
-
         }
         return item
     }
@@ -1105,6 +1104,38 @@ export class Table {
             }
         }
         return item
+    }
+
+    /*
+        Handle DynamoDb Stream Records
+     */
+    stream(records, params = {}) {
+        const result = {}
+
+        for (const record of records) {
+            const model = {}
+            let type
+            if (record.dynamodb.NewImage) {
+                const jsonNew = this.unmarshall(record.dynamodb.NewImage, params)
+                type = jsonNew[this.typeField]
+                model.new = this.schema.models[type].transformReadItem('get', jsonNew, {}, params)
+            }
+            if (record.dynamodb.OldImage) {
+                const jsonOld = this.unmarshall(record.dynamodb.NewImage, params)
+                if (type && type !== jsonOld[this.typeField]) {
+                    // different types, so skip this
+                    continue
+                }
+                if (!type) {
+                    type = jsonOld[this.typeField]
+                }
+                model.old = this.schema.models[type].transformReadItem('get', jsonOld, {}, params)
+            }
+            let list = result[type] = result[type] || []
+            list.push(model)
+        }
+
+        return result
     }
 
     /*
