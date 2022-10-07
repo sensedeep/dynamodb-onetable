@@ -1113,24 +1113,42 @@ export class Table {
         const result = {}
 
         for (const record of records) {
+            if (!record.dynamodb.NewImage && !record.dynamodb.OldImage) {
+                continue
+            }
+
             const model = {}
-            let type
+            let typeNew
+            let typeOld
+
+            // Unmarshall and transform the New Image if it exists
             if (record.dynamodb.NewImage) {
                 const jsonNew = this.unmarshall(record.dynamodb.NewImage, params)
-                type = jsonNew[this.typeField]
-                model.new = this.schema.models[type].transformReadItem('get', jsonNew, {}, params)
+                typeNew = jsonNew[this.typeField]
+
+                // If type not found then don't do anything
+                if (typeNew) {
+                    model.new = this.schema.models[typeNew].transformReadItem(
+                        'get', jsonNew, {}, params)
+                }
             }
+
+            // Unmarshall and transform the Old Image if it exists
             if (record.dynamodb.OldImage) {
                 const jsonOld = this.unmarshall(record.dynamodb.NewImage, params)
-                if (type && type !== jsonOld[this.typeField]) {
-                    // different types, so skip this
-                    continue
+                typeOld = jsonOld[this.typeField]
+
+                // If type not found then don't do anything
+                if (typeOld) {
+                    // If there was a new image of a different type then skip
+                    if (typeNew && typeNew !== typeOld) {
+                        continue
+                    }
+                    model.old = this.schema.models[typeOld].transformReadItem('get', jsonOld, {}, params)
                 }
-                if (!type) {
-                    type = jsonOld[this.typeField]
-                }
-                model.old = this.schema.models[type].transformReadItem('get', jsonOld, {}, params)
             }
+
+            const type = typeNew || typeOld
             let list = result[type] = result[type] || []
             list.push(model)
         }
