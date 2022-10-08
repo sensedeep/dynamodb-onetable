@@ -989,7 +989,13 @@ export class Model {
             }
             let value = raw[att]
             if (value === undefined) {
-                continue
+                if (field.encode) {
+                    let [att, sep, index] = field.encode
+                    value = (raw[att] || '').split(sep)[index]
+                }
+                if (value === undefined) {
+                    continue
+                }
             }
             if (sub) {
                 value = value[sub]
@@ -1224,6 +1230,9 @@ export class Model {
 
                 } else if (name == this.typeField && name != index.hash && name != index.sort && op == 'find') {
                     omit = true
+
+                } else if (field.encode) {
+                    omit = true
                 }
             }
             if (!omit && properties[name] !== undefined) {
@@ -1331,6 +1340,9 @@ export class Model {
 
                     } else if (field.generate == 'ulid') {
                         value = this.table.ulid()
+
+                    } else if (field.generate == 'uid') {
+                        value = this.table.uid()
                     }
                 }
                 if (value !== undefined) {
