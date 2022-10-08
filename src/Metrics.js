@@ -3,7 +3,7 @@
  */
 
 const DefaultMetrics = {
-    chan: 'metrics',                                                //  Default channel
+    chan: 'dbmetrics',                                              //  Default channel
     dimensions: [
         'Table', 'Tenant', 'Source', 'Index', 'Model', 'Operation'  //  Default dimensions
     ],
@@ -61,11 +61,8 @@ export class Metrics {
             metrics = Object.assign({}, DefaultMetrics, params)
         }
         if (metrics.env && process.env) {
-            //  Need a better sense logs test than 'metrics'
-            if (this.log.metrics) {
-                //  SenseLogs. Always use enable() API to support LOG_* variables.
-                metrics.enable = true
-            } else {
+            //  Need a better senselogs test than 'metrics'. Senselogs relies on the dbmetrics channel to be enabled.
+            if (!this.log.metrics) {
                 let filter = process.env.LOG_FILTER
                 if (!filter || filter.indexOf('dbmetrics') < 0) {
                     metrics.enable = false
@@ -191,7 +188,7 @@ export class Metrics {
         totals.scanned = totals.scanned / requests
 
         if (this.log.metrics) {
-            let chan = metrics.chan || 'metrics'
+            let chan = metrics.chan || 'dbmetrics'
             this.log.metrics(chan, `OneTable Custom Metrics ${dimensions}`,
                 metrics.namespace, totals, dimensions, {latency: 'Milliseconds', default: 'Count'},
                 Object.assign({}, dimensionValues, properties))
