@@ -563,10 +563,9 @@ export class Expression {
                 args.Limit = params.limit ? params.limit : undefined
                 /*
                     Scan reverse if either reverse or prev is true but not both. (XOR)
-                    If both are true, then requesting the previous page of a reverse scan which is
-                    actually forwards.
+                    If both are true, then requesting the previous page of a reverse scan which is actually forwards.
                 */
-                args.ScanIndexForward = (params.reverse == true ^ params.prev != null) ? false : true
+                args.ScanIndexForward = (params.reverse == true ^ (params.prev != null && params.next == null)) ? false : true
 
                 if (params.next || params.prev) {
                     args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev, params)

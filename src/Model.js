@@ -388,15 +388,21 @@ export class Model {
 
         let prev
         if ((op == 'find' || op == 'scan') && items.length) {
-            let {hash, sort} = index
-            prev = {[hash]: items[0][hash], [sort]: items[0][sort]}
-            if (params.index && params.index != 'primary') {
-                let primary = this.indexes.primary
-                prev[primary.hash] = items[0][primary.hash]
-                prev[primary.sort] = items[0][primary.sort]
-            }
-            if (prev[hash] == null || prev[sort] == null) {
-                prev = null
+            if (items.length) {
+                /*
+                    Determine next / previous cursors. Note: data items not yet reversed if scanning backwards.
+                    Can use LastEvaluatedKey for the direction of scanning. Calculate the other end from the returned items.
+                    Next/prev will be swapped when the items are reversed below
+                */
+                let {hash, sort} = (params.index && params.index != 'primary') ? index : this.indexes.primary
+                let cursor = {[hash]: items[0][hash], [sort]: items[0][sort]}
+                if (cursor[hash] == null || cursor[sort] == null) {
+                    cursor = null
+                }
+                // next = result.LastEvaluatedKey
+                if (params.next || params.prev) {
+                    prev = cursor
+                }
             }
         }
 
@@ -423,7 +429,7 @@ export class Model {
                 items.prev = this.table.unmarshall(prev, params)
                 Object.defineProperty(items, 'prev', {enumerable: false})
             }
-            if (params.prev && op != 'scan') {
+            if (params.prev && params.next == null && op != 'scan') {
                 //  DynamoDB scan ignores ScanIndexForward
                 items = items.reverse()
                 let tmp = items.prev ; items.prev = items.next ; items.next = tmp
