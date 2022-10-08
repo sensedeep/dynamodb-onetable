@@ -7,6 +7,7 @@ import Crypto from 'crypto'
 //  Crockford's base 32 excluding I, L, O and U
 //  Repeat Z to make encoding faster for rand == 0xFF
 const Letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZZ'
+
 const LettersLen = Letters.length - 1
 const RandomLength = 16
 const TimeLen = 10
@@ -23,7 +24,7 @@ export default class ULID {
     }
 
     toString() {
-        return this.getTime(this.when) + this.getRandom()
+        return this.getTime(this.when) + this.getRandom(RandomLength)
     }
 
     //  Decode the time portion of the ULID and return a number
@@ -43,10 +44,10 @@ export default class ULID {
         }, 0)
     }
 
-    getRandom() {
+    getRandom(size) {
         let bytes = []
-        let buffer = Crypto.randomBytes(RandomLength)
-        for (let i = 0; i < RandomLength; i++) {
+        let buffer = Crypto.randomBytes(size)
+        for (let i = 0; i < size; i++) {
             //  Letters is one longer than LettersLen
             bytes[i] = Letters[Math.floor(buffer.readUInt8(i) / 0xFF * LettersLen)]
         }

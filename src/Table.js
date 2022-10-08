@@ -7,6 +7,7 @@
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
+import UID from './UID.js'
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
@@ -952,6 +953,15 @@ export class Table {
     ulid() {
         return new ULID().toString()
     }
+
+
+    /*
+        Crypto-grade ID of given length. If >= 10 in length, suitably unique for most use-cases.
+     */
+    uid(size) {
+        return UID(size)
+    }
+
 
     setGenerate(fn) {
         this.generate = fn
