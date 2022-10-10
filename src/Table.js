@@ -12,6 +12,7 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
+import { Converter } from 'aws-sdk/clients/dynamodb';
 
 /*
     AWS V2 DocumentClient methods
@@ -1110,8 +1111,15 @@ export class Table {
         Handle DynamoDb Stream Records
      */
     stream(records, params = {}) {
-        const result = {}
+        const unmarshallStreamImage = (image, params) => {
+            if (this.V3) {
+                return this.unmarshall(image, params)
+            }
+            // Built in unmarshaller for SDK v2 isn't compatible with Stream Record Images
+            return Converter.unmarshall(image)
+        }
 
+        const result = {}
         for (const record of records) {
             if (!record.dynamodb.NewImage && !record.dynamodb.OldImage) {
                 continue
@@ -1123,7 +1131,7 @@ export class Table {
 
             // Unmarshall and transform the New Image if it exists
             if (record.dynamodb.NewImage) {
-                const jsonNew = this.unmarshall(record.dynamodb.NewImage, params)
+                const jsonNew = unmarshallStreamImage(record.dynamodb.NewImage, params)
                 typeNew = jsonNew[this.typeField]
 
                 // If type not found then don't do anything
@@ -1135,7 +1143,7 @@ export class Table {
 
             // Unmarshall and transform the Old Image if it exists
             if (record.dynamodb.OldImage) {
-                const jsonOld = this.unmarshall(record.dynamodb.NewImage, params)
+                const jsonOld = unmarshallStreamImage(record.dynamodb.OldImage, params)
                 typeOld = jsonOld[this.typeField]
 
                 // If type not found then don't do anything
