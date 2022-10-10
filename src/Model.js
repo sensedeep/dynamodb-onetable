@@ -1338,17 +1338,22 @@ export class Model {
                     }
 
                 } else if (field.generate) {
-                    if (field.generate === true) {
+                    let generate = field.generate
+                    if (generate === true) {
                         value = this.table.generate()
 
-                    } else if (field.generate == 'uuid') {
+                    } else if (generate == 'uuid') {
                         value = this.table.uuid()
 
-                    } else if (field.generate == 'ulid') {
+                    } else if (generate == 'ulid') {
                         value = this.table.ulid()
 
-                    } else if (field.generate == 'uid') {
-                        value = this.table.uid()
+                    } else if (generate == 'uid') {
+                        value = this.table.uid(10)
+
+                    } else if (generate.indexOf('uid') == 0) {
+                        let [,size] = generate.split('(')
+                        value = this.table.uid(parseInt(size) || 10)
                     }
                 }
                 if (value !== undefined) {

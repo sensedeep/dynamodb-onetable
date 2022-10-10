@@ -87,7 +87,7 @@ export class Table<Schema extends OneSchema = any> {
     setParams(params: OneParams): void;
     setSchema(schema?: OneSchema): Promise<void>;
     transact(op: string, transaction: any, params?: OneParams): Promise<void>;
-    uid(): string;
+    uid(size: number): string;
     ulid(): string;
     updateTable(params?: {}): Promise<{}>;
     uuid(): string;
