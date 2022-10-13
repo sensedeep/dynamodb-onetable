@@ -216,7 +216,7 @@ export class Expression {
             conditions.push(`attribute_type(#_${this.addName(sort)}, ${params.type})`)
         }
         if (op == 'update') {
-            this.addUpdates()
+            this.addUpdateConditions()
         }
         if (params.where) {
             conditions.push(this.expand(params.where))
@@ -337,11 +337,17 @@ export class Expression {
         }
     }
 
+    /*
+        Convert literal attribute names to symbolic ExpressionAttributeName indexes
+     */
     prepareKey(key) {
         this.already[key] = true
         return this.makeTarget(this.model.block.fields, key)
     }
 
+    /*
+        Convert attribute values to symbolic ExpressionAttributeValue indexes
+     */
     prepareKeyValue(key, value) {
         let target = this.prepareKey(key)
         let requiresExpansion = typeof value == 'string' && value.match(/\${.*?}|@{.*?}|{.*?}/)
@@ -368,11 +374,13 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        let [target, variable] = this.prepareKeyValue(pathname, value)
+        // let [target, variable] = this.prepareKeyValue(pathname, value)
+        let target = this.prepareKey(pathname)
+        let variable = this.addValueExp(value)
         updates.set.push(`${target} = ${variable}`)
     }
 
-    addUpdates() {
+    addUpdateConditions() {
         let {params, updates} = this
         let fields = this.model.block.fields
 
