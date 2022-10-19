@@ -162,18 +162,19 @@ const event = {
 
 test('Stream has New Images', async () => {
     const streamModels = table.stream(event.Records as DynamoDBRecord[]);
-    const newModels = streamModels.User.filter((streamModel) => !!streamModel.new)
-      .map((streamModel) => streamModel.new)
+    const models = streamModels.User.filter((streamModel) => !!streamModel.new)
 
-    expect(newModels).toHaveLength(2);
-    expect(newModels[0]).toEqual(
+    expect(models).toHaveLength(2)
+    expect(models[0].type).toEqual('INSERT')
+    expect(models[0].new).toEqual(
         expect.objectContaining({
             id: '1234',
             name: 'alice',
             registered: new Date('2022-01-01Z'),
         })
     )
-    expect(newModels[1]).toEqual(
+    expect(models[1].type).toEqual('MODIFY')
+    expect(models[1].new).toEqual(
       expect.objectContaining({
           id: '1235',
           name: 'bob',
@@ -184,11 +185,11 @@ test('Stream has New Images', async () => {
 
 test('Stream has Old Images', async () => {
     const streamModels = table.stream(event.Records as DynamoDBRecord[]);
-    const oldModels = streamModels.User.filter((streamModel) => !!streamModel.old)
-      .map((streamModel) => streamModel.old)
+    const models = streamModels.User.filter((streamModel) => !!streamModel.old)
 
-    expect(oldModels).toHaveLength(1);
-    expect(oldModels[0]).toEqual(
+    expect(models).toHaveLength(1)
+    expect(models[0].type).toEqual('MODIFY')
+    expect(models[0].old).toEqual(
       expect.objectContaining({
           name: 'rob',
           registered: new Date('2022-01-02Z'),

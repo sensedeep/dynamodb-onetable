@@ -13,6 +13,7 @@ export type EntityGroup = {
 
 export type StreamEntityGroup = {
     [key: string]: {
+        type: 'INSERT' | 'MODIFY' | 'REMOVE',
         new?: AnyEntity,
         old?: AnyEntity
     }[]

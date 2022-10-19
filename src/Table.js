@@ -1127,7 +1127,9 @@ export class Table {
                 continue
             }
 
-            const model = {}
+            const model = {
+                type: record.eventName
+            }
             let typeNew
             let typeOld
 
