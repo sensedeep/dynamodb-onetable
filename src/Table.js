@@ -1119,6 +1119,8 @@ export class Table {
             return Converter.unmarshall(image)
         }
 
+        const tableModels = this.listModels()
+
         const result = {}
         for (const record of records) {
             if (!record.dynamodb.NewImage && !record.dynamodb.OldImage) {
@@ -1135,7 +1137,7 @@ export class Table {
                 typeNew = jsonNew[this.typeField]
 
                 // If type not found then don't do anything
-                if (typeNew) {
+                if (typeNew && tableModels.includes(typeNew)) {
                     model.new = this.schema.models[typeNew].transformReadItem(
                         'get', jsonNew, {}, params)
                 }
@@ -1147,7 +1149,7 @@ export class Table {
                 typeOld = jsonOld[this.typeField]
 
                 // If type not found then don't do anything
-                if (typeOld) {
+                if (typeOld && tableModels.includes(typeOld)) {
                     // If there was a new image of a different type then skip
                     if (typeNew && typeNew !== typeOld) {
                         continue

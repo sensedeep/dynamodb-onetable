@@ -111,6 +111,51 @@ const event = {
                 },
                 eventSourceARN: 'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000'
             }
+        },
+        {
+            eventID: 'f07f8ca4b0b26cb9c4e5e77e42f274ee',
+            eventName: 'MODIFY',
+            eventVersion: '1.1',
+            eventSource: 'aws:dynamodb',
+            awsRegion: 'us-east-1',
+            dynamodb: {
+                ApproximateCreationDateTime: 1480642020,
+                Keys: {
+                    val: {
+                        S: 'data'
+                    },
+                    key: {
+                        S: 'binary'
+                    }
+                },
+                NewImage: {
+                    _type: {S: 'NonModel'},
+                    pk: {S: 'User#1235'},
+                    sk: {S: 'User#'},
+                    id: {S: '1235'},
+                    name: {S: 'bob'},
+                    registered: {S: '2022-01-02Z'},
+                    profile: {
+                        M: {
+                            dob: {S: '1999-06-01Z'},
+                        },
+                    },
+                },
+                OldImage: {
+                    _type: {S: 'NonModel'},
+                    pk: {S: 'User#1235'},
+                    sk: {S: 'User#'},
+                    id: {S: '1235'},
+                    name: {S: 'rob'},
+                    registered: {S: '2022-01-02Z'},
+                    profile: {
+                        M: {
+                            dob: {S: '1999-06-01Z'},
+                        },
+                    },
+                },
+                eventSourceARN: 'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000'
+            }
         }
     ]
 }
