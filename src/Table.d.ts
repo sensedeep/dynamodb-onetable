@@ -5,10 +5,19 @@
 import {
     AnyEntity, AnyModel, Model, OneIndex, OneParams, OneProperties, OneModel, OneSchema, Paged, Entity
 } from "./Model";
+import { DynamoDBRecord } from "aws-lambda";
 
 export type EntityGroup = {
     [key: string]: AnyEntity[]
 };
+
+export type StreamEntityGroup = {
+    [key: string]: {
+        type: 'INSERT' | 'MODIFY' | 'REMOVE',
+        new?: AnyEntity,
+        old?: AnyEntity
+    }[]
+}
 
 type TableConstructorParams<Schema extends OneSchema> = {
     client?: {},                    //  Instance of DocumentClient or Dynamo.
@@ -115,4 +124,5 @@ export class Table<Schema extends OneSchema = any> {
 
     marshall(item: AnyEntity | AnyEntity[], params?: OneParams) : AnyEntity;
     unmarshall(item: AnyEntity | AnyEntity[], params?: OneParams) : AnyEntity;
+    stream(records: DynamoDBRecord[], params?: OneParams) : StreamEntityGroup;
 }
