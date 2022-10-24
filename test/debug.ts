@@ -11,7 +11,7 @@ import { OneSchema } from '../src/index.js'
 jest.setTimeout(7200 * 1000)
 
 //  Change with your schema
-const schema: OneSchema = {
+const schema = {
     version: '0.0.1',
     indexes: {
         primary: { hash: 'pk', sort: 'sk' },
@@ -19,17 +19,17 @@ const schema: OneSchema = {
     },
     models: {
         User: {
-            pk:          { type: String, value: '${_type}#' },
-            sk:          { type: String, value: '${_type}#${id}' },
+            pk:         { type: 'string', value: '${_type}#' },
+            sk:         { type: 'string', value: '${_type}#${id}' },
 
-            gs1pk:       { type: String, value: '${_type}#' },
-            gs1sk:       { type: String, value: '${_type}#${id}' },
+            gs1pk:      { type: 'string', value: '${_type}#' },
+            gs1sk:      { type: 'string', value: '${_type}#${id}' },
 
-            name:        { type: String },
-            email:       { type: String },
-            id:          { type: String, generate: 'ulid' },
+            name:       { type: 'string' },
+            email:      { type: 'string' },
+            id:         { type: 'string', generate: 'ulid' },
         }
-    }
+    } as const
 }
 
 //  Change your table params as required
