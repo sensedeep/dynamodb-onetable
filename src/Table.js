@@ -610,7 +610,7 @@ export class Table {
         return await model.update(properties, params)
     }
 
-    async upsert(modelName, properties, params) {
+    async upsert(modelName, properties, params = {}) {
         params.exists = null
         return this.update(modelName, properties, params)
     }
