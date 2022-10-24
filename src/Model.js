@@ -838,7 +838,7 @@ export class Model {
             }
             throw err
         }
-        if (params.return == 'none' || params.return === false) {
+        if (params.return == 'none' || params.return == 'NONE' || params.return === false) {
             return
         }
         if (params.return == 'get') {
@@ -849,16 +849,10 @@ export class Model {
                 execute: params.execute,
             })
         }
-        if (params.return) {
-            throw new OneTableArgError('Update cannot return an updated item that contain unique attributes')
-        } else {
-            /*
-            if (this.table.warn !== false) {
-                console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
-                             `Use params {return: 'none'} to squelch this warning. ` +
-                             `Use {return: 'get'} to do a non-transactional get of the item after the update. `)
-            } */
-            return properties
+        if (this.table.warn !== false) {
+            console.warn(`Update with unique items uses transactions and cannot return the updated item.` +
+                         `Use params {return: 'none'} to squelch this warning. ` +
+                         `Use {return: 'get'} to do a non-transactional get of the item after the update. `)
         }
     }
 
