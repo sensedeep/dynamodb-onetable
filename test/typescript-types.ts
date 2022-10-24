@@ -33,6 +33,28 @@ const Schema = {
                     end: { type: 'date' },
                 }}
             }},
+        },
+        ComplexType: {
+            pk:          { type: String, value: 'COMPLEX#${project.id}$SUBTYPE#${project.type}'},
+            sk:          { type: String, value: 'COMPLEX#${id}' },
+            id:          {
+                type: String,
+                generate: 'uuid',
+                encode: ['sk', '#', 1]
+            },
+            project:   { type: Object, schema: {
+                id:      {
+                    type: String,
+                    required: true,
+                    encode: ['pk', /[#$]/, 1]
+                 },
+                 type: {
+                    type: String,
+                    required: true,
+                    encode: ['pk', /[#$]/, 3]
+                 },
+            } },
+            name: { type: String, required: true },
         }
     } as const,
     params: { },
@@ -49,6 +71,8 @@ const table = new Table({
 type UserType = Entity<typeof Schema.models.User>
 let User = table.getModel('User')
 let userId
+
+let ComplexType = table.getModel('ComplexType')
 
 test('Create Table', async() => {
     if (!(await table.exists())) {
@@ -149,6 +173,20 @@ test('Update Zip Only', async() => {
     expect(user.email).toBe('ralph@example.com')
     expect(user.address.street).toBe(undefined)
     expect(user.address.zip).toBe(22222)
+})
+
+test('Create ComplexType', async() => {
+    let complexType = await ComplexType.create({
+        project: {
+            id: '66a223b8-f29a-49bf-b7af-44fa45290e1d',
+            type: 'MY_TYPE',
+        },
+        name: 'complex type name',
+    })
+    let fetched = await ComplexType.get({id: complexType.id, project: complexType.project})
+    expect(complexType.id).toHaveLength(36)
+    expect(fetched?.id).toBe(complexType.id)
+    expect(fetched?.name).toBe(complexType.name)
 })
 
 test('Destroy Table', async() => {
