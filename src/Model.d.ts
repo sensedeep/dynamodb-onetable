@@ -317,6 +317,8 @@ type EntityParametersForCreate<T extends OneModel> =
 
 type EntityParametersForUpdate<T extends OneModel> = Partial<Required<T> & OptionalOrNull<T>>
 
+type TransactionalOneParams = OneParams & {transaction: object}
+
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions);
     create(properties: EntityParametersForCreate<ExtractModel<T>>, params?: OneParams): Promise<T>;
@@ -328,4 +330,5 @@ export class Model<T> {
     scan(properties?: EntityParameters<T>, params?: OneParams): Promise<Paged<T>>;
     update(properties: EntityParametersForUpdate<ExtractModel<T>>, params?: OneParams): Promise<T>;
     upsert(properties: EntityParameters<T>, params?: OneParams): Promise<T>;
+    check(properties: EntityParameters<T>, params: TransactionalOneParams): void;
 }

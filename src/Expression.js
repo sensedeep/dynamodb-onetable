@@ -68,7 +68,7 @@ export class Expression {
         if (op == 'find') {
             this.addWhereFilters()
 
-        } else if (op == 'delete' || op == 'put' || op == 'update') {
+        } else if (op == 'delete' || op == 'put' || op == 'update' || op == 'check') {
             this.addConditions(op)
 
         } else if (op == 'scan') {
@@ -165,7 +165,7 @@ export class Expression {
                     this.addFilter(field, value)
                 }
 
-            } else if ((op == 'delete' || op == 'get' || op == 'update') && field.isIndexed) {
+            } else if ((op == 'delete' || op == 'get' || op == 'update' || op == 'check') && field.isIndexed) {
                 this.addKey(op, field, value)
 
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
@@ -560,7 +560,7 @@ export class Expression {
                 args.ReturnValues = returnValues || 'ALL_OLD'
             }
 
-            if (op == 'delete' || op == 'get' || op == 'update') {
+            if (op == 'delete' || op == 'get' || op == 'update' || op == 'check') {
                 args.Key = key
             }
             if (op == 'find' || op == 'get' || op == 'scan') {

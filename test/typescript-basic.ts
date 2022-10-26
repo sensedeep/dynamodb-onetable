@@ -5,6 +5,7 @@
  */
 import {AWS, Client, Entity, Model, Table, print, dump, delay} from './utils/init'
 import {NestedSchema} from './schemas'
+import { TransactionCanceledException } from '@aws-sdk/client-dynamodb'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -72,6 +73,31 @@ describe('TypeScript', () => {
         for (let user of users) {
             await User.remove({id: user.id})
         }
+    })
+
+    test('Check condition fails', async() => {
+        const transaction = {};
+        User.check({id: 'unknownUserId'}, {transaction, exists: true})
+        await User.create(Properties, {transaction})
+        const result = await table.transact('write', transaction).catch(e => e)
+        expect(result).not.toBe(undefined);
+    })
+
+    test('Check condition should not exist', async() => {
+        const transaction = {};
+        User.check({id: 'unknownUserId'}, {transaction, exists: false});
+        const expected = await User.create(Properties, {transaction});
+        await table.transact('write', transaction)
+    })
+
+    test('Check condition should exist', async() => {
+        const existing = await User.create(Properties);
+
+        const transaction = {};
+        User.check({id: existing.id}, {transaction, exists: true})
+
+        await User.create(Properties, {transaction})
+        await table.transact('write', transaction)
     })
 
     test('Destroy Table', async() => {
