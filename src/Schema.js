@@ -286,6 +286,9 @@ export class Schema {
         if (field.validate && field.validate instanceof RegExp) {
             field.validate = `/${field.validate.source}/${field.validate.flags}`
         }
+        if (field.encode) {
+            field.encode = field.encode.map(e => (e instanceof RegExp) ? `/${e.source}/${e.flags}` : e)
+        }
         let type = (typeof field.type == 'function') ? field.type.name : field.type
         field.type = type.toLowerCase()
         //  DEPRECATE
