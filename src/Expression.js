@@ -537,7 +537,7 @@ export class Expression {
             if (params.return !== undefined) {
                 if (params.return === true) {
                     returnValues = op === 'delete' ? 'ALL_OLD' : 'ALL_NEW'
-                } else if (params.return === false) {
+                } else if (params.return === false || params.return == 'none') {
                     returnValues = 'NONE'
                 } else if (params.return != 'get') {
                     returnValues = params.return
