@@ -28,7 +28,7 @@ const TransformParseResponseAs = {
 }
 
 const KeysOnly = {delete: true, get: true}
-const TransactOps = {delete: 'Delete', get: 'Get', put: 'Put', update: 'Update'}
+const TransactOps = {delete: 'Delete', get: 'Get', put: 'Put', update: 'Update', check: 'ConditionCheck'}
 const BatchOps = {delete: 'DeleteRequest', put: 'PutRequest', update: 'PutRequest'}
 const ValidTypes = [ 'array', 'arraybuffer', 'binary', 'boolean', 'buffer', 'date', 'number', 'object', 'set', 'string' ]
 const SanityPages = 1000
@@ -580,6 +580,13 @@ export class Model {
         }
         let items = this.parseResponse('put', expression)
         return items[0]
+    }
+
+    async check(properties, params) {
+        ({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
+        properties = this.prepareProperties('get', properties, params)
+        const expression = new Expression(this, 'check', properties, params)
+        this.run('check', expression)
     }
 
     async find(properties = {}, params = {}) {
