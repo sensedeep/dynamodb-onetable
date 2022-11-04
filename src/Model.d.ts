@@ -46,6 +46,7 @@ export type OneField = {
     nulls?: boolean,
     reference?: string,
     required?: boolean,
+    scope?: string,
     timestamp?: boolean,
     type: OneType,
     unique?: boolean,
