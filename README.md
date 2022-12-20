@@ -2,8 +2,6 @@
 
 *One Table to Rule Them All*
 
-https://img.shields.io/github/actions/workflow/status/<user>/<repo>/test.yml?branch=main
-
 [![Build Status](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)](https://img.shields.io/github/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)
 [![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
