@@ -18,6 +18,7 @@ export class Schema {
     constructor(table, schema) {
         this.table = table
         this.keyTypes = {}
+        this.control = {}
         table.schema = this
         Object.defineProperty(this, 'table', {enumerable: false})
         this.params = table.getSchemaParams()
@@ -27,7 +28,9 @@ export class Schema {
     getCurrentSchema() {
         if (this.definition) {
             let schema = this.table.assign({}, this.definition, {params: this.params})
-            return this.transformSchemaForWrite(schema)
+            schema = this.transformSchemaForWrite(schema)
+            schema.control = Object.assign({}, this.control)
+            return schema
         }
         return null
     }
@@ -53,6 +56,7 @@ export class Schema {
                 this.models[name] = new Model(this.table, name, {fields: model})
             }
             this.createStandardModels()
+            this.control = schema.control
         }
         return this.indexes
     }
@@ -159,6 +163,7 @@ export class Schema {
         let primary = indexes.primary
         let fields = this.schemaModelFields = {
             [primary.hash]: {type: 'string', required: true, value: `${SchemaKey}`},
+            control:        {type: 'object'},
             format:         {type: 'string', required: true},
             indexes:        {type: 'object', required: true},
             name:           {type: 'string', required: true},
@@ -262,9 +267,6 @@ export class Schema {
         }
         if (params.timestamps == null) {
             params.timestamps = false
-        }
-        if (params.hidden == null) {
-            params.hidden = false
         }
         return params
     }
