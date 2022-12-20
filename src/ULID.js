@@ -30,7 +30,7 @@ export default class ULID {
     //  Decode the time portion of the ULID and return a number
     decode(ulid) {
         ulid = ulid.toString()
-        if (ulid.length !== (TimeLen + RandomLength)) {
+        if (ulid.length !== TimeLen + RandomLength) {
             throw new Error('Invalid ULID')
         }
         let letters = ulid.substr(0, TimeLen).split('').reverse()
@@ -49,7 +49,7 @@ export default class ULID {
         let buffer = Crypto.randomBytes(size)
         for (let i = 0; i < size; i++) {
             //  Letters is one longer than LettersLen
-            bytes[i] = Letters[Math.floor(buffer.readUInt8(i) / 0xFF * LettersLen)]
+            bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
         }
         return bytes.join('')
     }

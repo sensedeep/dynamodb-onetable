@@ -18,13 +18,13 @@ const table = new Table<any>({
         version: '0.0.1',
         indexes: {primary: {hash: 'pk'}},
         models: {},
-    }
+    },
 })
 
 const CardSchema = {
-    pk:     { type: 'string', value: 'card:${id}' },
-    id:     { type: 'number' },
-    issuer: { type: 'string' },
+    pk: {type: 'string', value: 'card:${id}'},
+    id: {type: 'number'},
+    issuer: {type: 'string'},
 } as const
 
 type CardType = Entity<typeof CardSchema>
@@ -59,7 +59,7 @@ test('Create item', async () => {
     expect(card.pk).toBe('card:42')
 })
 
-test('Add model', async() =>{
+test('Add model', async () => {
     let base = table.listModels()
     table.addModel('Card', CardSchema)
 
@@ -73,18 +73,18 @@ test('Add model', async() =>{
     expect(card.issuer).toBe('amex')
 })
 
-test('Remove model', async() => {
+test('Remove model', async () => {
     let base = table.listModels()
 
     table.removeModel('Card')
     let models = table.listModels()
     expect(base.length - models.length).toBe(1)
 
-    await expect(async() => {
+    await expect(async () => {
         table.removeModel('Unknown')
     }).rejects.toThrow()
 })
 
-test('Destroy table', async() => {
+test('Destroy table', async () => {
     await table.deleteTable('DeleteTableForever')
 })

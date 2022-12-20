@@ -26,14 +26,14 @@ const Properties = {
         started: new Date(),
     },
     balance: 0,
-    tokens: ['red', 'white', 'blue']
+    tokens: ['red', 'white', 'blue'],
 }
 
 let User
 let user: any
 let users: any[]
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -42,7 +42,7 @@ test('Create Table', async() => {
 })
 
 test('Get Schema', () => {
-    let schema:any = table.getCurrentSchema()
+    let schema: any = table.getCurrentSchema()
     expect(schema.models).toBeDefined()
     expect(schema.indexes).toBeDefined()
     expect(schema.params).toBeDefined()
@@ -50,7 +50,7 @@ test('Get Schema', () => {
     expect(schema.models.User.pk).toBeDefined()
 })
 
-test('Create', async() => {
+test('Create', async () => {
     //  Unknown properties must not be written to the table
     let props: any = Object.assign({unknown: 42}, Properties)
     props.location = Object.assign({}, {unknown: 99}, Properties.location)
@@ -69,13 +69,13 @@ test('Create', async() => {
     expect(user.sk).toBeUndefined()
 })
 
-test('Get', async() => {
+test('Get', async () => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject(Properties)
     expect(user.location.started instanceof Date).toBe(true)
 })
 
-test('Update top level property', async() => {
+test('Update top level property', async () => {
     user = await User.update({id: user.id, status: 'inactive'})
     expect(user.status).toBe('inactive')
     user = await User.update({id: user.id, status: 'active'})
@@ -87,32 +87,42 @@ test('Update top level property', async() => {
     user = await User.update({id: user.id}, {set: {balance: 0}})
 })
 
-test('Update nested property', async() => {
+test('Update nested property', async () => {
     //  Test native values in set properties
-    user = await User.update({id: user.id}, {set: {
-        'location.zip': '98012',
-        'tokens[1]': 'black',
-        balance: 10.55,
-        status: 'suspended',
-    }})
+    user = await User.update(
+        {id: user.id},
+        {
+            set: {
+                'location.zip': '98012',
+                'tokens[1]': 'black',
+                balance: 10.55,
+                status: 'suspended',
+            },
+        }
+    )
     expect(user.balance).toBe(10.55)
     expect(user.location.zip).toBe('98012')
     expect(user.tokens).toMatchObject(['red', 'black', 'blue'])
     expect(user.status).toBe('suspended')
 })
 
-test('Update nested property via template', async() => {
+test('Update nested property via template', async () => {
     //  Test template values in set properties
-    user = await User.update({id: user.id}, {set: {
-        'location.zip': '{"98011"}',
-        'tokens[1]': '{white}',
-        status: '{active}',
-        balance: 0,
-    }})
+    user = await User.update(
+        {id: user.id},
+        {
+            set: {
+                'location.zip': '{"98011"}',
+                'tokens[1]': '{white}',
+                status: '{active}',
+                balance: 0,
+            },
+        }
+    )
     expect(user).toMatchObject(Properties)
 })
 
-test('Remove top level attribute', async() => {
+test('Remove top level attribute', async () => {
     //  Remove attribute by setting to null
     user = await User.update({id: user.id, status: null})
     expect(user.status).toBeUndefined()
@@ -122,23 +132,26 @@ test('Remove top level attribute', async() => {
     expect(user).toMatchObject(Properties)
 })
 
-test('Remove nested attributes', async() => {
-    user = await User.update({id: user.id}, {
-        remove: ['location.zip', 'tokens[1]'],
-    })
+test('Remove nested attributes', async () => {
+    user = await User.update(
+        {id: user.id},
+        {
+            remove: ['location.zip', 'tokens[1]'],
+        }
+    )
     expect(user.location.zip).toBeUndefined()
     expect(user.tokens).toMatchObject(['red', 'blue'])
     user = await User.update({id: user.id}, {set: {'location.zip': '98011'}})
     expect(user.location.zip).toBe('98011')
 })
 
-test('Remove item', async() => {
+test('Remove item', async () => {
     await User.remove({id: user.id})
     user = await User.get({id: user.id})
     expect(user).toBeUndefined()
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

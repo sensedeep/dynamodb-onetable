@@ -5,7 +5,7 @@ import {print, dump, delay} from './utils/init'
 
 // jest.setTimeout(7200 * 1000)
 
-test('Exercise utils/init for coverage', async() => {
+test('Exercise utils/init for coverage', async () => {
     /*
     dump({when: new Date()})
     print()

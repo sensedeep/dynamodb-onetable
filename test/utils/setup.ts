@@ -1,7 +1,7 @@
 /*
     Setup -- start dynamodb instance
  */
-import { spawn } from 'child_process'
+import {spawn} from 'child_process'
 const waitPort = require('wait-port')
 import DynamoDbLocal from 'dynamo-db-local'
 
@@ -25,7 +25,7 @@ module.exports = async () => {
         })
     } else {
         console.info('Using local Java to run dynamoDB')
-        dynamodb = DynamoDbLocal.spawn({ port: PORT, stdio: 'inherit' })
+        dynamodb = DynamoDbLocal.spawn({port: PORT, stdio: 'inherit'})
     }
 
     console.info('Spawn DynamoDB', dynamodb.pid)
@@ -43,7 +43,7 @@ module.exports = async () => {
 
     // When jest throws anything unhandled, ensure we kill the spawned process
     process.on('unhandledRejection', (error) => {
-        let pid = parseInt(process.env.DYNAMODB_PID)
+        let pid = parseInt(process.env.DYNAMODB_PID || '')
         if (pid) {
             process.kill(pid)
         }

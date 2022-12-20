@@ -18,18 +18,18 @@ let user: any
 let users: any[]
 
 let data = [
-    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
-    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
-    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active'},
+    {name: "Patty O'Furniture", email: 'patty@example.com', status: 'active'},
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive'},
 ]
 
-test('Create', async() => {
+test('Create', async () => {
     if (!(await table.exists())) {
         await table.createTable()
     }
 })
 
-test('Batch put', async() => {
+test('Batch put', async () => {
     let batch = {}
     for (let item of data) {
         table.create('User', item, {batch})
@@ -39,7 +39,7 @@ test('Batch put', async() => {
     expect(users.length).toBe(data.length)
 })
 
-test('Batch get', async() => {
+test('Batch get', async () => {
     let batch = {}
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
@@ -52,8 +52,10 @@ test('Batch get', async() => {
     expect(items.length).toBe(data.length)
 
     for (let item of items) {
-        let datum = data.find(i => i.name == item.name)
-        expect(item).toMatchObject(datum)
+        let datum = data.find((i) => i.name == item.name)
+        if (datum) {
+            expect(item).toMatchObject(datum)
+        }
     }
 
     batch = {}
@@ -62,7 +64,7 @@ test('Batch get', async() => {
     await table.batchWrite(batch)
 })
 
-test('Batch put and delete combined', async() => {
+test('Batch put and delete combined', async () => {
     let batch = {}
 
     table.remove('User', {id: users[0].id}, {batch})
@@ -77,7 +79,7 @@ test('Batch put and delete combined', async() => {
     expect(users[0]).toMatchObject(data[0])
 })
 
-test('Batch get without parse', async() => {
+test('Batch get without parse', async () => {
     let batch = {}
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
@@ -87,12 +89,12 @@ test('Batch get without parse', async() => {
     expect(response.Responses.BatchTest).toBeDefined()
 })
 
-test('Batch with error', async() => {
+test('Batch with error', async () => {
     let batch: any = {}
     for (let user of users) {
         table.get('User', {id: user.id}, {batch})
     }
-    await expect(async() => {
+    await expect(async () => {
         //  Corrupt the batch object
         batch.RequestItems = 42
         await table.batchGet(batch, {parse: true, hidden: false, consistent: true})
@@ -100,7 +102,7 @@ test('Batch with error', async() => {
 
     batch = {}
     table.create('User', {name: 'Buy MoreMilk', email: 'milk@example.com', status: 'inactive'}, {batch})
-    await expect(async() => {
+    await expect(async () => {
         //  Corrupt the batch object
         batch.RequestItems = 42
         await table.batchWrite(batch)
@@ -122,6 +124,6 @@ test('Batch with fields', async () => {
     }
 })
 
-test('Destroy', async() => {
+test('Destroy', async () => {
     await table.deleteTable('DeleteTableForever')
 })

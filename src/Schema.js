@@ -14,7 +14,6 @@ const SchemaKey = '_schema'
 const SchemaFormat = 'onetable:1.1.0'
 
 export class Schema {
-
     constructor(table, schema) {
         this.table = table
         this.keyTypes = {}
@@ -91,7 +90,9 @@ export class Schema {
             if (name != 'primary') {
                 if (index.type == 'local') {
                     if (index.hash && index.hash != primary.hash) {
-                        throw new OneTableArgError(`LSI "${name}" should not define a hash attribute that is different to the primary index`)
+                        throw new OneTableArgError(
+                            `LSI "${name}" should not define a hash attribute that is different to the primary index`
+                        )
                     }
                     if (index.sort == null) {
                         throw new OneTableArgError('LSIs must define a sort attribute')
@@ -102,7 +103,6 @@ export class Schema {
                     } */
                     index.hash = primary.hash
                     lsi++
-
                 } else if (index.hash == null) {
                     if (index.type == null) {
                         console.warn(`Must use explicit "type": "local" in "${name}" LSI index definitions`)
@@ -133,7 +133,7 @@ export class Schema {
         let primary = indexes.primary
         let type = this.keyTypes[primary.hash] || 'string'
         let fields = {
-            [primary.hash]: {type}
+            [primary.hash]: {type},
         }
         if (primary.sort) {
             let type = this.keyTypes[primary.sort] || 'string'
@@ -161,17 +161,17 @@ export class Schema {
     createSchemaModel() {
         let {indexes, table} = this
         let primary = indexes.primary
-        let fields = this.schemaModelFields = {
+        let fields = (this.schemaModelFields = {
             [primary.hash]: {type: 'string', required: true, value: `${SchemaKey}`},
-            control:        {type: 'object'},
-            format:         {type: 'string', required: true},
-            indexes:        {type: 'object', required: true},
-            name:           {type: 'string', required: true},
-            models:         {type: 'object', required: true},
-            params:         {type: 'object', required: true},
-            queries:        {type: 'object', required: true},
-            version:        {type: 'string', required: true},
-        }
+            control: {type: 'object'},
+            format: {type: 'string', required: true},
+            indexes: {type: 'object', required: true},
+            name: {type: 'string', required: true},
+            models: {type: 'object', required: true},
+            params: {type: 'object', required: true},
+            queries: {type: 'object', required: true},
+            version: {type: 'string', required: true},
+        })
         if (primary.sort) {
             fields[primary.sort] = {type: 'string', required: true, value: `${SchemaKey}:\${name}`}
         }
@@ -181,13 +181,13 @@ export class Schema {
     createMigrationModel() {
         let {indexes} = this
         let primary = indexes.primary
-        let fields = this.migrationModelFields = {
+        let fields = (this.migrationModelFields = {
             [primary.hash]: {type: 'string', value: `${MigrationKey}`},
-            date:           {type: 'date',   required: true},
-            description:    {type: 'string', required: true},
-            path:           {type: 'string', required: true},
-            version:        {type: 'string', required: true},
-        }
+            date: {type: 'date', required: true},
+            description: {type: 'string', required: true},
+            path: {type: 'string', required: true},
+            version: {type: 'string', required: true},
+        })
         if (primary.sort) {
             fields[primary.sort] = {type: 'string', value: `${MigrationKey}:\${version}`}
         }
@@ -233,7 +233,7 @@ export class Schema {
         }
         let info = await this.table.describeTable()
         for (let def of info.Table.AttributeDefinitions) {
-            this.keyTypes[def.AttributeName] = (def.AttributeType == 'N') ? 'number' : 'string'
+            this.keyTypes[def.AttributeName] = def.AttributeType == 'N' ? 'number' : 'string'
         }
         let indexes = {primary: {}}
         for (let key of info.Table.KeySchema) {
@@ -242,7 +242,7 @@ export class Schema {
         }
         if (info.Table.GlobalSecondaryIndexes) {
             for (let index of info.Table.GlobalSecondaryIndexes) {
-                let keys = indexes[index.IndexName] = {}
+                let keys = (indexes[index.IndexName] = {})
                 for (let key of index.KeySchema) {
                     let type = key.KeyType.toLowerCase() == 'hash' ? 'hash' : 'sort'
                     keys[type] = key.AttributeName
@@ -289,9 +289,9 @@ export class Schema {
             field.validate = `/${field.validate.source}/${field.validate.flags}`
         }
         if (field.encode) {
-            field.encode = field.encode.map(e => (e instanceof RegExp) ? `/${e.source}/${e.flags}` : e)
+            field.encode = field.encode.map((e) => (e instanceof RegExp ? `/${e.source}/${e.flags}` : e))
         }
-        let type = (typeof field.type == 'function') ? field.type.name : field.type
+        let type = typeof field.type == 'function' ? field.type.name : field.type
         field.type = type.toLowerCase()
         //  DEPRECATE
         if (field.uuid) {
@@ -333,7 +333,7 @@ export class Schema {
             }
             mdef[params.typeField] = {name: params.typeField, type: 'string', required: true}
 
-            for (let [,field] of Object.entries(mdef)) {
+            for (let [, field] of Object.entries(mdef)) {
                 //  DEPRECATE
                 if (field.uuid) {
                     console.warn(`OneTable: Using deprecated field "uuid". Use "generate" instead.`)
@@ -349,10 +349,10 @@ export class Schema {
         Read the current schema saved in the table
     */
     async readSchema() {
-        let indexes = this.indexes || await this.getKeys()
+        let indexes = this.indexes || (await this.getKeys())
         let primary = indexes.primary
         let params = {
-            [primary.hash]: SchemaKey
+            [primary.hash]: SchemaKey,
         }
         if (primary.sort) {
             params[primary.sort] = `${SchemaKey}:Current`
@@ -362,10 +362,10 @@ export class Schema {
     }
 
     async readSchemas() {
-        let indexes = this.indexes || await this.getKeys()
+        let indexes = this.indexes || (await this.getKeys())
         let primary = indexes.primary
         let params = {
-            [primary.hash]: `${SchemaKey}`
+            [primary.hash]: `${SchemaKey}`,
         }
         let schemas = await this.table.queryItems(params, {hidden: true, parse: true})
         for (let [index, schema] of Object.entries(schemas)) {
@@ -399,7 +399,7 @@ export class Schema {
                 schema.models = {}
             }
             if (!schema.indexes) {
-                schema.indexes = this.indexes || await this.getKeys()
+                schema.indexes = this.indexes || (await this.getKeys())
             }
             if (!schema.queries) {
                 schema.queries = {}

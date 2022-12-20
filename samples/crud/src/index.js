@@ -4,7 +4,7 @@
     This sample runs its own local dynamodb instance on port 4567
  */
 
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import DynamoDbLocal from 'dynamo-db-local'
 
 //  For AWS V3
@@ -13,7 +13,7 @@ import DynamoDbLocal from 'dynamo-db-local'
 
 //  To debug locally
 import Dynamo from '../../../dist/mjs/Dynamo.js'
-import { Table } from '../../../dist/mjs/index.js'
+import {Table} from '../../../dist/mjs/index.js'
 
 const PORT = 4567
 
@@ -21,7 +21,7 @@ const client = new Dynamo({
     client: new DynamoDBClient({
         region: 'local',
         endpoint: `http://localhost:${PORT}`,
-    })
+    }),
 })
 
 /*
@@ -36,27 +36,27 @@ const table = new Table({
         format: 'onetable:1.1.0',
         version: '0.0.1',
         indexes: {
-            primary: { hash: 'pk', sort: 'sk' },
-            gs1:     { hash: 'gs1pk', sort: 'gs1sk' },
+            primary: {hash: 'pk', sort: 'sk'},
+            gs1: {hash: 'gs1pk', sort: 'gs1sk'},
         },
         models: {
             User: {
-                pk:          { type: String, value: 'user#${id}' },
-                sk:          { type: String, value: 'user#${id}' },
-                id:          { type: String, generate: 'ulid' },
-                name:        { type: String, required: true },
-                status:      { type: String, default: 'active' },
-                zip:         { type: String },
+                pk: {type: String, value: 'user#${id}'},
+                sk: {type: String, value: 'user#${id}'},
+                id: {type: String, generate: 'ulid'},
+                name: {type: String, required: true},
+                status: {type: String, default: 'active'},
+                zip: {type: String},
 
-                gs1pk:       { type: String, value: 'sec#${name}' },
-                gs1sk:       { type: String, value: 'sec#${id}' },
-            }
+                gs1pk: {type: String, value: 'sec#${name}'},
+                gs1sk: {type: String, value: 'sec#${id}'},
+            },
         },
         params: {
             isoDates: true,
             timestamps: true,
-        }
-    }
+        },
+    },
 })
 
 //  Create a model to manage User entities
@@ -75,12 +75,14 @@ async function stop() {
 }
 
 async function test() {
-
     await table.createTable()
 
-    let user = await User.create({
-        name: 'Peter Smith',
-    }, { log: true })                  //  Emit console trace for the command and result
+    let user = await User.create(
+        {
+            name: 'Peter Smith',
+        },
+        {log: true}
+    ) //  Emit console trace for the command and result
     console.log('CREATED user', user)
 
     user = await User.update({id: user.id, status: 'inactive'})
@@ -109,7 +111,7 @@ async function test() {
 }
 
 async function delay(time) {
-    return new Promise(function(resolve) {
+    return new Promise(function (resolve) {
         setTimeout(() => resolve(true), time)
     })
 }

@@ -1,9 +1,9 @@
 /*
         transform.ts - Operations with Table transform
  */
-import { AnyEntity, AnyModel } from '../src'
-import { DefaultSchema } from './schemas'
-import { Client, Table } from './utils/init'
+import {AnyEntity, AnyModel} from '../src'
+import {DefaultSchema} from './schemas'
+import {Client, Table} from './utils/init'
 
 const table = new Table({
     name: 'TransformTestTable',
@@ -22,7 +22,7 @@ const table = new Table({
             }
         }
         return item
-    }
+    },
 })
 
 let User
@@ -40,19 +40,19 @@ describe('Table Transform', () => {
     test('Create with transform', async () => {
         const properties = {
             name: 'Peter Smith',
-            email: 'peter@example.com'
+            email: 'peter@example.com',
         }
         user = await User.create(properties)
         expect(user.name).toEqual(properties.name)
     })
 
     test('Update with transform', async () => {
-        user = await User.update({ id: user.id, name: 'Marcelo' })
+        user = await User.update({id: user.id, name: 'Marcelo'})
         expect(user.name).toEqual('Marcelo')
     })
 
     test('Get with transform', async () => {
-        user = await User.get({ id: user.id })
+        user = await User.get({id: user.id})
         expect(user.name).toEqual('Marcelo')
     })
 

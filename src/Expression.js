@@ -7,10 +7,9 @@
 import {OneTableArgError, OneTableError} from './Error.js'
 
 //  Operators used on sort keys for get/delete
-const KeyOperators =    [ '<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between' ]
+const KeyOperators = ['<', '<=', '=', '>=', '>', 'begins', 'begins_with', 'between']
 
 export class Expression {
-
     constructor(model, op, properties, params = {}) {
         this.init(model, op, properties, params)
         this.prepare()
@@ -23,20 +22,20 @@ export class Expression {
         this.params = params
 
         this.table = model.table
-        this.already = {}           //  Fields already processed (index is property name).
-        this.conditions = []        //  Condition expressions.
-        this.filters = []           //  Filter expressions.
-        this.key = {}               //  Primary key attribute.
-        this.keys = []              //  Key conditions.
-        this.mapped = {}            //  Mapped fields.
-        this.names = {}             //  Expression names. Keys are the indexes.
-        this.namesMap = {}          //  Expression names reverse map. Keys are the names.
-        this.puts = {}              //  Put values
-        this.project = []           //  Projection expressions.
-        this.values = {}            //  Expression values. Keys are the value indexes.
-        this.valuesMap = {}         //  Expression values reverse map. Keys are the values.
-        this.nindex = 0             //  Next index into names.
-        this.vindex = 0             //  Next index into values.
+        this.already = {} //  Fields already processed (index is property name).
+        this.conditions = [] //  Condition expressions.
+        this.filters = [] //  Filter expressions.
+        this.key = {} //  Primary key attribute.
+        this.keys = [] //  Key conditions.
+        this.mapped = {} //  Mapped fields.
+        this.names = {} //  Expression names. Keys are the indexes.
+        this.namesMap = {} //  Expression names reverse map. Keys are the names.
+        this.puts = {} //  Put values
+        this.project = [] //  Projection expressions.
+        this.values = {} //  Expression values. Keys are the value indexes.
+        this.valuesMap = {} //  Expression values reverse map. Keys are the values.
+        this.nindex = 0 //  Next index into names.
+        this.vindex = 0 //  Next index into values.
         this.updates = {
             add: [],
             delete: [],
@@ -67,10 +66,8 @@ export class Expression {
         let fields = this.model.block.fields
         if (op == 'find') {
             this.addWhereFilters()
-
         } else if (op == 'delete' || op == 'put' || op == 'update' || op == 'check') {
             this.addConditions(op)
-
         } else if (op == 'scan') {
             this.addWhereFilters()
             /*
@@ -93,10 +90,12 @@ export class Expression {
         if (this.mapped) {
             for (let [att, props] of Object.entries(this.mapped)) {
                 if (Object.keys(props).length != this.model.mappings[att].length) {
-                    throw new OneTableArgError(`Missing properties for mapped data field "${att}" in model "${this.model.name}"`)
+                    throw new OneTableArgError(
+                        `Missing properties for mapped data field "${att}" in model "${this.model.name}"`
+                    )
                 }
             }
-            for (let [k,v] of Object.entries(this.mapped)) {
+            for (let [k, v] of Object.entries(this.mapped)) {
                 this.add(properties, {attribute: [k], name: k, filter: false}, v, properties)
             }
         }
@@ -147,7 +146,7 @@ export class Expression {
         */
         if (attribute.length > 1) {
             let mapped = this.mapped
-            let [k,v] = attribute
+            let [k, v] = attribute
             mapped[k] = mapped[k] || {}
             mapped[k][v] = value
             properties[k] = value
@@ -159,22 +158,18 @@ export class Expression {
         if (path == this.hash || path == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
-
             } else if (op == 'scan') {
                 if (properties[field.name] !== undefined && field.filter !== false) {
                     this.addFilter(field, value)
                 }
-
             } else if ((op == 'delete' || op == 'get' || op == 'update' || op == 'check') && field.isIndexed) {
                 this.addKey(op, field, value)
-
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
                 this.puts[path] = value
             }
-
         } else {
-            if ((op == 'find' || op == 'scan')) {
+            if (op == 'find' || op == 'scan') {
                 //  schema.filter == false disables a field from being used in a filter
                 if (properties[field.name] !== undefined && field.filter !== false) {
                     if (!this.params.batch) {
@@ -182,11 +177,9 @@ export class Expression {
                         this.addFilter(field, value)
                     }
                 }
-
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
                 this.puts[path] = value
-
             } else if (op == 'update') {
                 this.addUpdate(field, value)
             }
@@ -205,7 +198,6 @@ export class Expression {
             if (sort) {
                 conditions.push(`attribute_exists(#_${this.addName(sort)})`)
             }
-
         } else if (params.exists === false) {
             conditions.push(`attribute_not_exists(#_${this.addName(hash)})`)
             if (sort) {
@@ -252,14 +244,14 @@ export class Expression {
                 for (let item of substitutions[name]) {
                     indicies.push(this.addValue(item))
                 }
-                return indicies.map(i => `:_${i}`).join(', ')
+                return indicies.map((i) => `:_${i}`).join(', ')
             }
             index = this.addValue(substitutions[name])
             return `:_${index}`
         })
 
         //  Expand value references and make attribute values. Allow new-lines in values.
-        where = where.replace(/{(.*?)}/sg, (match, value) => {
+        where = where.replace(/{(.*?)}/gs, (match, value) => {
             let index
             if (value.match(/^[-+]?([0-9]+(\.[0-9]*)?|\.[0-9]+)$/)) {
                 index = this.addValue(+value)
@@ -316,16 +308,16 @@ export class Expression {
         if (op == 'find') {
             let keys = this.keys
             if (att == this.sort && typeof value == 'object' && Object.keys(value).length > 0) {
-                let [action,vars] = Object.entries(value)[0]
+                let [action, vars] = Object.entries(value)[0]
                 if (KeyOperators.indexOf(action) < 0) {
                     throw new OneTableArgError(`Invalid KeyCondition operator "${action}"`)
                 }
                 if (action == 'begins_with' || action == 'begins') {
                     keys.push(`begins_with(#_${this.addName(att)}, :_${this.addValue(vars)})`)
-
                 } else if (action == 'between') {
-                    keys.push(`#_${this.addName(att)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`)
-
+                    keys.push(
+                        `#_${this.addName(att)} BETWEEN :_${this.addValue(vars[0])} AND :_${this.addValue(vars[1])}`
+                    )
                 } else {
                     keys.push(`#_${this.addName(att)} ${action} :_${this.addValue(value[action])}`)
                 }
@@ -505,16 +497,15 @@ export class Expression {
             if (filters.length) {
                 throw new OneTableArgError('Invalid filters with batch operation')
             }
-
         } else {
             args = {
                 ConditionExpression: conditions.length ? this.and(conditions) : undefined,
                 ExpressionAttributeNames: namesLen > 0 ? names : undefined,
-                ExpressionAttributeValues: (namesLen > 0 && valuesLen > 0) ? values : undefined,
+                ExpressionAttributeValues: namesLen > 0 && valuesLen > 0 ? values : undefined,
                 FilterExpression: filters.length ? this.and(filters) : undefined,
                 KeyConditionExpression: keys.length ? keys.join(' and ') : undefined,
                 ProjectionExpression: project.length ? project.join(', ') : undefined,
-                TableName: this.tableName
+                TableName: this.tableName,
             }
             if (params.select) {
                 //  Select: ALL_ATTRIBUTES | ALL_PROJECTED_ATTRIBUTES | SPECIFIC_ATTRIBUTES | COUNT
@@ -522,7 +513,6 @@ export class Expression {
                     throw new OneTableArgError('Select must be SPECIFIC_ATTRIBUTES with projection expressions')
                 }
                 args.Select = params.select
-
             } else if (params.count) {
                 if (project.length) {
                     throw new OneTableArgError('Cannot use select and count together')
@@ -530,8 +520,8 @@ export class Expression {
                 args.Select = 'COUNT'
             }
             if (params.stats || this.table.metrics) {
-                args.ReturnConsumedCapacity = params.capacity || 'TOTAL'    // INDEXES | TOTAL | NONE
-                args.ReturnItemCollectionMetrics = 'SIZE'                   // SIZE | NONE
+                args.ReturnConsumedCapacity = params.capacity || 'TOTAL' // INDEXES | TOTAL | NONE
+                args.ReturnItemCollectionMetrics = 'SIZE' // SIZE | NONE
             }
             let returnValues
             if (params.return !== undefined) {
@@ -546,7 +536,6 @@ export class Expression {
             if (op == 'put') {
                 args.Item = puts
                 args.ReturnValues = returnValues || 'NONE'
-
             } else if (op == 'update') {
                 args.ReturnValues = returnValues || 'ALL_NEW'
                 let updates = []
@@ -564,7 +553,7 @@ export class Expression {
                 args.Key = key
             }
             if (op == 'find' || op == 'get' || op == 'scan') {
-                args.ConsistentRead = params.consistent ? true : false,
+                args.ConsistentRead = params.consistent ? true : false
                 args.IndexName = params.index ? params.index : null
             }
             if (op == 'find' || op == 'scan') {
@@ -573,7 +562,8 @@ export class Expression {
                     Scan reverse if either reverse or prev is true but not both. (XOR)
                     If both are true, then requesting the previous page of a reverse scan which is actually forwards.
                 */
-                args.ScanIndexForward = (params.reverse == true ^ (params.prev != null && params.next == null)) ? false : true
+                args.ScanIndexForward =
+                    (params.reverse == true) ^ (params.prev != null && params.next == null) ? false : true
 
                 if (params.next || params.prev) {
                     args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev, params)
@@ -606,7 +596,7 @@ export class Expression {
         if (terms.length == 1) {
             return terms.join('')
         }
-        return terms.map(t => `(${t})`).join(' and ')
+        return terms.map((t) => `(${t})`).join(' and ')
     }
 
     /*

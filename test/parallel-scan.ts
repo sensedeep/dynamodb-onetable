@@ -18,13 +18,13 @@ const User = table.getModel('User')
 let user: any
 let users: any[]
 
-test('Create', async() => {
+test('Create', async () => {
     if (!(await table.exists())) {
         await table.createTable()
     }
 })
 
-test('Prepare data', async() => {
+test('Prepare data', async () => {
     for (let i = 0; i < MaxUsers; i++) {
         await User.create({name: `User-${i}`, status: 'active'})
     }
@@ -32,15 +32,18 @@ test('Prepare data', async() => {
     expect(users.length).toBe(MaxUsers)
 })
 
-test('Stub', async() => {
+test('Stub', async () => {
     let promises: any = []
     for (let segment = 0; segment < MaxSegments; segment++) {
-        let promise = table.scanItems({}, {
-            segment,
-            segments: MaxSegments,
-            parse: true,
-            hidden: false,
-        })
+        let promise = table.scanItems(
+            {},
+            {
+                segment,
+                segments: MaxSegments,
+                parse: true,
+                hidden: false,
+            }
+        )
         promises.push(promise)
     }
     let items = await Promise.all(promises)
@@ -50,6 +53,6 @@ test('Stub', async() => {
     expect(1).toBe(1)
 })
 
-test('Destroy', async() => {
+test('Destroy', async () => {
     await table.deleteTable('DeleteTableForever')
 })

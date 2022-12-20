@@ -1,5 +1,5 @@
 import {Client, Table} from './utils/init'
-import {DynamoDBRecord} from "aws-lambda/trigger/dynamodb-stream"
+import {DynamoDBRecord} from 'aws-lambda/trigger/dynamodb-stream'
 
 const table = new Table({
     name: 'StreamTestTable',
@@ -45,11 +45,11 @@ const event = {
                 ApproximateCreationDateTime: 1480642020,
                 Keys: {
                     val: {
-                        S: 'data'
+                        S: 'data',
                     },
                     key: {
-                        S: 'binary'
-                    }
+                        S: 'binary',
+                    },
                 },
                 NewImage: {
                     _type: {S: 'User'},
@@ -65,7 +65,8 @@ const event = {
                     },
                 },
             },
-            eventSourceARN: 'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000'
+            eventSourceARN:
+                'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000',
         },
         {
             eventID: 'f07f8ca4b0b26cb9c4e5e77e42f274ee',
@@ -77,11 +78,11 @@ const event = {
                 ApproximateCreationDateTime: 1480642020,
                 Keys: {
                     val: {
-                        S: 'data'
+                        S: 'data',
                     },
                     key: {
-                        S: 'binary'
-                    }
+                        S: 'binary',
+                    },
                 },
                 NewImage: {
                     _type: {S: 'User'},
@@ -109,8 +110,9 @@ const event = {
                         },
                     },
                 },
-                eventSourceARN: 'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000'
-            }
+                eventSourceARN:
+                    'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000',
+            },
         },
         {
             eventID: 'f07f8ca4b0b26cb9c4e5e77e42f274ee',
@@ -122,11 +124,11 @@ const event = {
                 ApproximateCreationDateTime: 1480642020,
                 Keys: {
                     val: {
-                        S: 'data'
+                        S: 'data',
                     },
                     key: {
-                        S: 'binary'
-                    }
+                        S: 'binary',
+                    },
                 },
                 NewImage: {
                     _type: {S: 'NonModel'},
@@ -154,10 +156,11 @@ const event = {
                         },
                     },
                 },
-                eventSourceARN: 'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000'
-            }
-        }
-    ]
+                eventSourceARN:
+                    'arn:aws:dynamodb:us-east-1:123456789012:table/Example-Table/stream/2016-12-01T00:00:00.000',
+            },
+        },
+    ],
 }
 
 test('Stream has New Images', async () => {
@@ -175,11 +178,11 @@ test('Stream has New Images', async () => {
     )
     expect(models[1].type).toEqual('MODIFY')
     expect(models[1].new).toEqual(
-      expect.objectContaining({
-          id: '1235',
-          name: 'bob',
-          registered: new Date('2022-01-02Z'),
-      })
+        expect.objectContaining({
+            id: '1235',
+            name: 'bob',
+            registered: new Date('2022-01-02Z'),
+        })
     )
 })
 
@@ -190,9 +193,9 @@ test('Stream has Old Images', async () => {
     expect(models).toHaveLength(1)
     expect(models[0].type).toEqual('MODIFY')
     expect(models[0].old).toEqual(
-      expect.objectContaining({
-          name: 'rob',
-          registered: new Date('2022-01-02Z'),
-      })
+        expect.objectContaining({
+            name: 'rob',
+            registered: new Date('2022-01-02Z'),
+        })
     )
 })

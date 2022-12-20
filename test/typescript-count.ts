@@ -14,7 +14,7 @@ const table = new Table({
 })
 const accountId = table.uuid()
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -30,12 +30,12 @@ let Account = table.getModel('Account')
 let account: AccountType
 
 let userData = [
-    {accountId: '', name: 'Peter Smith', email: 'peter@example.com' },
-    {accountId: '', name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: '', name: 'Cu Later', email: 'cu@example.com' },
+    {accountId: '', name: 'Peter Smith', email: 'peter@example.com'},
+    {accountId: '', name: "Patty O'Furniture", email: 'patty@example.com'},
+    {accountId: '', name: 'Cu Later', email: 'cu@example.com'},
 ]
 
-test('Create Account and Users', async() => {
+test('Create Account and Users', async () => {
     account = await Account.create({name: 'Acme Rockets'})
     expect(account).toMatchObject({name: 'Acme Rockets'})
 
@@ -50,7 +50,7 @@ test('Create Account and Users', async() => {
     expect(users.length).toBe(userData.length)
 })
 
-test('FindCount', async() => {
+test('FindCount', async () => {
     let count = true
     let num = (await table.find('User', {}, {count})).count
     expect(num).toBe(userData.length)
@@ -69,7 +69,7 @@ test('FindCount', async() => {
     expect(num).toBe(userData.length + 1)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

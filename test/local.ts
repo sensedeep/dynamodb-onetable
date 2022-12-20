@@ -22,7 +22,7 @@ let User
 let user: any
 let users: any[]
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         let result: any = await table.createTable()
         expect(result).toBeDefined()
@@ -36,7 +36,7 @@ test('Create Table', async() => {
 })
 
 test('Get Schema', () => {
-    let schema:any = table.getCurrentSchema()
+    let schema: any = table.getCurrentSchema()
     expect(schema.models).toBeDefined()
     expect(schema.indexes).toBeDefined()
     expect(schema.params).toBeDefined()
@@ -44,7 +44,7 @@ test('Get Schema', () => {
     expect(schema.models.User.pk).toBeDefined()
 })
 
-test('Describe Table', async() => {
+test('Describe Table', async () => {
     let info: any = await table.describeTable()
     expect(info.Table).toBeDefined()
     expect(info.Table.TableName).toBe('LocalTestTable')
@@ -59,7 +59,7 @@ test('Validate User model', () => {
     })
 })
 
-test('Create', async() => {
+test('Create', async () => {
     user = await User.create(Properties)
     expect(user).toMatchObject(Properties)
     expect(user.id).toMatch(Match.ulid)
@@ -67,7 +67,7 @@ test('Create', async() => {
     expect(user.sk).toBeUndefined()
 })
 
-test('Get', async() => {
+test('Get', async () => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -75,7 +75,7 @@ test('Get', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Get by LS1 - by name', async() => {
+test('Get by LS1 - by name', async () => {
     //  Get from LS1 with fallback to find.
     user = await User.get({name: user.name}, {index: 'ls1', hidden: true})
     expect(user).toMatchObject({
@@ -87,7 +87,7 @@ test('Get by LS1 - by name', async() => {
     })
 })
 
-test('Get by LS2 - by type', async() => {
+test('Get by LS2 - by type', async () => {
     //  type supplied implicitly. This get uses fallback.
     user = await User.get({}, {index: 'ls2', hidden: true})
     expect(user).toMatchObject({
@@ -99,7 +99,7 @@ test('Get by LS2 - by type', async() => {
     })
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

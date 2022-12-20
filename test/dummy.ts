@@ -1,3 +1,3 @@
-test('test-2', async() => {
-    expect(1+2).toBe(3)
+test('test-2', async () => {
+    expect(1 + 2).toBe(3)
 })

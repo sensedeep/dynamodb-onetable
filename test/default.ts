@@ -15,7 +15,7 @@ let User
 let user: any
 let users: any[]
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -23,7 +23,7 @@ test('Create Table', async() => {
     User = table.getModel('User')
 })
 
-test('Create', async() => {
+test('Create', async () => {
     let properties = {
         name: 'Peter Smith',
         email: 'peter@example.com',
@@ -35,7 +35,7 @@ test('Create', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

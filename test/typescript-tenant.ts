@@ -14,7 +14,7 @@ const table = new Table({
 })
 const accountId = table.uuid()
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -30,12 +30,12 @@ let Account = table.getModel('Account')
 let account: AccountType
 
 let userData: UserType[] = [
-    {accountId: 'tbd', name: 'Peter Smith', email: 'peter@example.com' },
-    {accountId: 'tbd', name: 'Patty O\'Furniture', email: 'patty@example.com' },
-    {accountId: 'tbd', name: 'Cu Later', email: 'cu@example.com', optional: '42' },
+    {accountId: 'tbd', name: 'Peter Smith', email: 'peter@example.com'},
+    {accountId: 'tbd', name: "Patty O'Furniture", email: 'patty@example.com'},
+    {accountId: 'tbd', name: 'Cu Later', email: 'cu@example.com', optional: '42'},
 ]
 
-test('Create Account', async() => {
+test('Create Account', async () => {
     account = await Account.create({name: 'Acme Rockets'})
     expect(account).toMatchObject({name: 'Acme Rockets'})
 
@@ -43,7 +43,7 @@ test('Create Account', async() => {
     expect(table.getContext()).toMatchObject({accountId: account.id})
 })
 
-test('Create Users', async() => {
+test('Create Users', async () => {
     for (let item of userData) {
         item.accountId = accountId
         await User.create(item)
@@ -53,33 +53,32 @@ test('Create Users', async() => {
     expect(users.length).toBe(userData.length)
 })
 
-test('Fetch', async() => {
+test('Fetch', async () => {
     let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true, hidden: true})
     let collection = table.groupByType(items)
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(userData.length)
 })
 
-
-test('Group by with params', async() => {
+test('Group by with params', async () => {
     let items = await table.queryItems({pk: `Account#${account.id}`}, {parse: true, hidden: true})
 
     let collection = table.groupByType(items)
     expect(collection.Account.length).toBe(1)
     expect(collection.Account[0]._type).toBe('Account')
 
-    collection = table.groupByType(items, {parse: true, hidden:false})
+    collection = table.groupByType(items, {parse: true, hidden: false})
     expect(collection.Account.length).toBe(1)
     expect(collection.Account[0]._type).toBeUndefined()
 })
 
-test('Fetch', async() => {
+test('Fetch', async () => {
     let collection = await table.fetch(['Account', 'User'], {pk: `Account#${account.id}`})
     expect(collection.Account.length).toBe(1)
     expect(collection.User.length).toBe(userData.length)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

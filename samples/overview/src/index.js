@@ -5,7 +5,7 @@
     This sample runs its own local dynamodb instance on port 4567.
  */
 
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import DynamoDbLocal from 'dynamo-db-local'
 
 //  For AWS V3
@@ -14,7 +14,7 @@ import DynamoDbLocal from 'dynamo-db-local'
 
 //  Use local source when debugging
 import Dynamo from '../../../dist/mjs/Dynamo.js'
-import { Table } from '../../../dist/mjs/index.js'
+import {Table} from '../../../dist/mjs/index.js'
 
 /*
     Import the OneTable schema
@@ -29,15 +29,15 @@ const client = new Dynamo({
     client: new DynamoDBClient({
         region: 'local',
         endpoint: `http://localhost:${PORT}`,
-    })
+    }),
 })
 
 //  Crypto setup for to add additional encryption layer of email addresses
 const Crypto = {
-    "primary": {
-        "cipher": "aes-256-gcm",
-        "password": "1a22a-d27c9-12342-5f7bc-1a716-fc73e"
-    }
+    primary: {
+        cipher: 'aes-256-gcm',
+        password: '1a22a-d27c9-12342-5f7bc-1a716-fc73e',
+    },
 }
 
 /*
@@ -130,9 +130,12 @@ async function test() {
     user = await User.update({email: 'roadrunner@acme.com'}, {set: {balance: '${balance} - {2}'}})
 
     //  Find users with a balance over $100
-    users = await User.find({accountId: account.id}, {
-        where: '${balance} > {100}'
-    })
+    users = await User.find(
+        {accountId: account.id},
+        {
+            where: '${balance} > {100}',
+        }
+    )
 
     /*
         Get a collection of items in the account. (See below table.fetch is simpler)
@@ -143,7 +146,8 @@ async function test() {
         Create many users via batch
      */
     let batch = {}
-    let i = 0, count = 0
+    let i = 0,
+        count = 0
     while (i++ < 200) {
         User.create({name: `user${i}`, email: `user${i}@acme.com`}, {batch})
         if (++count >= 25) {
@@ -156,7 +160,7 @@ async function test() {
     /*
         Get a list of user email addresses. Need _type to know how to parse results.
     */
-    let items = (await User.find({}, {fields: ['email', '_type']})).map(i => i.email)
+    let items = (await User.find({}, {fields: ['email', '_type']})).map((i) => i.email)
 
     /*
         Read a page of users in groups of 25 at a time
@@ -170,7 +174,7 @@ async function test() {
     /*
         Create a product, not tied to an account.
     */
-    let product = await Product.create({name: 'rocket', price: 10.99 })
+    let product = await Product.create({name: 'rocket', price: 10.99})
 
     /*
         Transaction to atomically create an invoice and update the user and account balance
@@ -192,9 +196,14 @@ async function test() {
     */
     let from = new Date()
     from.setMonth(from.getMonth() - 1)
-    let invoices = await Invoice.find({gs1sk: {
-        between: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`]}
-    }, {index: 'gs1', follow: true})
+    let invoices = await Invoice.find(
+        {
+            gs1sk: {
+                between: [`invoice#${from.toISOString()}`, `invoice#${new Date().toISOString()}`],
+            },
+        },
+        {index: 'gs1', follow: true}
+    )
 
     /*
         For maintenance, useful to be able to query by entity type. This is not a costly scan.
@@ -211,7 +220,7 @@ async function test() {
 
 //  Short nap
 async function delay(time) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         setTimeout(() => resolve(true), time)
     })
 }

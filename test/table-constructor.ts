@@ -10,7 +10,7 @@ let TableName = 'TableConstructorTestTable'
 // Schema need to be passed because its not in the constructor. Using any because it gets modified
 let table: Table
 
-test('Create table instance', async() => {
+test('Create table instance', async () => {
     table = new Table({
         name: TableName,
         partial: false,
@@ -20,7 +20,7 @@ test('Create table instance', async() => {
     expect(table.getContext()).toMatchObject({})
 })
 
-test('Create table args', async() => {
+test('Create table args', async () => {
     await expect(async () => {
         //  Missing essential args
         table = new Table({partial: false})
@@ -37,7 +37,7 @@ test('Create table args', async() => {
     */
 })
 
-test('Create table with various params', async() => {
+test('Create table with various params', async () => {
     table = new Table({
         name: TableName,
         logger: (type, message, context) => {
@@ -51,16 +51,16 @@ test('Create table with various params', async() => {
     expect(table instanceof Table).toBe(true)
 })
 
-test('Set Client', async() => {
+test('Set Client', async () => {
     table.setClient(Client)
 })
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
-    await expect(async() => {
+    await expect(async () => {
         //  Missing confirmation string
         await table.deleteTable('')
     }).rejects.toThrow()
@@ -69,7 +69,7 @@ test('Create Table', async() => {
     expect(await table.exists()).toBe(false)
 })
 
-test('Create table with provisioned throughput', async() => {
+test('Create table with provisioned throughput', async () => {
     table = new Table({
         name: TableName,
         partial: false,
@@ -88,7 +88,7 @@ test('Create table with provisioned throughput', async() => {
     expect(await table.exists()).toBe(false)
 })
 
-test('Create table with GSI and project keys', async() => {
+test('Create table with GSI and project keys', async () => {
     table = new Table({
         name: TableName,
         client: Client,
@@ -96,19 +96,19 @@ test('Create table with GSI and project keys', async() => {
         schema: {
             version: '0.0.1',
             indexes: {
-                primary: { hash: 'pk', sort: 'sk' },
-                gs1: { hash: 'id', sort: 'email', project: 'keys' },
+                primary: {hash: 'pk', sort: 'sk'},
+                gs1: {hash: 'id', sort: 'email', project: 'keys'},
             },
             models: {
                 User: {
-                    pk: { type: String, value: "user#${email}" },
-                    sk: { type: String, value: "user#${email}" },
-                    id: { type: String, generate: 'ulid' },
-                    email: { type: String, required: true },
-                }
+                    pk: {type: String, value: 'user#${email}'},
+                    sk: {type: String, value: 'user#${email}'},
+                    id: {type: String, generate: 'ulid'},
+                    email: {type: String, required: true},
+                },
             },
-            params: {}
-        }
+            params: {},
+        },
     })
     expect(table instanceof Table).toBe(true)
     await table.createTable()
@@ -117,7 +117,7 @@ test('Create table with GSI and project keys', async() => {
     expect(await table.exists()).toBe(false)
 })
 
-test('Create table with LSI and project', async() => {
+test('Create table with LSI and project', async () => {
     table = new Table({
         name: TableName,
         client: Client,
@@ -126,19 +126,19 @@ test('Create table with LSI and project', async() => {
             format: 'onetable:1.1.0',
             version: '0.0.1',
             indexes: {
-                primary: { hash: 'pk', sort: 'sk' },
-                ls1: { type: 'local', sort: 'email', project: 'all' },
+                primary: {hash: 'pk', sort: 'sk'},
+                ls1: {type: 'local', sort: 'email', project: 'all'},
             },
             models: {
                 User: {
-                    pk:     { type: String, value: 'user#${email}' },
-                    sk:     { type: String, value: 'user#' },
-                    name:   { type: String },
-                    email:  { type: String },
-                }
+                    pk: {type: String, value: 'user#${email}'},
+                    sk: {type: String, value: 'user#'},
+                    name: {type: String},
+                    email: {type: String},
+                },
             },
-            params: {}
-        }
+            params: {},
+        },
     })
     expect(table instanceof Table).toBe(true)
     await table.createTable()
@@ -147,7 +147,7 @@ test('Create table with LSI and project', async() => {
     expect(await table.exists()).toBe(false)
 })
 
-test('Create table with LSI', async() => {
+test('Create table with LSI', async () => {
     table = new Table({
         name: TableName,
         client: Client,
@@ -156,20 +156,20 @@ test('Create table with LSI', async() => {
             format: 'onetable:1.1.0',
             version: '0.0.1',
             indexes: {
-                primary: { hash: 'pk', sort: 'sk' },
-                ls1: { type: 'local', sort: 'email' },
-                gs1: { hash: 'name', sort: 'email' },
+                primary: {hash: 'pk', sort: 'sk'},
+                ls1: {type: 'local', sort: 'email'},
+                gs1: {hash: 'name', sort: 'email'},
             },
             models: {
                 User: {
-                    pk:     { type: String, value: 'user#${email}' },
-                    sk:     { type: String, value: 'user#' },
-                    name:   { type: String },
-                    email:  { type: String },
-                }
+                    pk: {type: String, value: 'user#${email}'},
+                    sk: {type: String, value: 'user#'},
+                    name: {type: String},
+                    email: {type: String},
+                },
             },
-            params: {}
-        }
+            params: {},
+        },
     })
     expect(table instanceof Table).toBe(true)
     await table.createTable()

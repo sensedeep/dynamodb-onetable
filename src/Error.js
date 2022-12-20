@@ -18,7 +18,7 @@ function init(self, message, context) {
     if (typeof Error.captureStackTrace === 'function') {
         Error.captureStackTrace(self, self.constructor)
     } else {
-        self.stack = (new Error(message)).stack
+        self.stack = new Error(message).stack
     }
 }
 

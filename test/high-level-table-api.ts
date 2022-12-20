@@ -14,19 +14,19 @@ const table = new Table({
 let user: any
 let users: any[]
 
-test('Set Client', async() => {
+test('Set Client', async () => {
     table.setClient(Client)
     expect(true).toBe(true)
 })
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
 })
 
-test('Create', async() => {
+test('Create', async () => {
     user = await table.create('User', {name: 'Peter Smith', status: 'active'})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -34,7 +34,7 @@ test('Create', async() => {
     })
 })
 
-test('Get', async() => {
+test('Get', async () => {
     user = await table.get('User', {id: user.id})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -43,7 +43,7 @@ test('Get', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Get including hidden', async() => {
+test('Get including hidden', async () => {
     user = await table.get('User', {id: user.id}, {hidden: true})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -56,7 +56,7 @@ test('Get including hidden', async() => {
     expect(user.pk).toMatch(/^User#/)
 })
 
-test('Find by ID', async() => {
+test('Find by ID', async () => {
     users = await table.find('User', {id: user.id})
     expect(users.length).toBe(1)
     user = users[0]
@@ -66,7 +66,7 @@ test('Find by ID', async() => {
     })
 })
 
-test('Find by name on GSI', async() => {
+test('Find by name on GSI', async () => {
     users = await table.find('User', {name: user.name}, {index: 'gs1'})
     expect(users.length).toBe(1)
     user = users[0]
@@ -76,7 +76,7 @@ test('Find by name on GSI', async() => {
     })
 })
 
-test('Update', async() => {
+test('Update', async () => {
     user = await table.update('User', {id: user.id, status: 'inactive'})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -85,13 +85,13 @@ test('Update', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Remove attribute', async() => {
+test('Remove attribute', async () => {
     //  Remove attribute by setting to null
     user = await table.update('User', {id: user.id, status: null})
     expect(user.status).toBeUndefined()
 })
 
-test('Remove attribute 2', async() => {
+test('Remove attribute 2', async () => {
     //  Update and remove attributes using {remove}
     user = await table.update('User', {id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk'], hidden: true})
     expect(user).toMatchObject({
@@ -104,13 +104,13 @@ test('Remove attribute 2', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Remove item', async() => {
+test('Remove item', async () => {
     await table.remove('User', {id: user.id})
     user = await table.get('User', {id: user.id})
     expect(user).toBeUndefined()
 })
 
-test('Scan', async() => {
+test('Scan', async () => {
     user = await table.create('User', {name: 'Sky Blue', status: 'active'})
     users = await table.scan('User', {})
     expect(users.length).toBe(1)
@@ -121,7 +121,7 @@ test('Scan', async() => {
     })
 })
 
-test('Remove all users', async() => {
+test('Remove all users', async () => {
     users = await table.scan('User', {})
     expect(users.length).toBe(1)
 
@@ -132,7 +132,7 @@ test('Remove all users', async() => {
     expect(users.length).toBe(0)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

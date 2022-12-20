@@ -12,7 +12,7 @@ const table = new Table({
     logger: true,
 })
 
-test('Dynamo empty constructor', async() => {
+test('Dynamo empty constructor', async () => {
     let dynamo = new Dynamo()
     expect(dynamo).toBeDefined()
 })

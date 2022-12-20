@@ -5,10 +5,10 @@ import {AWS, Client, Match, Table, print, dump, delay, isV3, isV2} from './utils
 import {CryptoSchema} from './schemas'
 
 const Crypto = {
-    "primary": {
-        "cipher": "aes-256-gcm",
-        "password": "1f2e2-d27f9-aa3a2-3f7bc-3a716-fc73e"
-    }
+    primary: {
+        cipher: 'aes-256-gcm',
+        password: '1f2e2-d27f9-aa3a2-3f7bc-3a716-fc73e',
+    },
 }
 
 const table = new Table({
@@ -24,7 +24,7 @@ let User: any = null
 let user: any
 let users: any[]
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -32,7 +32,7 @@ test('Create Table', async() => {
     User = table.getModel('User')
 })
 
-test('Create', async() => {
+test('Create', async () => {
     user = await User.create({name: 'Peter Smith', email: 'peter@example.com'})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -40,7 +40,7 @@ test('Create', async() => {
     })
 })
 
-test('Get', async() => {
+test('Get', async () => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
         name: 'Peter Smith',
@@ -49,7 +49,7 @@ test('Get', async() => {
     expect(user.id).toMatch(Match.ulid)
 })
 
-test('Get raw ', async() => {
+test('Get raw ', async () => {
     user = await User.get({id: user.id}, {hidden: true, parse: false})
     if (isV3()) {
         expect(user.pk.S).toMatch(/^User#/)
@@ -65,7 +65,7 @@ test('Get raw ', async() => {
     }
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

@@ -17,7 +17,7 @@ export default function UID(size) {
     let buffer = Crypto.randomBytes(size)
     for (let i = 0; i < size; i++) {
         //  Letters is one longer than LettersLen
-        bytes[i] = Letters[Math.floor(buffer.readUInt8(i) / 0xFF * LettersLen)]
+        bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
     }
     return bytes.join('')
 }

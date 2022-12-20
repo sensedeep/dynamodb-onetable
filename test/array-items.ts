@@ -13,7 +13,7 @@ const table = new Table({
 const expected = {
     id: '1111-2222',
     arrayWithTypedItems: [{bar: 'Bar'}],
-    arrayWithoutTypedItems: ['a', '2', 3]
+    arrayWithoutTypedItems: ['a', '2', 3],
 }
 
 let Model = table.getModel('TestModel')
@@ -36,7 +36,7 @@ test('Get Item', async () => {
     expect(item).toMatchObject(expected)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

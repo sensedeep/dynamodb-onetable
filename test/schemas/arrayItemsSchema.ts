@@ -6,7 +6,7 @@ export default {
     version: '0.0.1',
     format: 'onetable:1.1.0',
     indexes: {
-        primary: { hash: 'pk', sort: 'sk' },
+        primary: {hash: 'pk', sort: 'sk'},
     },
     models: {
         TestModel: {
@@ -18,15 +18,15 @@ export default {
                 items: {
                     type: Object,
                     schema: {
-                        foo: { type: String },
-                        bar: { type: String, required: true },
-                        when: { type: Date }
-                    }
+                        foo: {type: String},
+                        bar: {type: String, required: true},
+                        when: {type: Date},
+                    },
                 },
-                required: true
+                required: true,
             },
-            arrayWithoutTypedItems: { type: Array, required: true }
-        }
+            arrayWithoutTypedItems: {type: Array, required: true},
+        },
     } as const,
     params: {},
 }

@@ -11,7 +11,7 @@ const table = new Table({
     schema: DefaultSchema,
 })
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
@@ -23,12 +23,12 @@ let user: any
 let users: any[]
 
 let data = [
-    {name: 'Peter Smith', email: 'peter@example.com', status: 'active' },
-    {name: 'Patty O\'Furniture', email: 'patty@example.com', status: 'active' },
-    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive' },
+    {name: 'Peter Smith', email: 'peter@example.com', status: 'active'},
+    {name: "Patty O'Furniture", email: 'patty@example.com', status: 'active'},
+    {name: 'Cu Later', email: 'cu@example.com', status: 'inactive'},
 ]
 
-test('Create Users', async() => {
+test('Create Users', async () => {
     for (let item of data) {
         await User.create(item)
     }
@@ -36,25 +36,28 @@ test('Create Users', async() => {
     expect(users.length).toBe(data.length)
 })
 
-test('Scan revealing hidden', async() => {
+test('Scan revealing hidden', async () => {
     users = await table.scan('User', {}, {hidden: true})
     expect(users.length).toBe(data.length)
     for (let user of users) {
-        let item = data.find(i => i.name == user.name)
-        expect(user).toMatchObject({
-            _type: 'User',
-            name: item.name,
-            status: item.status,
-        })
+        let item = data.find((i) => i.name == user.name)
+        expect(item).toBeDefined()
+        if (item) {
+            expect(user).toMatchObject({
+                _type: 'User',
+                name: item.name,
+                status: item.status,
+            })
+        }
         expect(user.id).toMatch(Match.ulid)
         expect(user.pk).toBe(`User#${user.id}`)
         expect(user.sk).toBe('User#')
-        expect(user.gs1pk).toBe(`User#${item.name}`)
+        expect(user.gs1pk).toBe(`User#${item ? item.name : ''}`)
         expect(user.gs1sk).toBe('User#')
     }
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

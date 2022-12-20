@@ -5,19 +5,19 @@ import {AWS, Client, Entity, Model, Table, print, dump, delay} from '../utils/in
 
 const schema = {
     format: 'onetable:1.1.0',
-    version: "0.1.0",
+    version: '0.1.0',
     indexes: {
-        primary: { hash: 'pk', sort: 'sk' },
-        gs1: { hash: 'gs1pk', sort: 'sk' },
+        primary: {hash: 'pk', sort: 'sk'},
+        gs1: {hash: 'gs1pk', sort: 'sk'},
     },
     models: {
         User: {
-            pk: { type: String, value: 'User#${email}' },
-            sk: { type: String, value: 'User#'},
-            gs1pk: { type: String, value: 'Name#${name}'},
-            email: { type: String },
-            name: { type: String },
-        }
+            pk: {type: String, value: 'User#${email}'},
+            sk: {type: String, value: 'User#'},
+            gs1pk: {type: String, value: 'Name#${name}'},
+            email: {type: String},
+            name: {type: String},
+        },
     },
     params: {},
 }
@@ -35,18 +35,18 @@ const table = new Table({
     timestamps: false,
 })
 
-test('Create Table', async() => {
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
 })
 
-let User = null
+let User
 let user: any
 let users: any[]
 
-test('Test', async() => {
+test('Test', async () => {
     let id = table.uuid()
     User = table.getModel('User')
 
@@ -68,7 +68,7 @@ test('Test', async() => {
     expect(user).toBe(undefined)
 })
 
-test('Destroy Table', async() => {
+test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)
 })

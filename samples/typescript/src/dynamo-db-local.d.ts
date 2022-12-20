@@ -4,6 +4,6 @@
  */
 
 export class DbLocal {
-    spawn({port: number}): number;
+    spawn({port: number}): number
 }
 export default new DbLocal()
