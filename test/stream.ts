@@ -1,5 +1,5 @@
 import {Client, Table} from './utils/init'
-import {DynamoDBRecord} from "aws-lambda/trigger/dynamodb-stream";
+import {DynamoDBRecord} from "aws-lambda/trigger/dynamodb-stream"
 
 const table = new Table({
     name: 'StreamTestTable',
@@ -161,7 +161,7 @@ const event = {
 }
 
 test('Stream has New Images', async () => {
-    const streamModels = table.stream(event.Records as DynamoDBRecord[]);
+    const streamModels = table.stream(event.Records as DynamoDBRecord[])
     const models = streamModels.User.filter((streamModel) => !!streamModel.new)
 
     expect(models).toHaveLength(2)
@@ -184,7 +184,7 @@ test('Stream has New Images', async () => {
 })
 
 test('Stream has Old Images', async () => {
-    const streamModels = table.stream(event.Records as DynamoDBRecord[]);
+    const streamModels = table.stream(event.Records as DynamoDBRecord[])
     const models = streamModels.User.filter((streamModel) => !!streamModel.old)
 
     expect(models).toHaveLength(1)
