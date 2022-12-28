@@ -562,11 +562,13 @@ export class Model {
 
         fields = Object.values(fields).filter((f) => f.unique && f.attribute != hash && f.attribute != sort)
 
-        if (this.timestamps === true || this.timestamps == 'create') {
-            properties[this.createdField] = new Date()
-        }
-        if (this.timestamps === true || this.timestamps == 'update') {
-            properties[this.updatedField] = new Date()
+        if (params.timestamps !== false) {
+            if (this.timestamps === true || this.timestamps == 'create') {
+                properties[this.createdField] = new Date()
+            }
+            if (this.timestamps === true || this.timestamps == 'update') {
+                properties[this.updatedField] = new Date()
+            }
         }
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
@@ -966,11 +968,13 @@ export class Model {
         /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
-            if (this.timestamps === true || this.timestamps == 'create') {
-                properties[this.createdField] = new Date()
-            }
-            if (this.timestamps === true || this.timestamps == 'update') {
-                properties[this.updatedField] = new Date()
+            if (params.timestamps !== false) {
+                if (this.timestamps === true || this.timestamps == 'create') {
+                    properties[this.createdField] = new Date()
+                }
+                if (this.timestamps === true || this.timestamps == 'update') {
+                    properties[this.updatedField] = new Date()
+                }
             }
             properties = this.prepareProperties('put', properties, params)
         }
@@ -1002,13 +1006,15 @@ export class Model {
         /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (this.timestamps === true || this.timestamps == 'update') {
-            let now = new Date()
-            properties[this.updatedField] = now
-            if (params.exists == null) {
-                let field = this.block.fields[this.createdField] || this.table
-                let when = field.isoDates ? now.toISOString() : now.getTime()
-                params.set = params.set || {}
-                params.set[this.createdField] = `if_not_exists(\${${this.createdField}}, {${when}})`
+            if (params.timestamps !== false) {
+                let now = new Date()
+                properties[this.updatedField] = now
+                if (params.exists == null) {
+                    let field = this.block.fields[this.createdField] || this.table
+                    let when = field.isoDates ? now.toISOString() : now.getTime()
+                    params.set = params.set || {}
+                    params.set[this.createdField] = `if_not_exists(\${${this.createdField}}, {${when}})`
+                }
             }
         }
         properties = this.prepareProperties('update', properties, params)
