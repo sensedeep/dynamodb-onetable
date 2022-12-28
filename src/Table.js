@@ -978,7 +978,7 @@ export class Table {
     /*
         Crypto-grade ID of given length. If >= 10 in length, suitably unique for most use-cases.
      */
-    uid(size) {
+    uid(size = 10) {
         return UID(size)
     }
 
