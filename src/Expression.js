@@ -119,7 +119,7 @@ export class Expression {
             }
             if (fields[name]) {
                 if (op != 'put' && this.table.partial && this.params.partial !== false) {
-                    if (fields[name].schema) {
+                    if (fields[name].schema && value != null) {
                         this.addProperties(op, fields[name].block.fields, value)
                     } else {
                         this.add(properties, fields[name], value)
