@@ -411,9 +411,13 @@ export class Model {
                 if (cursor[hash] == null || cursor[sort] == null) {
                     cursor = null
                 }
-                // next = result.LastEvaluatedKey
                 if (params.next || params.prev) {
                     prev = cursor
+                    if (cursor && params.index != 'primary') {
+                        let {hash, sort} = this.indexes.primary
+                        prev[hash] = items[0][hash]
+                        prev[sort] = items[0][sort]
+                    }
                 }
             }
         }
