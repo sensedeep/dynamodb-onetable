@@ -12,7 +12,7 @@
             "env": {
                 "DDB_CLIENT_VERSION": "v2"
             },
-            "args": ["--runInBand", "--watchAll=false", "debug"]
+            "args": ["--runInBand", "--watchAll=false", "transact"]
         }
     ]
 }

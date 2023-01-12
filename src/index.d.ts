@@ -14,12 +14,12 @@ import {
     OneProperties,
     OneSchema,
     OneType,
-    Paged
+    Paged,
 } from './Model'
 
-import { Table } from './Table'
-import { Expression } from './Expression'
-import { OneTableError, OneTableArgError } from './Error'
+import {Table} from './Table'
+import {Expression} from './Expression'
+import {OneTableError, OneTableArgError} from './Error'
 
 import ULID from './ULID.js'
 import UUID from './UUID.js'

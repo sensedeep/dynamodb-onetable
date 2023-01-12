@@ -1,1 +1,1 @@
-export default function UUID(): string;
+export default function UUID(): string

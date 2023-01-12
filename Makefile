@@ -24,3 +24,6 @@ lint:
 
 install:
 	npm install
+
+format:
+	prettier --write src

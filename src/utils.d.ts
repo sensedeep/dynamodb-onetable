@@ -10,4 +10,5 @@ type UndefinedProperties<T> = {
     then excludes those undefined properties from the orginal object to only have the required properties.
     The result of merging these two objects end up being the original object with those properties that can be undefined marked as optional.
 */
-export type UndefinedToOptional<T> = Partial<Pick<T, UndefinedProperties<T>>> & Pick<T, Exclude<keyof T, UndefinedProperties<T>>>
+export type UndefinedToOptional<T> = Partial<Pick<T, UndefinedProperties<T>>> &
+    Pick<T, Exclude<keyof T, UndefinedProperties<T>>>

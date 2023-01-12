@@ -561,12 +561,12 @@ export class Model {
         }
         let transactHere = params.transaction ? false : true
         let transaction = (params.transaction = params.transaction || {})
-        let { hash, sort } = this.indexes.primary
+        let {hash, sort} = this.indexes.primary
         let fields = this.block.fields
 
         fields = Object.values(fields).filter((f) => f.unique && f.attribute != hash && f.attribute != sort)
 
-        let timestamp = transaction.timestamp = transaction.timestamp || new Date()
+        let timestamp = (transaction.timestamp = transaction.timestamp || new Date())
 
         if (params.timestamps !== false) {
             if (this.timestamps === true || this.timestamps == 'create') {
@@ -972,12 +972,12 @@ export class Model {
     /* private */
     async putItem(properties, params = {}) {
         /* eslint-disable-next-line */
-        ; ({ properties, params } = this.checkArgs(properties, params))
+        ;({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
             if (params.timestamps !== false) {
-                let timestamp = params.transaction ?
-                    (params.transaction.timestamp = params.transaction.timestamp ||
-                        new Date()) : new Date()
+                let timestamp = params.transaction
+                    ? (params.transaction.timestamp = params.transaction.timestamp || new Date())
+                    : new Date()
 
                 if (this.timestamps === true || this.timestamps == 'create') {
                     properties[this.createdField] = timestamp
@@ -1014,12 +1014,12 @@ export class Model {
     /* private */
     async updateItem(properties, params = {}) {
         /* eslint-disable-next-line */
-        ; ({ properties, params } = this.checkArgs(properties, params))
+        ;({properties, params} = this.checkArgs(properties, params))
         if (this.timestamps === true || this.timestamps == 'update') {
             if (params.timestamps !== false) {
-                let timestamp = params.transaction ?
-                    (params.transaction.timestamp = params.transaction.timestamp || new Date()) :
-                    new Date()
+                let timestamp = params.transaction
+                    ? (params.transaction.timestamp = params.transaction.timestamp || new Date())
+                    : new Date()
                 properties[this.updatedField] = timestamp
                 if (params.exists == null) {
                     let field = this.block.fields[this.createdField] || this.table
