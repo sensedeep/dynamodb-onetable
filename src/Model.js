@@ -1106,7 +1106,7 @@ export class Model {
                     })
                 }
                 continue
-            } else if (field.schema && typeof value == 'object') {
+            } else if (field.schema && value !== null && typeof value == 'object') {
                 rec[name] = this.transformReadBlock(op, raw[name], properties[name] || {}, params, field.block.fields)
             } else {
                 rec[name] = this.transformReadAttribute(field, name, value, params, properties)
@@ -1249,12 +1249,17 @@ export class Model {
                     let name = field.name
                     let value = properties[name]
                     if (op == 'put') {
-                        value = value || field.default
-                        if (value === undefined && field.required) {
-                            value = field.type == 'array' ? [] : {}
+                        if (value === undefined) {
+                            if (field.required) {
+                                value = field.type == 'array' ? [] : {}
+                            } else {
+                                value = field.default
+                            }
                         }
                     }
-                    if (value !== undefined) {
+                    if (value === null && field.nulls === true) {
+                        rec[name] = null
+                    } else if (value !== undefined) {
                         rec[name] = this.collectProperties(op, field.block, index, value, params, context[name] || {})
                     }
                 }
