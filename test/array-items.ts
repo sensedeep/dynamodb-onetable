@@ -28,7 +28,7 @@ test('Create Table', async () => {
 })
 
 test('Create', async () => {
-    item = await Model.create(expected, {log: true})
+    item = await Model.create(expected, {})
     let when = expected.arrayWithTypedItems[0].when
     expect(item.arrayWithTypedItems[0].when.getTime()).toBe(when.getTime())
 
