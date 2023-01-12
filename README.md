@@ -1,6 +1,6 @@
 ![OneTable](https://www.sensedeep.com/images/ring-short.png?renew)
 
-*One Table to Rule Them All*
+_One Table to Rule Them All_
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)](https://img.shields.io/github/actions/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)
 [![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
@@ -9,43 +9,43 @@
 
 ## The Easiest Way to Create DynamoDB Single Table Designs.
 
-OneTable is the most evolved API for DynamoDB. It provides a dry, high-level, elegant syntax while enabling full access to DynamoDB API.
+OneTable is the most evolved API for DynamoDB. It provides a dry, high-level, elegant syntax while enabling full access to the DynamoDB API.
 
 OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
 
 ## Full Documentation
 
-* [OneTable Documentation](https://doc.onetable.io/)
+-   [OneTable Documentation](https://doc.onetable.io/)
 
 ## OneTable Features
 
-* Schema supported one-table access to DynamoDB APIs.
-* Efficient storage and access of multiple entities in a single DynamoDB table.
-* High level API with type marshaling, validations, and extended query capability for get/delete/update operations.
-* Bidirectional conversion of DynamoDB types to Javascript types.
-* Generation of Conditional, Filter, Key and Update expressions.
-* Schema item definitions for attribute types, default values, enums, unique attributes and validations.
-* Option to invoke DynamoDB or simply generate API parameters.
-* Powerful field level validations with "required" and "unique" attributes.
-* Easy parameterization of filter and conditional queries.
-* Detailed metrics for Table, Tenant, Source, Index, Model and Operation.
-* Multi-page response aggregation.
-* Compound and templated key management.
-* Attribute mapping and packing.
-* Support for sparse GSIs that project keys and overloaded attributes.
-* Encrypted fields.
-* CreateTable, DeleteTable table and index admin operations.
-* Support for Batch, Transactions, GSI, LSI indexes.
-* Intercept hooks to modify DynamoDB requests and responses.
-* Controllable logging to see exact parameter, data and responses.
-* Simple and easy to read source.
-* Integrated statistics.
-* Safety options to prevent "rm -fr *".
-* No external module dependencies.
-* Support for the AWS SDK v3.
-* TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
-* Migrations support via [OneTable Migrate](https://github.com/sensedeep/onetable-migrate) and [OneTable CLI](https://github.com/sensedeep/onetable-cli).
-* Graphical monitoring of single-table performance via [SenseDeep](https://www.sensedeep.com).
+-   Schema supported one-table access to DynamoDB APIs.
+-   Efficient storage and access of multiple entities in a single DynamoDB table.
+-   High level API with type marshaling, validations, and extended query capability for get/delete/update operations.
+-   Bidirectional conversion of DynamoDB types to Javascript types.
+-   Generation of Conditional, Filter, Key and Update expressions.
+-   Schema item definitions for attribute types, default values, enums, unique attributes and validations.
+-   Option to invoke DynamoDB or simply generate API parameters.
+-   Powerful field level validations with "required" and "unique" attributes.
+-   Easy parameterization of filter and conditional queries.
+-   Detailed metrics for Table, Tenant, Source, Index, Model and Operation.
+-   Multi-page response aggregation.
+-   Compound and templated key management.
+-   Attribute mapping and packing.
+-   Support for sparse GSIs that project keys and overloaded attributes.
+-   Encrypted fields.
+-   CreateTable, DeleteTable table and index admin operations.
+-   Support for Batch, Transactions, GSI, LSI indexes.
+-   Intercept hooks to modify DynamoDB requests and responses.
+-   Controllable logging to see exact parameter, data and responses.
+-   Simple and easy to read source.
+-   Integrated statistics.
+-   Safety options to prevent "rm -fr \*".
+-   No external module dependencies.
+-   Support for the AWS SDK v3.
+-   TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
+-   Migrations support via [OneTable Migrate](https://github.com/sensedeep/onetable-migrate) and [OneTable CLI](https://github.com/sensedeep/onetable-cli).
+-   Graphical monitoring of single-table performance via [SenseDeep](https://www.sensedeep.com).
 
 ## Installation
 
@@ -98,38 +98,38 @@ const MySchema = {
     format: 'onetable:1.1.0',
     version: '0.0.1',
     indexes: {
-        primary: { hash: 'pk', sort: 'sk' },
-        gs1:     { hash: 'gs1pk', sort: 'gs1sk', follow: true },
-        ls1:     { sort: 'id', type: 'local' },
+        primary: {hash: 'pk', sort: 'sk'},
+        gs1: {hash: 'gs1pk', sort: 'gs1sk', follow: true},
+        ls1: {sort: 'id', type: 'local'},
     },
     models: {
         Account: {
-            pk:          { type: String, value: 'account:${id}' },
-            sk:          { type: String, value: 'account:' },
-            id:          { type: String, generate: 'ulid', validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i },
-            name:        { type: String, required: true },
-            status:      { type: String, default: 'active' },
-            zip:         { type: String },
+            pk: {type: String, value: 'account:${id}'},
+            sk: {type: String, value: 'account:'},
+            id: {type: String, generate: 'ulid', validate: /^[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{26}$/i},
+            name: {type: String, required: true},
+            status: {type: String, default: 'active'},
+            zip: {type: String},
         },
         User: {
-            pk:          { type: String, value: 'account:${accountName}' },
-            sk:          { type: String, value: 'user:${email}', validate: EmailRegExp },
-            id:          { type: String, required: true },
-            accountName: { type: String, required: true },
-            email:       { type: String, required: true },
-            firstName:   { type: String, required: true },
-            lastName:    { type: String, required: true },
-            username:    { type: String, required: true },
-            role:        { type: String, enum: ['user', 'admin'], required: true, default: 'user' },
-            balance:     { type: Number, default: 0 },
+            pk: {type: String, value: 'account:${accountName}'},
+            sk: {type: String, value: 'user:${email}', validate: EmailRegExp},
+            id: {type: String, required: true},
+            accountName: {type: String, required: true},
+            email: {type: String, required: true},
+            firstName: {type: String, required: true},
+            lastName: {type: String, required: true},
+            username: {type: String, required: true},
+            role: {type: String, enum: ['user', 'admin'], required: true, default: 'user'},
+            balance: {type: Number, default: 0},
 
-            gs1pk:       { type: String, value: 'user-email:${email}' },
-            gs1sk:       { type: String, value: 'user:' },
-        }
+            gs1pk: {type: String, value: 'user-email:${email}'},
+            gs1sk: {type: String, value: 'user:'},
+        },
     },
     params: {
-        'isoDates': true,
-        'timestamps': true,
+        isoDates: true,
+        timestamps: true,
     },
 }
 ```
@@ -144,6 +144,7 @@ let account = await Account.create({
 ```
 
 This will write the following to DynamoDB:
+
 ```javascript
 {
     pk:         'account:8e7bbe6a-4afc-4117-9218-67081afc935b',
@@ -189,9 +190,12 @@ let users = await User.find({accountId: account.id})
 
 let adminUsers = await User.find({accountId: account.id, role: 'admin'})
 
-let users = await User.find({accountId: account.id}, {
-    where: '${balance} > {100.00}'
-})
+let users = await User.find(
+    {accountId: account.id},
+    {
+        where: '${balance} > {100.00}',
+    }
+)
 
 //  Get a count of matching users without returning the actual items
 let users = await User.find({accountId: account.id, role: 'admin'}, {count: true})
@@ -202,7 +206,7 @@ To update an item:
 
 ```javascript
 await User.update({id: userId, balance: 50})
-await User.update({id: userId}, {add: {balance: 10.00}})
+await User.update({id: userId}, {add: {balance: 10.0}})
 await User.update({id: userId}, {set: {status: '{active}'}})
 ```
 
