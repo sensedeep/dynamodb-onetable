@@ -134,7 +134,7 @@ export class Model {
             field.pathname = pathname
             field.name = name
             fields[name] = field
-            field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates
+            field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates || false
 
             //  DEPRECATE 2.3
             if (field.uuid) {
@@ -204,20 +204,18 @@ export class Model {
             /*
                 Handle nested schema (recursive)
             */
+            if (field.items && field.type == 'array') {
+                field.schema = field.items.schema
+            }
             if (field.schema) {
-                if (field.type == 'array') {
-                    throw new OneTableArgError(
-                        `Array types do not (yet) support nested schemas for field "${field.name}" in model "${this.name}"`
-                    )
-                }
-                if (field.type == 'object') {
+                if (field.type == 'object' || field.type == 'array') {
                     field.block = {deps: [], fields: {}}
                     this.prepModel(field.schema, field.block, pathname)
                     //  FUTURE - better to apply this to the field block
                     this.nested = true
                 } else {
                     throw new OneTableArgError(
-                        `Nested scheme not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`
+                        `Nested scheme does not supported "${field.type}" types for field "${field.name}" in model "${this.name}"`
                     )
                 }
             }
@@ -1113,9 +1111,28 @@ export class Model {
                         field,
                     })
                 }
-                continue
             } else if (field.schema && value !== null && typeof value == 'object') {
-                rec[name] = this.transformReadBlock(op, raw[name], properties[name] || {}, params, field.block.fields)
+                if (field.items && Array.isArray(value)) {
+                    rec[name] = []
+                    let i = 0
+                    for (let rvalue of raw[name]) {
+                        rec[name][i++] = this.transformReadBlock(
+                            op,
+                            rvalue,
+                            properties[name] || [],
+                            params,
+                            field.block.fields
+                        )
+                    }
+                } else {
+                    rec[name] = this.transformReadBlock(
+                        op,
+                        raw[name],
+                        properties[name] || {},
+                        params,
+                        field.block.fields
+                    )
+                }
             } else {
                 rec[name] = this.transformReadAttribute(field, name, value, params, properties)
             }
@@ -1239,8 +1256,8 @@ export class Model {
 
     /*
         Collect the required attribute from the properties and context.
-        This handles tunneled properties, blends context properties, resolves default values, handles Nulls and empty strings,
-        and invokes validations. Nested schemas are handled here.
+        This handles tunneled properties, blends context properties, resolves default values,
+        handles Nulls and empty strings, and invokes validations. Nested schemas are handled here.
     */
     collectProperties(op, block, index, properties, params, context, rec = {}) {
         let fields = block.fields
@@ -1251,27 +1268,7 @@ export class Model {
             First process nested schemas recursively
         */
         if (this.nested && !KeysOnly[op]) {
-            //  Process nested schema recursively
-            for (let field of Object.values(fields)) {
-                if (field.schema) {
-                    let name = field.name
-                    let value = properties[name]
-                    if (op == 'put') {
-                        if (value === undefined) {
-                            if (field.required) {
-                                value = field.type == 'array' ? [] : {}
-                            } else {
-                                value = field.default
-                            }
-                        }
-                    }
-                    if (value === null && field.nulls === true) {
-                        rec[name] = null
-                    } else if (value !== undefined) {
-                        rec[name] = this.collectProperties(op, field.block, index, value, params, context[name] || {})
-                    }
-                }
-            }
+            this.collectNested(op, fields, index, properties, params, context, rec)
         }
         /*
             Then process the non-schema properties at this level (non-recursive)
@@ -1284,6 +1281,36 @@ export class Model {
         this.selectProperties(op, block, index, properties, params, rec)
         this.transformProperties(op, fields, properties, params, rec)
         return rec
+    }
+
+    /*
+        Process nested schema recursively
+    */
+    collectNested(op, fields, index, properties, params, context, rec) {
+        for (let field of Object.values(fields)) {
+            let schema = field.schema || field?.items?.schema
+            if (schema) {
+                let name = field.name
+                let value = properties[name]
+                if (op == 'put' && value === undefined) {
+                    value = field.required ? (field.type == 'array' ? [] : {}) : field.default
+                }
+                let ctx = context[name] || {}
+                if (value === null && field.nulls === true) {
+                    rec[name] = null
+                } else if (value !== undefined) {
+                    if (field.items && Array.isArray(value)) {
+                        rec[name] = []
+                        let i = 0
+                        for (let rvalue of value) {
+                            rec[name][i++] = this.collectProperties(op, field.block, index, rvalue, params, ctx)
+                        }
+                    } else {
+                        rec[name] = this.collectProperties(op, field.block, index, value, params, ctx)
+                    }
+                }
+            }
+        }
     }
 
     /*
@@ -1671,9 +1698,10 @@ export class Model {
 
     transformProperties(op, fields, properties, params, rec) {
         for (let [name, field] of Object.entries(fields)) {
+            //  Nested schemas handled via collectProperties
             if (field.schema) continue
             let value = rec[name]
-            if (value !== undefined && !field.schema) {
+            if (value !== undefined) {
                 rec[name] = this.transformWriteAttribute(op, field, value, properties, params)
             }
         }
@@ -1717,14 +1745,19 @@ export class Model {
                 value = value.toString('base64')
             }
         } else if (type == 'array') {
-            //  Heursistics to accept legacy string values for array types. Note: TS would catch this also.
-            if (value != null && !Array.isArray(value)) {
-                if (value == '') {
-                    value = []
+            if (value != null) {
+                if (Array.isArray(value)) {
+                    value = this.transformNestedWriteFields(field, value)
                 } else {
-                    //  FUTURE: should be moved to validations
-                    throw new OneTableArgError(`Invalid data type for Array field "${field.name}" in "${this.name}"`)
-                    // value = [value]
+                    //  Heursistics to accept legacy string values for array types. Note: TS would catch this also.
+                    if (value == '') {
+                        value = []
+                    } else {
+                        //  FUTURE: should be moved to validations
+                        throw new OneTableArgError(
+                            `Invalid data type for Array field "${field.name}" in "${this.name}"`
+                        )
+                    }
                 }
             }
         } else if (type == 'set' && Array.isArray(value)) {
@@ -1781,6 +1814,7 @@ export class Model {
         Handle dates. Supports epoch and ISO date transformations.
     */
     transformWriteDate(field, value) {
+        let isoDates = field.isoDates || this.table.isoDates
         if (field.ttl) {
             //  Convert dates to DynamoDB TTL
             if (value instanceof Date) {
@@ -1789,7 +1823,7 @@ export class Model {
                 value = new Date(Date.parse(value)).getTime()
             }
             value = Math.ceil(value / 1000)
-        } else if (field.isoDates) {
+        } else if (isoDates) {
             if (value instanceof Date) {
                 value = value.toISOString()
             } else if (typeof value == 'string') {

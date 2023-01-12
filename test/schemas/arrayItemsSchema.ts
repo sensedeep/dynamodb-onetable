@@ -1,5 +1,5 @@
 /*
-        Schema to test items property for array type
+    Schema to test items property for array type
  */
 
 export default {
@@ -13,6 +13,7 @@ export default {
             pk: {type: String, value: 'TestModel#${id}'},
             sk: {type: String, value: 'TestModel#'},
             id: {type: String, required: true},
+
             arrayWithTypedItems: {
                 type: Array,
                 items: {
@@ -28,5 +29,8 @@ export default {
             arrayWithoutTypedItems: {type: Array, required: true},
         },
     } as const,
-    params: {},
+    params: {
+        isoDates: true,
+        timestamps: true,
+    },
 }

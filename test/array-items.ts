@@ -8,12 +8,13 @@ const table = new Table({
     client: Client,
     partial: false,
     schema: ArrayItemsSchema,
+    logger: true,
 })
 
 const expected = {
     id: '1111-2222',
-    arrayWithTypedItems: [{bar: 'Bar'}],
-    arrayWithoutTypedItems: ['a', '2', 3],
+    arrayWithTypedItems: [{bar: 'Bar', when: new Date()}],
+    arrayWithoutTypedItems: ['a', '2', 3, new Date()],
 }
 
 let Model = table.getModel('TestModel')
@@ -27,13 +28,19 @@ test('Create Table', async () => {
 })
 
 test('Create', async () => {
-    item = await Model.create(expected)
-    expect(item).toMatchObject(expected)
+    item = await Model.create(expected, {log: true})
+    let when = expected.arrayWithTypedItems[0].when
+    expect(item.arrayWithTypedItems[0].when.getTime()).toBe(when.getTime())
+
+    //  Untyped cannot be mapped back to proper types. The date comes back as an ISO string
+    when = expected.arrayWithoutTypedItems[3] as Date
+    expect(new Date(item.arrayWithoutTypedItems[3]).getTime()).toBe(when.getTime())
 })
 
 test('Get Item', async () => {
     item = await Model.get({id: item.id})
-    expect(item).toMatchObject(expected)
+    let when = expected.arrayWithTypedItems[0].when
+    expect(item.arrayWithTypedItems[0].when.getTime()).toBe(when.getTime())
 })
 
 test('Destroy Table', async () => {

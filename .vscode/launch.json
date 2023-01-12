@@ -10,7 +10,7 @@
             "cwd": "${workspaceFolder}",
             "skipFiles": ["<node_internals>/**"],
             "env": {
-                "DDB_CLIENT_VERSION": "v2"
+                "DDB_CLIENT_VERSION": "v3"
             },
             "args": ["--runInBand", "--watchAll=false", "debug"]
         }
