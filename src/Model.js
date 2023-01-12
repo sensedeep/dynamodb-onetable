@@ -672,7 +672,7 @@ export class Model {
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, exists: null, high: true}))
 
         properties = this.prepareProperties('delete', properties, params)
-        if (params.fallback) {
+        if (params.fallback || params.many) {
             return await this.removeByFind(properties, params)
         }
         let expression = new Expression(this, 'delete', properties, params)
