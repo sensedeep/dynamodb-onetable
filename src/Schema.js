@@ -47,9 +47,8 @@ export class Schema {
             }
             this.indexes = indexes
             //  Must set before creating models
-            if (params) {
-                this.table.setSchemaParams(params)
-            }
+            this.table.setSchemaParams(params)
+            
             for (let [name, model] of Object.entries(models)) {
                 if (name == SchemaModel || name == MigrationModel) continue
                 this.models[name] = new Model(this.table, name, {fields: model})

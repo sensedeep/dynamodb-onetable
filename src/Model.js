@@ -137,7 +137,9 @@ export class Model {
             field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates || false
 
             if (field.uuid) {
-                throw new OneTableArgError('The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead')
+                throw new OneTableArgError(
+                    'The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead'
+                )
             }
 
             field.type = this.checkType(field)
@@ -196,7 +198,7 @@ export class Model {
             if (field.value) {
                 //  Value template properties are hidden by default
                 if (field.hidden == null) {
-                    field.hidden = table.hidden != null ? table.hidden : true
+                    field.hidden = true
                 }
             }
             /*
@@ -1062,8 +1064,10 @@ export class Model {
         let rec = {}
         for (let [name, field] of Object.entries(fields)) {
             //  Skip hidden params. Follow needs hidden params to do the follow.
-            if (field.hidden && params.hidden !== true && params.follow !== true) {
-                continue
+            if (field.hidden && params.follow !== true) {
+                if (params.hidden === false || (params.hidden == null && this.table.hidden === false)) {
+                    continue
+                }
             }
             let att, sub
             if (op == 'put') {

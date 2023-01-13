@@ -59,7 +59,7 @@ type TableConstructorParams<Schema extends OneSchema> = {
 
     partial?: boolean //  Allow partial updates of nested schemas. Default false.
     warn?: boolean //  Issue warnings
-    hidden?: boolean //  Hide key attributes in Javascript properties. Default false.
+    hidden?: boolean //  Hide key and value template attributes in Javascript properties. Default true.
 
     //  DEPRECATED 2.3 - Should now be specified via the schema.params
     createdField?: string //  Name of "created" timestamp attribute.
