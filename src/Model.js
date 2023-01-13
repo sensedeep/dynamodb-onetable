@@ -136,10 +136,8 @@ export class Model {
             fields[name] = field
             field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates || false
 
-            //  DEPRECATE 2.3
             if (field.uuid) {
-                console.warn('The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead')
-                field.generate = field.generate || field.uuid
+                throw new OneTableArgError('The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead')
             }
 
             field.type = this.checkType(field)
@@ -281,11 +279,6 @@ export class Model {
      */
     async run(op, expression) {
         let {index, properties, params} = expression
-
-        //  UNDOCUMENTED AND DEPRECATED
-        if (params.preFormat) {
-            params.preFormat(this, expression)
-        }
 
         /*
             Get a string representation of the API request
@@ -1097,7 +1090,7 @@ export class Model {
             }
             if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
-                    // console.warn('WARNING: default functions are DEPRECATED and will be removed soon.')
+                    // DEPRECATED
                     value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
@@ -1536,7 +1529,7 @@ export class Model {
             } else if (properties[name] === undefined) {
                 if (field.value) {
                     if (typeof field.value == 'function') {
-                        // console.warn('WARNING: value functions are DEPRECATED and will be removed soon.')
+                        // DEPRECATED
                         properties[name] = field.value(field.pathname, properties)
                     } else {
                         let value = this.runTemplate(op, index, field, properties, params, field.value)
@@ -1654,7 +1647,7 @@ export class Model {
 
         //  DEPRECATE
         if (typeof params.validate == 'function') {
-            // console.warn('WARNING: params.validate functions are DEPRECATED and will be removed soon.')
+            // DEPRECATED
             let error
             ;({error, value} = params.validate(this, field, value))
             if (error) {

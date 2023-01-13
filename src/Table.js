@@ -96,7 +96,6 @@ export class Table {
     }
 
     setParams(params) {
-        //  DEPRECATED - these should be supplied by the schema.params
         if (
             params.createdField != null ||
             this.isoDates != null ||
@@ -105,19 +104,10 @@ export class Table {
             this.typeField != null ||
             this.updatedField != null
         ) {
-            console.warn(
-                'OneTable: Using deprecated Table constructor parameters. Define in the schema.params instead.'
+            throw new OneTableArgError(
+                'Using deprecated Table constructor parameters. Define in the Schema.params instead.'
             )
-            //  FUTURE 2.3
-            //  throw new OneTableArgError('Using deprecated Table constructor parameters. Define in the schema.params instead.')
         }
-        //  DEPRECATE - these should be specified via the Schema params
-        this.createdField = params.createdField || 'created'
-        this.isoDates = params.isoDates || false
-        this.nulls = params.nulls || false
-        this.timestamps = params.timestamps != null ? params.timestamps : false
-        this.typeField = params.typeField || '_type'
-        this.updatedField = params.updatedField || 'updated'
 
         if (params.uuid) {
             console.warn(
@@ -127,7 +117,6 @@ export class Table {
             params.generate = params.generate | params.uuid
         }
 
-        //  MOB - warn if unset. Revert default to true in future
         if (params.partial == null) {
             console.warn(
                 'OneTable: Must set Table constructor "partial" param to true or false. ' +
@@ -135,25 +124,17 @@ export class Table {
                     'but in a future version will default to true. ' +
                     'Set to false to future proof or set to true for the new behavior.'
             )
-            //  FUTURE 2.5 - change default to true
-            params.partial = false
+            params.partial = true
         }
-        this.hidden = params.hidden != null ? params.hidden : true
+        //  Return hidden fields by default. Default is false.
+        this.hidden = params.hidden != null ? params.hidden : false
         this.partial = params.partial
         this.warn = params.warn || true
 
         if (typeof params.generate == 'function') {
             this.generate = params.generate || this.uuid
         } else if (params.generate) {
-            //  FUTURE throw exception
-            console.warn('OneTable: Generate can only be a function')
-            if (params.generate == 'uuid') {
-                this.generate = this.uuid
-            } else if (params.generate == 'ulid') {
-                this.generate = this.ulid
-            } else {
-                this.generate = this.uuid
-            }
+            throw new OneTableArgError('OneTable: Generate can only be a function')
         }
 
         this.name = params.name
@@ -167,7 +148,7 @@ export class Table {
         this.params = params
     }
 
-    setSchemaParams(params) {
+    setSchemaParams(params = {}) {
         this.createdField = params.createdField || 'created'
         this.isoDates = params.isoDates || false
         this.nulls = params.nulls || false
@@ -178,14 +159,11 @@ export class Table {
         if (params.hidden != null) {
             console.warn(`Schema hidden params should be specified via the Table constructor params`)
         }
-        //  DEPRECATE
-        this.hidden = params.hidden != null ? params.hidden : true
     }
 
     getSchemaParams() {
         return {
             createdField: this.createdField,
-            hidden: this.hidden,
             isoDates: this.isoDates,
             nulls: this.nulls,
             timestamps: this.timestamps,
