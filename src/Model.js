@@ -1191,6 +1191,9 @@ export class Model {
         //  DEPRECATE
         this.tunnelProperties(properties, params)
 
+        if (params.filter) {
+            this.convertFilter(properties, params, index)
+        }
         let rec = this.collectProperties(op, this.block, index, properties, params)
         if (params.fallback) {
             return properties
@@ -1207,6 +1210,55 @@ export class Model {
             rec = this.table.params.transform(this, ReadWrite[op], rec, properties, params)
         }
         return rec
+    }
+
+    /*
+        Convert a full text params.filter into a smart params.where
+        NOTE: this is prototype code and definitely not perfect! Use at own risk.
+     */
+    convertFilter(properties, params, index) {
+        let filter = params.filter
+        let fields = this.block.fields
+        let where
+        //  TODO support > >= < <= ..., AND or ...
+        let [name, value] = filter.split('=')
+        if (value) {
+            name = name.trim()
+            value = value.trim()
+            let field = fields[name]
+            if (field) {
+                name = field.map ? field.map : name
+                if (field.encode) {
+                    properties[name] = value
+                } else {
+                    where = `\${${name}} = {${value}}`
+                }
+            } else {
+                //  TODO support > >= < <= ..., AND or ...
+                where = `\${${name}} = {${value}}`
+            }
+        } else {
+            value = name
+            where = []
+            for (let [name, field] of Object.entries(fields)) {
+                let primary = this.indexes.primary
+                if (primary.hash == name || primary.sort == name || index.hash == name || index.sort == name) {
+                    continue
+                }
+                if (field.encode) {
+                    continue
+                }
+                name = field.map ? field.map : name
+                let term = `(contains(\${${name}}, {${filter}}))`
+                where.push(term)
+            }
+            if (where) {
+                where = where.join(' or ')
+            }
+        }
+        params.where = where
+        //  TODO SANITY
+        params.maxPages = 25
     }
 
     //  Handle fallback for get/delete as GSIs only support find and scan
