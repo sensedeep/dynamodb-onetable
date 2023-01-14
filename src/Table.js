@@ -83,6 +83,15 @@ export class Table {
             }
         }
         this.setParams(params)
+
+        //  Set schema param defaults
+        this.typeField = '_type'
+        this.createdField = 'created'
+        this.isoDates = false
+        this.nulls = false
+        this.timestamps = false
+        this.updatedField = 'updated'
+
         this.schema = new Schema(this, params.schema)
         if (params.dataloader) {
             this.dataloader = new params.dataloader((cmds) => this.batchLoaderFunction(cmds), {maxBatchSize})
