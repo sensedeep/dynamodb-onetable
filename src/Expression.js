@@ -564,8 +564,19 @@ export class Expression {
                 args.ScanIndexForward =
                     (params.reverse == true) ^ (params.prev != null && params.next == null) ? false : true
 
-                if (params.next || params.prev) {
-                    args.ExclusiveStartKey = this.table.marshall(params.next || params.start || params.prev, params)
+                /*
+                    Cherry pick the required properties from the next/prev param
+                 */
+                let cursor = params.next || params.prev
+                if (cursor) {
+                    let {hash, sort} = this.index
+                    let start = {[hash]: cursor[hash], [sort]: cursor[sort]}
+                    if (this.params.index != 'primary') {
+                        let {hash, sort} = this.model.indexes.primary
+                        start[hash] = cursor[hash]
+                        start[sort] = cursor[sort]
+                    }
+                    args.ExclusiveStartKey = this.table.marshall(start, params)
                 }
             }
             if (op == 'scan') {
