@@ -1090,6 +1090,9 @@ export class Model {
             if (field.default !== undefined && value === undefined) {
                 if (typeof field.default == 'function') {
                     // DEPRECATED
+                    if (this.table.warn !== false) {
+                        console.warn('WARNING: field default functions are deprecated and will be removed soon.')
+                    }
                     value = field.default(this, field.name, properties)
                 } else {
                     value = field.default
