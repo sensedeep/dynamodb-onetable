@@ -118,7 +118,8 @@ export class Expression {
             }
             let field = fields[name]
             if (field) {
-                if (op != 'put' && this.params.partial) {
+                let partial = this.model.getPartial(field, this.params)
+                if (op != 'put' && partial) {
                     if (field.schema && value != null) {
                         let path = pathname ? `${pathname}.${field.attribute[0]}` : field.attribute[0]
                         if (field.isArray && Array.isArray(value)) {

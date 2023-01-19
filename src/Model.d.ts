@@ -42,19 +42,20 @@ export type OneField = {
     filter?: boolean
     generate?: string | boolean
     hidden?: boolean
+    items?: OneField
     map?: string
     nulls?: boolean
+    partial?: boolean
     reference?: string
     required?: boolean
+    schema?: OneModel
     scope?: string
     timestamp?: boolean
+    ttl?: boolean
     type: OneType
     unique?: boolean
     validate?: RegExp | string | boolean
     value?: boolean | string
-    schema?: OneModel
-    ttl?: boolean
-    items?: OneField
 
     //  DEPRECATE 2.3
     uuid?: boolean | string

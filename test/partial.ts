@@ -34,6 +34,16 @@ const Schema = {
                     zip: {type: 'number'},
                     box: {
                         type: Object,
+                        default: {},
+                        schema: {
+                            start: {type: 'date'},
+                            end: {type: 'date'},
+                        },
+                    },
+                    neverPartial: {
+                        type: Object,
+                        default: {},
+                        partial: false,
                         schema: {
                             start: {type: 'date'},
                             end: {type: 'date'},
@@ -74,13 +84,21 @@ test('Create User', async () => {
             street: '42 Park Ave',
             zip: 12345,
             box: {start: new Date()},
+            neverPartial: {
+                start: new Date(),
+                end: new Date(),
+            },
         },
     })
     expect(user).toBeDefined()
+    userId = user.id
     expect(user.email).toBe('user@example.com')
     expect(user.address?.street).toBe('42 Park Ave')
     expect(user.address?.zip).toBe(12345)
-    userId = user.id
+    expect(user.address?.box).toBeDefined()
+    expect(user.address?.box?.start).toBeDefined()
+    expect(user.address?.neverPartial?.start).toBeDefined()
+    expect(user.address?.neverPartial?.end).toBeDefined()
 })
 
 test('Get User', async () => {
@@ -94,6 +112,9 @@ test('Get User', async () => {
     expect(user?.email).toBe('user@example.com')
     expect(user?.address?.street).toBe('42 Park Ave')
     expect(user?.address?.zip).toBe(12345)
+    expect(user?.address?.box?.start).toBeDefined()
+    expect(user?.address?.neverPartial?.start).toBeDefined()
+    expect(user?.address?.neverPartial?.end).toBeDefined()
 })
 
 test('Find User', async () => {
@@ -139,11 +160,15 @@ test('Update Zip Only', async () => {
         id: userId,
         address: {
             zip: 99999,
+            neverPartial: {},
         },
     })
     expect(user.email).toBe('ralph@example.com')
     expect(user.address?.street).toBe('42 Park Ave')
     expect(user.address?.zip).toBe(99999)
+    expect(user.address?.neverPartial).toBeDefined()
+    expect(user.address?.neverPartial?.start).toBeUndefined()
+    expect(user.address?.neverPartial?.end).toBeUndefined()
 })
 
 test('Update Zip Only - partial false', async () => {

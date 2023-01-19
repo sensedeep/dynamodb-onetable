@@ -1343,6 +1343,7 @@ export class Model {
                     value = field.required ? (field.type == 'array' ? [] : {}) : field.default
                 }
                 let ctx = context[name] || {}
+                let partial = this.getPartial(field, params)
 
                 if (value === null && field.nulls === true) {
                     rec[name] = null
@@ -1354,14 +1355,14 @@ export class Model {
                             let path = pathname ? `${pathname}.${name}[${i}]` : `${name}[${i}]`
                             let obj = this.collectProperties(op, path, field.block, index, rvalue, params, ctx)
                             //  Don't update properties if empty and partial and no default
-                            if (!params.partial || Object.keys(obj).length > 0 || field.default !== undefined) {
+                            if (!partial || Object.keys(obj).length > 0 || field.default !== undefined) {
                                 rec[name][i++] = obj
                             }
                         }
                     } else {
                         let path = pathname ? `${pathname}.${field.name}` : field.name
                         let obj = this.collectProperties(op, path, field.block, index, value, params, ctx)
-                        if (!params.partial || Object.keys(obj).length > 0 || field.default !== undefined) {
+                        if (!partial || Object.keys(obj).length > 0 || field.default !== undefined) {
                             rec[name] = obj
                         }
                     }
@@ -1960,9 +1961,6 @@ export class Model {
         params = Object.assign(overrides, params)
 
         params.checked = true
-        if (params.partial == null) {
-            params.partial = this.table.partial
-        }
         properties = this.table.assign({}, properties)
         return {properties, params}
     }
@@ -1997,6 +1995,17 @@ export class Model {
             result = obj
         }
         return result
+    }
+
+    getPartial(field, params) {
+        let partial = params.partial
+        if (partial === undefined) {
+            partial = field.partial
+            if (partial == undefined) {
+                partial = this.table.partial
+            }
+        }
+        return partial
     }
 
     /*  KEEP
