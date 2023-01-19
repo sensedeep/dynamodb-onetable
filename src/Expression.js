@@ -126,6 +126,7 @@ export class Expression {
                             for (let rvalue of value) {
                                 let indexPath = path ? `${path}[${i}]` : `${path}[${i}]`
                                 this.addProperties(op, indexPath, field.block.fields, rvalue)
+                                i++
                             }
                         } else {
                             this.addProperties(op, path, field.block.fields, value)

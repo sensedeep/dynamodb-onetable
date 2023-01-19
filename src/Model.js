@@ -1108,13 +1108,14 @@ export class Model {
                     rec[name] = []
                     let i = 0
                     for (let rvalue of raw[name]) {
-                        rec[name][i++] = this.transformReadBlock(
+                        rec[name][i] = this.transformReadBlock(
                             op,
                             rvalue,
                             properties[name] || [],
                             params,
                             field.block.fields
                         )
+                        i++
                     }
                 } else {
                     rec[name] = this.transformReadBlock(
