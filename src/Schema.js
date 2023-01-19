@@ -17,7 +17,7 @@ export class Schema {
     constructor(table, schema) {
         this.table = table
         this.keyTypes = {}
-        this.control = {}
+        this.sync = {}
         table.schema = this
         Object.defineProperty(this, 'table', {enumerable: false})
         this.params = table.getSchemaParams()
@@ -28,7 +28,7 @@ export class Schema {
         if (this.definition) {
             let schema = this.table.assign({}, this.definition, {params: this.params})
             schema = this.transformSchemaForWrite(schema)
-            schema.control = Object.assign({}, this.control)
+            schema.sync = Object.assign({}, this.sync)
             return schema
         }
         return null
@@ -48,13 +48,13 @@ export class Schema {
             this.indexes = indexes
             //  Must set before creating models
             this.table.setSchemaParams(params)
-            
+
             for (let [name, model] of Object.entries(models)) {
                 if (name == SchemaModel || name == MigrationModel) continue
                 this.models[name] = new Model(this.table, name, {fields: model})
             }
             this.createStandardModels()
-            this.control = schema.control
+            this.sync = schema.sync
         }
         return this.indexes
     }
@@ -158,13 +158,13 @@ export class Schema {
         let primary = indexes.primary
         let fields = (this.schemaModelFields = {
             [primary.hash]: {type: 'string', required: true, value: `${SchemaKey}`},
-            control: {type: 'object'},
             format: {type: 'string', required: true},
             indexes: {type: 'object', required: true},
             name: {type: 'string', required: true},
             models: {type: 'object', required: true},
             params: {type: 'object', required: true},
             queries: {type: 'object', required: true},
+            sync: {type: 'object'},
             version: {type: 'string', required: true},
         })
         if (primary.sort) {
