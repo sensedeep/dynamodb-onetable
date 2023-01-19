@@ -103,6 +103,7 @@ test('Create User', async () => {
         address: {
             street: '42 Park Ave',
             zip: 12345,
+            box: {},
         },
     })
     expect(user.email).toBe('user@example.com')
@@ -116,7 +117,6 @@ test('Get User', async () => {
         id: userId,
         address: {
             zip: 12345,
-            box: {},
         },
     })
     expect(user).toBeDefined()
@@ -174,7 +174,7 @@ test('Update Zip Only', async () => {
     expect(user.address.zip).toBe(99999)
 })
 
-test('Update Zip Only', async () => {
+test('Update Zip Only - no partial', async () => {
     //  Update full address (!partial). Update zip and remove address
     let user = await User.update(
         {

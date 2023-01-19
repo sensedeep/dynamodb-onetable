@@ -81,7 +81,7 @@ export class Expression {
             }
         }
 
-        this.addProperties(op, fields, properties)
+        this.addProperties(op, null, fields, properties)
 
         /*
             Emit mapped attributes that don't correspond to schema fields.
@@ -95,7 +95,7 @@ export class Expression {
                 }
             }
             for (let [k, v] of Object.entries(this.mapped)) {
-                this.add(properties, {attribute: [k], name: k, filter: false}, v, properties)
+                this.add(null, properties, {attribute: [k], name: k, filter: false}, v, properties)
             }
         }
         if (params.fields) {
@@ -111,23 +111,33 @@ export class Expression {
         }
     }
 
-    addProperties(op, fields, properties) {
+    addProperties(op, pathname, fields, properties) {
         for (let [name, value] of Object.entries(properties)) {
             if (this.already[name]) {
                 continue
             }
-            if (fields[name]) {
-                if (op != 'put' && this.table.partial && this.params.partial !== false) {
-                    if (fields[name].schema && value != null) {
-                        this.addProperties(op, fields[name].block.fields, value)
+            let field = fields[name]
+            if (field) {
+                if (op != 'put' && this.params.partial) {
+                    if (field.schema && value != null) {
+                        let path = pathname ? `${pathname}.${field.attribute[0]}` : field.attribute[0]
+                        if (field.isArray && Array.isArray(value)) {
+                            let i = 0
+                            for (let rvalue of value) {
+                                let indexPath = path ? `${path}[${i}]` : `${path}[${i}]`
+                                this.addProperties(op, indexPath, field.block.fields, rvalue)
+                            }
+                        } else {
+                            this.addProperties(op, path, field.block.fields, value)
+                        }
                     } else {
-                        this.add(properties, fields[name], value)
+                        this.add(pathname, properties, field, value)
                     }
                 } else {
-                    this.add(properties, fields[name], value)
+                    this.add(pathname, properties, field, value)
                 }
             } else if (this.model.generic) {
-                this.add(properties, {attribute: [name], name}, value)
+                this.add(pathname, properties, {attribute: [name], name}, value)
             }
         }
     }
@@ -135,7 +145,7 @@ export class Expression {
     /*
         Add a field to the command expression
      */
-    add(properties, field, value) {
+    add(pathname, properties, field, value) {
         let op = this.op
         let attribute = field.attribute
 
@@ -151,15 +161,15 @@ export class Expression {
             properties[k] = value
             return
         }
-        //  Pathname may contain a '.'
-        let path = attribute[0]
+        //  May contain a '.'
+        let path = pathname ? `${pathname}.${attribute[0]}` : attribute[0]
 
         if (path == this.hash || path == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
             } else if (op == 'scan') {
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(field, value)
+                    this.addFilter(path, field, value)
                 }
             } else if ((op == 'delete' || op == 'get' || op == 'update' || op == 'check') && field.isIndexed) {
                 this.addKey(op, field, value)
@@ -173,14 +183,14 @@ export class Expression {
                 if (properties[field.name] !== undefined && field.filter !== false) {
                     if (!this.params.batch) {
                         //  Batch does not support filter expressions
-                        this.addFilter(field, value)
+                        this.addFilter(path, field, value)
                     }
                 }
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
                 this.puts[path] = value
             } else if (op == 'update') {
-                this.addUpdate(field, value)
+                this.addUpdate(path, field, value)
             }
         }
     }
@@ -281,10 +291,12 @@ export class Expression {
         }
     }
 
-    addFilter(field, value) {
+    addFilter(pathname, field, value) {
         let {filters} = this
+        /*
         let att = field.attribute[0]
         let pathname = field.pathname || att
+        */
         if (pathname == this.hash || pathname == this.sort) {
             return
         }
@@ -349,10 +361,12 @@ export class Expression {
         }
     }
 
-    addUpdate(field, value) {
+    addUpdate(pathname, field, value) {
         let {params, updates} = this
+        /*
         let att = field.attribute[0]
         let pathname = field.pathname || att
+        */
         if (pathname == this.hash || pathname == this.sort) {
             return
         }
@@ -365,7 +379,6 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        // let [target, variable] = this.prepareKeyValue(pathname, value)
         let target = this.prepareKey(pathname)
         let variable = this.addValueExp(value)
         updates.set.push(`${target} = ${variable}`)

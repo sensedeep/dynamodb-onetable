@@ -90,18 +90,18 @@ export class Model {
 
         let fields = options.fields || this.schema.definition.models[this.name]
         if (fields) {
-            this.prepModel(fields, this.block)
+            this.prepModel(fields, this.block, true)
         }
     }
 
     /*
         Prepare a model based on the schema and compute the attribute mapping.
      */
-    prepModel(schemaFields, block, prefix = '') {
+    prepModel(schemaFields, block, top = false) {
         let {fields} = block
 
         schemaFields = this.table.assign({}, schemaFields)
-        if (!prefix) {
+        if (top) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
                 schemaFields[this.typeField] = {type: String, hidden: true}
@@ -124,14 +124,10 @@ export class Model {
         let map = {}
 
         for (let [name, field] of Object.entries(schemaFields)) {
-            let pathname = prefix ? `${prefix}.${name}` : name
-
             if (!field.type) {
                 field.type = 'string'
-                this.table.log.error(`Missing type field for ${pathname}`, {field})
-                // throw new OneTableArgError(`Missing field type for ${pathname}`)
+                this.table.log.error(`Missing type field for ${field.name}`, {field})
             }
-            field.pathname = pathname
             field.name = name
             fields[name] = field
             field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates || false
@@ -157,7 +153,7 @@ export class Model {
                     }
                     field.attribute = map[name] = [att, sub]
                     if (mapTargets[att].indexOf(sub) >= 0) {
-                        throw new OneTableArgError(`Multiple attributes in ${this.pathname} mapped to the target ${to}`)
+                        throw new OneTableArgError(`Multiple attributes in ${field.name} mapped to the target ${to}`)
                     }
                     mapTargets[att].push(sub)
                 } else {
@@ -178,12 +174,10 @@ export class Model {
                 Handle index requirements
             */
             let index = this.indexProperties[field.attribute[0]]
-            if (index && !prefix) {
+            if (index && top) {
                 field.isIndexed = true
                 if (field.attribute.length > 1) {
-                    throw new OneTableArgError(
-                        `Cannot map property "${pathname}" to a compound attribute "${this.name}.${pathname}"`
-                    )
+                    throw new OneTableArgError(`Cannot map property "${field.name}" to a compound attribute"`)
                 }
                 if (index == 'primary') {
                     field.required = true
@@ -206,11 +200,12 @@ export class Model {
             */
             if (field.items && field.type == 'array') {
                 field.schema = field.items.schema
+                field.isArray = true
             }
             if (field.schema) {
                 if (field.type == 'object' || field.type == 'array') {
                     field.block = {deps: [], fields: {}}
-                    this.prepModel(field.schema, field.block, pathname)
+                    this.prepModel(field.schema, field.block)
                     //  FUTURE - better to apply this to the field block
                     this.nested = true
                 } else {
@@ -247,13 +242,13 @@ export class Model {
 
     orderFields(block, field) {
         let {deps, fields} = block
-        if (deps.find((i) => i.name == field.pathname)) {
+        if (deps.find((i) => i.name == field.name)) {
             return
         }
         if (field.value) {
             let vars = this.table.getVars(field.value)
-            for (let pathname of vars) {
-                let name = pathname.split('.').shift()
+            for (let path of vars) {
+                let name = path.split(/[.[]/g).shift().trim(']')
                 let ref = fields[name]
                 if (ref && ref != field) {
                     if (ref.schema) {
@@ -1194,7 +1189,7 @@ export class Model {
         if (params.filter) {
             this.convertFilter(properties, params, index)
         }
-        let rec = this.collectProperties(op, this.block, index, properties, params)
+        let rec = this.collectProperties(op, '', this.block, index, properties, params)
         if (params.fallback) {
             return properties
         }
@@ -1307,8 +1302,10 @@ export class Model {
         Collect the required attribute from the properties and context.
         This handles tunneled properties, blends context properties, resolves default values,
         handles Nulls and empty strings, and invokes validations. Nested schemas are handled here.
+
+        NOTE: pathname is only needed for DEPRECATED and undocumented callbacks.
     */
-    collectProperties(op, block, index, properties, params, context, rec = {}) {
+    collectProperties(op, pathname, block, index, properties, params, context, rec = {}) {
         let fields = block.fields
         if (!context) {
             context = params.context || this.table.context
@@ -1317,15 +1314,15 @@ export class Model {
             First process nested schemas recursively
         */
         if (this.nested && !KeysOnly[op]) {
-            this.collectNested(op, fields, index, properties, params, context, rec)
+            this.collectNested(op, pathname, fields, index, properties, params, context, rec)
         }
         /*
             Then process the non-schema properties at this level (non-recursive)
         */
         this.addContext(op, fields, index, properties, params, context)
         this.setDefaults(op, fields, properties, params)
-        this.runTemplates(op, index, block.deps, properties, params)
-        this.convertNulls(op, fields, properties, params)
+        this.runTemplates(op, pathname, index, block.deps, properties, params)
+        this.convertNulls(op, pathname, fields, properties, params)
         this.validateProperties(op, fields, properties, params)
         this.selectProperties(op, block, index, properties, params, rec)
         this.transformProperties(op, fields, properties, params, rec)
@@ -1335,7 +1332,7 @@ export class Model {
     /*
         Process nested schema recursively
     */
-    collectNested(op, fields, index, properties, params, context, rec) {
+    collectNested(op, pathname, fields, index, properties, params, context, rec) {
         for (let field of Object.values(fields)) {
             let schema = field.schema || field?.items?.schema
             if (schema) {
@@ -1345,6 +1342,7 @@ export class Model {
                     value = field.required ? (field.type == 'array' ? [] : {}) : field.default
                 }
                 let ctx = context[name] || {}
+
                 if (value === null && field.nulls === true) {
                     rec[name] = null
                 } else if (value !== undefined) {
@@ -1352,10 +1350,19 @@ export class Model {
                         rec[name] = []
                         let i = 0
                         for (let rvalue of value) {
-                            rec[name][i++] = this.collectProperties(op, field.block, index, rvalue, params, ctx)
+                            let path = pathname ? `${pathname}.${name}[${i}]` : `${name}[${i}]`
+                            let obj = this.collectProperties(op, path, field.block, index, rvalue, params, ctx)
+                            //  Don't update properties if empty and partial and no default
+                            if (!params.partial || Object.keys(obj).length > 0 || field.default !== undefined) {
+                                rec[name][i++] = obj
+                            }
                         }
                     } else {
-                        rec[name] = this.collectProperties(op, field.block, index, value, params, ctx)
+                        let path = pathname ? `${pathname}.${field.name}` : field.name
+                        let obj = this.collectProperties(op, path, field.block, index, value, params, ctx)
+                        if (!params.partial || Object.keys(obj).length > 0 || field.default !== undefined) {
+                            rec[name] = obj
+                        }
                     }
                 }
             }
@@ -1367,7 +1374,11 @@ export class Model {
     */
     tunnelProperties(properties, params) {
         if (params.tunnel) {
-            console.warn('WARNING: tunnel properties should not be required for typescript and will be removed soon.')
+            if (this.table.warn !== false) {
+                console.warn(
+                    'WARNING: tunnel properties should not be required for typescript and will be removed soon.'
+                )
+            }
             for (let [kind, settings] of Object.entries(params.tunnel)) {
                 for (let [key, value] of Object.entries(settings)) {
                     properties[key] = {[kind]: value}
@@ -1532,15 +1543,17 @@ export class Model {
 
     /*
         Remove null properties from the table unless Table.nulls == true
+        TODO - null conversion would be better done in Expression then pathnames would not be needed.
+        NOTE: pathname is only needed for DEPRECATED callbacks.
     */
-    convertNulls(op, fields, properties, params) {
+    convertNulls(op, pathname, fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
             if (!field || field.schema) continue
             if (value === null && field.nulls !== true) {
+                //  create with null/undefined, or update with null property
                 if (
                     field.required &&
-                    //  create with null/undefined, or update with null property
                     ((op == 'put' && properties[field.name] == null) ||
                         (op == 'update' && properties[field.name] === null))
                 ) {
@@ -1552,10 +1565,12 @@ export class Model {
                 } else {
                     params.remove = params.remove || []
                 }
-                params.remove.push(field.pathname)
+                let path = pathname ? `${pathname}.${field.name}` : field.name
+                params.remove.push(path)
                 delete properties[name]
             } else if (typeof value == 'object' && (field.type == 'object' || field.type == 'array')) {
-                properties[name] = this.removeNulls(field, value)
+                //  Remove nested empty strings because DynamoDB cannot handle these nested in objects or arrays
+                properties[name] = this.handleEmpties(field, value)
             }
         }
     }
@@ -1563,7 +1578,7 @@ export class Model {
     /*
         Process value templates and property values that are functions
      */
-    runTemplates(op, index, deps, properties, params) {
+    runTemplates(op, pathname, index, deps, properties, params) {
         for (let field of deps) {
             if (field.schema) continue
             let name = field.name
@@ -1577,16 +1592,24 @@ export class Model {
                 //  Ignore indexes not being used for this call
                 continue
             }
+            let path = pathname ? `${pathname}.${field.name}` : field.name
+
             if (field.value === true && typeof this.table.params.value == 'function') {
-                properties[name] = this.table.params.value(this, field.pathname, properties, params)
+                properties[name] = this.table.params.value(this, path, properties, params)
             } else if (typeof properties[name] == 'function') {
                 //  Undocumented and not supported for typescript
-                properties[name] = properties[name](field.pathname, properties)
+                if (this.table.warn !== false) {
+                    console.warn('Using DEPRECATED property function')
+                }
+                properties[name] = properties[name](path, properties)
             } else if (properties[name] === undefined) {
                 if (field.value) {
                     if (typeof field.value == 'function') {
                         // DEPRECATED
-                        properties[name] = field.value(field.pathname, properties)
+                        if (this.table.warn !== false) {
+                            console.warn('Using DEPRECATED value template function')
+                        }
+                        properties[name] = field.value(path, properties)
                     } else {
                         let value = this.runTemplate(op, index, field, properties, params, field.value)
                         if (value != null) {
@@ -1624,7 +1647,7 @@ export class Model {
                 v = match
             }
             if (typeof v == 'object' && v.toString() == '[object Object]') {
-                throw new OneTableError(`Value for "${field.pathname}" is not a primitive value`, {code: 'TypeError'})
+                throw new OneTableError(`Value for "${field.name}" is not a primitive value`, {code: 'TypeError'})
             }
             return v
         })
@@ -1936,19 +1959,19 @@ export class Model {
         params = Object.assign(overrides, params)
 
         params.checked = true
+        if (params.partial == null) {
+            params.partial = this.table.partial
+        }
         properties = this.table.assign({}, properties)
         return {properties, params}
     }
 
     /*
-        Handle nulls and empty strings properly according to nulls preference.
+        Handle nulls and empty strings properly according to nulls preference in plain objects and arrays.
         NOTE: DynamoDB can handle empty strings as top level non-key string attributes, but not nested in lists or maps. Ugh!
     */
-    removeNulls(field, obj) {
+    handleEmpties(field, obj) {
         let result
-        /*
-            Loop over plain objects and arrays only
-        */
         if (
             obj !== null &&
             typeof obj == 'object' &&
@@ -1964,7 +1987,7 @@ export class Model {
                     //  Match null and undefined
                     continue
                 } else if (typeof value == 'object') {
-                    result[key] = this.removeNulls(field, value)
+                    result[key] = this.handleEmpties(field, value)
                 } else {
                     result[key] = value
                 }

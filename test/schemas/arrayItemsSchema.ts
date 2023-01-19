@@ -13,6 +13,7 @@ export default {
             pk: {type: String, value: 'TestModel#${id}'},
             sk: {type: String, value: 'TestModel#'},
             id: {type: String, required: true},
+            name: {type: String},
 
             arrayWithTypedItems: {
                 type: Array,
@@ -20,11 +21,11 @@ export default {
                     type: Object,
                     schema: {
                         foo: {type: String},
-                        bar: {type: String, required: true},
+                        bar: {type: String /* required: true */},
                         when: {type: Date},
                     },
                 },
-                required: true,
+                // required: true,
             },
             arrayWithoutTypedItems: {type: Array, required: true},
         },

@@ -27,18 +27,24 @@ test('Create User', async () => {
         The address, city and zip properties are packed into the single 'data' attribute.
         All packed properties must be provided.
     */
-    user = await User.create({
-        name: 'Peter Smith',
-        zip: '98011',
-        address: '444 Cherry Tree Lane',
-        city: 'Seattle',
-    })
+    user = await User.create(
+        {
+            name: 'Peter Smith',
+            zip: '98011',
+            address: '444 Cherry Tree Lane',
+            city: 'Seattle',
+        },
+        {log: true}
+    )
     expect(user.name).toBe('Peter Smith')
+    expect(user.address).toBe('444 Cherry Tree Lane')
 })
 
 test('Get User', async () => {
     user = await User.get({id: user.id})
     expect(user.name).toBe('Peter Smith')
+    expect(user.address).toBe('444 Cherry Tree Lane')
+    expect(user.city).toBe('Seattle')
 })
 
 test('Find without follow', async () => {

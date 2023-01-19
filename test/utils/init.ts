@@ -57,7 +57,9 @@ const dump = (...args) => {
         )
         s.push(values)
     }
-    console.log(s.join(' '))
+    let result = s.join(' ')
+    console.log(result)
+    return result
 }
 
 const print = (...args) => {

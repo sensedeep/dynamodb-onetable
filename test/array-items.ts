@@ -6,7 +6,7 @@ import {ArrayItemsSchema} from './schemas'
 const table = new Table({
     name: 'ArrayItemsTestTable',
     client: Client,
-    partial: false,
+    partial: true,
     schema: ArrayItemsSchema,
     logger: true,
 })
@@ -29,6 +29,13 @@ test('Create Table', async () => {
 
 test('Create', async () => {
     item = await Model.create(expected, {})
+
+    await Model.update({
+        id: '1111-2222',
+        name: null,
+        arrayWithTypedItems: [{foo: null}],
+    })
+
     let when = expected.arrayWithTypedItems[0].when
     expect(item.arrayWithTypedItems[0].when.getTime()).toBe(when.getTime())
 

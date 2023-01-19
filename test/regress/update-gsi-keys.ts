@@ -22,7 +22,7 @@ const schema = {
     params: {},
 }
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const table = new Table({
     name: 'regress-1',

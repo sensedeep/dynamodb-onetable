@@ -5,7 +5,7 @@
 import {Client, Entity, Table, dump} from './utils/init'
 import {OneSchema} from '../src/index.js'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const Schema = {
     format: 'onetable:1.1.0',
@@ -73,7 +73,7 @@ test('Create User', async () => {
         address: {
             street: '42 Park Ave',
             zip: 12345,
-            box: {},
+            box: {start: new Date()},
         },
     })
     expect(user).toBeDefined()
@@ -88,7 +88,6 @@ test('Get User', async () => {
         id: userId,
         address: {
             zip: 12345,
-            box: {},
         },
     })
     expect(user).toBeDefined()
@@ -147,7 +146,7 @@ test('Update Zip Only', async () => {
     expect(user.address?.zip).toBe(99999)
 })
 
-test('Update Zip Only', async () => {
+test('Update Zip Only - partial false', async () => {
     //  Update full address (!partial). Update zip and remove address
     let user = await User.update(
         {
