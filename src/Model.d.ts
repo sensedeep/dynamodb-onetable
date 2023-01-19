@@ -182,7 +182,7 @@ type Merge<A extends any, B extends any> = {
     Merge gives better intellisense, but requires Flatten to make <infer X> work.
 */
 type Flatten<T> = {[P in keyof T]: T[P]}
-type Entity<T extends OneModel> = Flatten<Merge<Required<T>, Optional<T>>>
+type Entity<T extends OneModel> = Flatten<Merge<Required<T>, OptionalOrNull<T>>>
 
 /*
     Entity Parameters are partial Entities.
