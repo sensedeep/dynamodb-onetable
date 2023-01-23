@@ -1088,15 +1088,7 @@ export class Model {
                 value = this.decrypt(value)
             }
             if (field.default !== undefined && value === undefined) {
-                if (typeof field.default == 'function') {
-                    // DEPRECATED
-                    if (this.table.warn !== false) {
-                        console.warn('WARNING: field default functions are deprecated and will be removed soon.')
-                    }
-                    value = field.default(this, field.name, properties)
-                } else {
-                    value = field.default
-                }
+                value = field.default
             } else if (value === undefined) {
                 if (field.required) {
                     this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
@@ -1601,25 +1593,11 @@ export class Model {
 
             if (field.value === true && typeof this.table.params.value == 'function') {
                 properties[name] = this.table.params.value(this, path, properties, params)
-            } else if (typeof properties[name] == 'function') {
-                //  Undocumented and not supported for typescript
-                if (this.table.warn !== false) {
-                    console.warn('Using DEPRECATED property function')
-                }
-                properties[name] = properties[name](path, properties)
             } else if (properties[name] === undefined) {
                 if (field.value) {
-                    if (typeof field.value == 'function') {
-                        // DEPRECATED
-                        if (this.table.warn !== false) {
-                            console.warn('Using DEPRECATED value template function')
-                        }
-                        properties[name] = field.value(path, properties)
-                    } else {
-                        let value = this.runTemplate(op, index, field, properties, params, field.value)
-                        if (value != null) {
-                            properties[name] = value
-                        }
+                    let value = this.runTemplate(op, index, field, properties, params, field.value)
+                    if (value != null) {
+                        properties[name] = value
                     }
                 }
             }
@@ -1729,9 +1707,7 @@ export class Model {
     validateProperty(field, value, details, params) {
         let fieldName = field.name
 
-        //  DEPRECATE
         if (typeof params.validate == 'function') {
-            // DEPRECATED
             let error
             ;({error, value} = params.validate(this, field, value))
             if (error) {
