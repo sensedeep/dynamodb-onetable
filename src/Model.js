@@ -1102,7 +1102,7 @@ export class Model {
                 if (field.items && Array.isArray(value)) {
                     rec[name] = []
                     let i = 0
-                    for (let rvalue of raw[name]) {
+                    for (let rvalue of raw[att]) {
                         rec[name][i] = this.transformReadBlock(
                             op,
                             rvalue,
@@ -1115,7 +1115,7 @@ export class Model {
                 } else {
                     rec[name] = this.transformReadBlock(
                         op,
-                        raw[name],
+                        raw[att],
                         properties[name] || {},
                         params,
                         field.block.fields
@@ -1696,11 +1696,11 @@ export class Model {
         }
 
         if (Object.keys(validation).length > 0) {
-            let error = new OneTableError(
-                `Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`,
-                {validation, code: 'ValidationError'}
-            )
-            throw error
+            throw new OneTableError(`Validation Error in "${this.name}" for "${Object.keys(validation).join(', ')}"`, {
+                validation,
+                code: 'ValidationError',
+                properties,
+            })
         }
     }
 
