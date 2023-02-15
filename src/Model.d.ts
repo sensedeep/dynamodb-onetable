@@ -79,6 +79,7 @@ export type OneSchema = {
     models: {
         [key: string]: OneModel
     }
+    process?: object
     indexes: {
         [key: string]: OneIndex
     }
