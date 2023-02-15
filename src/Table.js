@@ -12,7 +12,6 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
-import {Converter} from 'aws-sdk/clients/dynamodb'
 
 /*
     AWS V2 DocumentClient methods
@@ -1126,7 +1125,9 @@ export class Table {
                 return this.unmarshall(image, params)
             }
             // Built in unmarshaller for SDK v2 isn't compatible with Stream Record Images
-            return Converter.unmarshall(image)
+            //  Temporarily disabled as it creates a hard V2 dependency
+            throw new Error('Cannot unmarshall AWS V2 SDK streams')
+            // return Converter.unmarshall(image)
         }
 
         const tableModels = this.listModels()
