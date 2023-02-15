@@ -17,7 +17,7 @@ export class Schema {
     constructor(table, schema) {
         this.table = table
         this.keyTypes = {}
-        this.sync = {}
+        this.process = {}
         table.schema = this
         Object.defineProperty(this, 'table', {enumerable: false})
         this.params = table.getSchemaParams()
@@ -28,7 +28,7 @@ export class Schema {
         if (this.definition) {
             let schema = this.table.assign({}, this.definition, {params: this.params})
             schema = this.transformSchemaForWrite(schema)
-            schema.sync = Object.assign({}, this.sync)
+            schema.process = Object.assign({}, this.process)
             return schema
         }
         return null
@@ -54,7 +54,7 @@ export class Schema {
                 this.models[name] = new Model(this.table, name, {fields: model})
             }
             this.createStandardModels()
-            this.sync = schema.sync
+            this.process = schema.process
         }
         return this.indexes
     }
@@ -164,7 +164,7 @@ export class Schema {
             models: {type: 'object', required: true},
             params: {type: 'object', required: true},
             queries: {type: 'object', required: true},
-            sync: {type: 'object'},
+            process: {type: 'object'},
             version: {type: 'string', required: true},
         })
         if (primary.sort) {
@@ -413,6 +413,6 @@ export class Schema {
         schema.format = SchemaFormat
 
         let model = this.getModel(SchemaModel)
-        return await model.update(schema, {exists: null})
+        return await model.create(schema, {exists: null})
     }
 }

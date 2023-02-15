@@ -9,4 +9,6 @@ test/schemas/protoSchema.ts
 .idea
 yarn.lock
 .cdrc
-
+.DS_Store
+.tags*
+*.bak
