@@ -270,6 +270,7 @@ export type OneParams = {
     set?: object
     stats?: object
     substitutions?: object
+    timestamps?: boolean
     throw?: boolean
     transform?: (model: AnyModel, op: string, name: string, value: any, properties: OneProperties) => any
     transaction?: object
