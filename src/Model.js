@@ -357,13 +357,6 @@ export class Model {
             }
             if (result.Items) {
                 items = items.concat(result.Items)
-                if (stats) {
-                    stats.count += result.Count
-                    stats.scanned += result.ScannedCount
-                    if (result.ConsumedCapacity) {
-                        stats.capacity += result.ConsumedCapacity.CapacityUnits
-                    }
-                }
             } else if (result.Item) {
                 items = [result.Item]
                 break
@@ -372,6 +365,17 @@ export class Model {
                 break
             } else if (params.count || params.select == 'COUNT') {
                 count += result.Count
+            }
+            if (stats) {
+                if (result.Count) {
+                    stats.count += result.Count
+                }
+                if (result.ScannedCount) {
+                    stats.scanned += result.ScannedCount
+                }
+                if (result.ConsumedCapacity) {
+                    stats.capacity += result.ConsumedCapacity.CapacityUnits
+                }
             }
             if (params.progress) {
                 params.progress({items, pages, stats, params, cmd})
