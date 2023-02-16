@@ -12,6 +12,7 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
+import {unmarshall} from '@aws-sdk/util-dynamodb'
 
 /*
     AWS V2 DocumentClient methods
@@ -1116,20 +1117,20 @@ export class Table {
         return item
     }
 
+    unmarshallStreamImage(image, params) {
+        if (!this.V3) {
+            return unmarshall(image)
+        }
+
+        let client = params.client ? params.client : this.client
+        let options = client.params.unmarshall
+        return client.unmarshall(image, options)
+    }
+
     /*
         Handle DynamoDb Stream Records
      */
     stream(records, params = {}) {
-        const unmarshallStreamImage = (image, params) => {
-            if (this.V3) {
-                return this.unmarshall(image, params)
-            }
-            // Built in unmarshaller for SDK v2 isn't compatible with Stream Record Images
-            //  Temporarily disabled as it creates a hard V2 dependency
-            throw new Error('Cannot unmarshall AWS V2 SDK streams')
-            // return Converter.unmarshall(image)
-        }
-
         const tableModels = this.listModels()
 
         const result = {}
@@ -1146,7 +1147,7 @@ export class Table {
 
             // Unmarshall and transform the New Image if it exists
             if (record.dynamodb.NewImage) {
-                const jsonNew = unmarshallStreamImage(record.dynamodb.NewImage, params)
+                const jsonNew = this.unmarshallStreamImage(record.dynamodb.NewImage, params)
                 typeNew = jsonNew[this.typeField]
 
                 // If type not found then don't do anything
@@ -1157,7 +1158,7 @@ export class Table {
 
             // Unmarshall and transform the Old Image if it exists
             if (record.dynamodb.OldImage) {
-                const jsonOld = unmarshallStreamImage(record.dynamodb.OldImage, params)
+                const jsonOld = this.unmarshallStreamImage(record.dynamodb.OldImage, params)
                 typeOld = jsonOld[this.typeField]
 
                 // If type not found then don't do anything
