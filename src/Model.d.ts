@@ -268,6 +268,7 @@ export type OneParams = {
     segments?: number
     select?: string
     set?: object
+    start?: object
     stats?: object
     substitutions?: object
     timestamps?: boolean
