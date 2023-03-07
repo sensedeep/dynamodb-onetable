@@ -36,7 +36,7 @@ export type OneIndex = {
  */
 export type OneField = {
     crypt?: boolean
-    default?: string | number | boolean | object | array
+    default?: string | number | boolean | object | Array<any>
     encode?: readonly (string | RegExp | number)[]
     enum?: readonly string[]
     filter?: boolean
