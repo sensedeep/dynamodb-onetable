@@ -1566,8 +1566,11 @@ export class Model {
                     continue
                 }
                 delete properties[name]
-                if (this.getPartial(field, params) === false && pathname.match(/[\[\.]/)) {
-                    //  Partial disabled for a nested object - don't create remove entry as the entire object is being created/updated
+                if (this.getPartial(field, params) === false && pathname.match(/[[.]/)) {
+                    /*
+                        Partial disabled for a nested object 
+                        Don't create remove entry as the entire object is being created/updated
+                     */
                     continue
                 }
                 if (params.remove && !Array.isArray(params.remove)) {
