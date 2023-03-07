@@ -652,9 +652,9 @@ export class Table {
                 result = result || {}
                 result.Error = 1
                 if (params.log != false) {
-                    this.log.error(`OneTable exception in "${op}" on "${model}"`, {err, trace})
+                    this.log.error(`OneTable exception in "${op}" on "${model} ${err.message}"`, {err, trace})
                 }
-                throw new OneTableError(`OneTable execute failed "${op}" for "${model}. ${err.message}`, {
+                throw new OneTableError(`OneTable execute failed "${op}" for "${model}", ${err.message}`, {
                     code,
                     err,
                     trace,

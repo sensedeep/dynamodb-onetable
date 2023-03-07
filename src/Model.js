@@ -90,18 +90,18 @@ export class Model {
 
         let fields = options.fields || this.schema.definition.models[this.name]
         if (fields) {
-            this.prepModel(fields, this.block, true)
+            this.prepModel(fields, this.block)
         }
     }
 
     /*
         Prepare a model based on the schema and compute the attribute mapping.
      */
-    prepModel(schemaFields, block, top = false) {
+    prepModel(schemaFields, block, parent) {
         let {fields} = block
 
         schemaFields = this.table.assign({}, schemaFields)
-        if (top) {
+        if (!parent) {
             //  Top level only
             if (!schemaFields[this.typeField]) {
                 schemaFields[this.typeField] = {type: String, hidden: true}
@@ -127,6 +127,10 @@ export class Model {
             if (!field.type) {
                 field.type = 'string'
                 this.table.log.error(`Missing type field for ${field.name}`, {field})
+            }
+            //  Propagate parent schema partial overrides
+            if (parent && field.partial === undefined && parent.partial !== undefined) {
+                field.partial = parent.partial
             }
             field.name = name
             fields[name] = field
@@ -174,7 +178,7 @@ export class Model {
                 Handle index requirements
             */
             let index = this.indexProperties[field.attribute[0]]
-            if (index && top) {
+            if (index && !parent) {
                 field.isIndexed = true
                 if (field.attribute.length > 1) {
                     throw new OneTableArgError(`Cannot map property "${field.name}" to a compound attribute"`)
@@ -205,7 +209,7 @@ export class Model {
             if (field.schema) {
                 if (field.type == 'object' || field.type == 'array') {
                     field.block = {deps: [], fields: {}}
-                    this.prepModel(field.schema, field.block)
+                    this.prepModel(field.schema, field.block, field)
                     //  FUTURE - better to apply this to the field block
                     this.nested = true
                 } else {
@@ -1561,6 +1565,11 @@ export class Model {
                     //  Validation will catch this
                     continue
                 }
+                delete properties[name]
+                if (this.getPartial(field, params) === false && pathname.match(/[\[\.]/)) {
+                    //  Partial disabled for a nested object - don't create remove entry as the entire object is being created/updated
+                    continue
+                }
                 if (params.remove && !Array.isArray(params.remove)) {
                     params.remove = [params.remove]
                 } else {
@@ -1568,7 +1577,6 @@ export class Model {
                 }
                 let path = pathname ? `${pathname}.${field.name}` : field.name
                 params.remove.push(path)
-                delete properties[name]
             } else if (typeof value == 'object' && (field.type == 'object' || field.type == 'array')) {
                 //  Remove nested empty strings because DynamoDB cannot handle these nested in objects or arrays
                 properties[name] = this.handleEmpties(field, value)
