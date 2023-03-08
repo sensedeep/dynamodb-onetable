@@ -961,7 +961,7 @@ export class Model {
                 properties[key] = null
             }
         }
-        this.runTemplates('put', this.indexes.primary, this.block.deps, properties, params)
+        this.runTemplates('put', '', this.indexes.primary, this.block.deps, properties, params)
         return properties
     }
 
