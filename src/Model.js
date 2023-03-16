@@ -5,6 +5,7 @@
 */
 import {Expression} from './Expression.js'
 import {OneTableError, OneTableArgError} from './Error.js'
+import {getValueFromTemplate} from './utils.js'
 
 /*
     Ready / write tags for interceptions
@@ -1083,7 +1084,17 @@ export class Model {
             if (value === undefined) {
                 if (field.encode) {
                     let [att, sep, index] = field.encode
-                    value = (raw[att] || '').split(sep)[index]
+                    
+                    if (att && !sep && !index) {
+                        let attField = fields[att]
+                        if (attField && attField.value && raw[att]) {
+                            value = getValueFromTemplate(attField.value, raw[att], name)
+                        } else {
+                            value = undefined
+                        }
+                    } else {
+                        value = (raw[att] || '').split(sep)[index]
+                    }
                 }
                 if (value === undefined) {
                     continue
