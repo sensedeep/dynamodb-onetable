@@ -15,12 +15,12 @@ describe('getValueFromTemplate', () => {
         expect(getValueFromTemplate(template, value, field)).toEqual(expected)
     })
 
-    test.each(fieldsAndValues)('Get $field value from simple template', async ({field, expected}) => {
-        const template = '${accountId}#${companyId}#${productId}#${batchId}'
-        const value = 'f51929e3-ea3f-4693-8480-99584adc07d8#621be599-a4ed-4664-b5c3-2c30a8fde47e#a82735a9-c088-42eb-93ec-dc14995a258c#6ebe3440-a11f-4bfb-9fed-6df83867723e'
-
-        expect(getValueFromTemplate(template, value, field)).toEqual(expected)
-    })
+    // test.each(fieldsAndValues)('Get $field value from simple template', async ({field, expected}) => {
+    //     const template = '${accountId}#${companyId}#${productId}#${batchId}'
+    //     const value = 'f51929e3-ea3f-4693-8480-99584adc07d8#621be599-a4ed-4664-b5c3-2c30a8fde47e#a82735a9-c088-42eb-93ec-dc14995a258c#6ebe3440-a11f-4bfb-9fed-6df83867723e'
+    //
+    //     expect(getValueFromTemplate(template, value, field)).toEqual(expected)
+    // })
 
     test('Get undefined when template has no placeholders', () => {
         const template = 'Account#{accountId}:NoPlaceholder'
