@@ -3,14 +3,14 @@ export const getValueFromTemplate = (template, value, field) => {
     const matches = template.match(regex)
 
     if (matches === null) {
-        return null
+        return undefined
     }
 
     const placeholder = `\${${field}}`
     const placeholderIndex = matches.indexOf(placeholder)
 
     if (placeholderIndex === -1) {
-        return null
+        return undefined
     }
 
     let templateSection = template
