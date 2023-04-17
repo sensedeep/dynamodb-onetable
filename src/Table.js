@@ -12,6 +12,7 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
+import {unmarshall} from '@aws-sdk/util-dynamodb'
 
 /*
     AWS V2 DocumentClient methods
