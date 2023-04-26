@@ -200,14 +200,20 @@ export class Schema {
     /*
         Thows exception if model cannot be found
      */
-    getModel(name) {
+    getModel(name, options = {nothrow: false}) {
         if (!name) {
+            if (options.nothrow) {
+                return null
+            }
             throw new Error('Undefined model name')
         }
         let model = this.models[name.toString()]
         if (!model) {
             if (name == UniqueModel) {
                 return this.uniqueModel
+            }
+            if (options.nothrow) {
+                return null
             }
             throw new Error(`Cannot find model ${name}`)
         }

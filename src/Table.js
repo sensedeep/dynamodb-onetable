@@ -12,6 +12,7 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
+import {unmarshall} from '@aws-sdk/util-dynamodb'
 
 /*
     AWS V2 DocumentClient methods
@@ -522,8 +523,8 @@ export class Table {
     /*
         Thows exception if model cannot be found
      */
-    getModel(name) {
-        return this.schema.getModel(name)
+    getModel(name, options = {nothrow: false}) {
+        return this.schema.getModel(name, options)
     }
 
     removeModel(name) {
@@ -1120,7 +1121,6 @@ export class Table {
         if (!this.V3) {
             return unmarshall(image)
         }
-
         let client = params.client ? params.client : this.client
         let options = client.params.unmarshall
         return client.unmarshall(image, options)
