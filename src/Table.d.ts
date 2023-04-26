@@ -96,7 +96,8 @@ export class Table<Schema extends OneSchema = any> {
     getLog(): any
     getKeys(): Promise<OneIndex>
     getModel<T>(
-        name: T extends ModelNames<Schema> ? T : ModelNames<Schema>
+        name: T extends ModelNames<Schema> ? T : ModelNames<Schema>,
+        options?: {nothrow: ?boolean}
     ): T extends string ? Model<Entity<Schema['models'][T]>> : Model<Entity<ExtractModel<T>>>
     getCurrentSchema(): {}
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup

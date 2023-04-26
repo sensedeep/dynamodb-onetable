@@ -3,9 +3,8 @@
 
     Uses table schema and not inline model schemas
  */
-import {AWS, Client, Entity, Model, Table, print, dump, delay} from './utils/init'
+import {Client, Entity, Model, Table, print, dump, delay} from './utils/init'
 import {NestedSchema} from './schemas'
-import {TransactionCanceledException} from '@aws-sdk/client-dynamodb'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -28,7 +27,7 @@ describe('TypeScript', () => {
     let User = table.getModel('User')
     let user: UserType
 
-    const Properties: UserType = {
+    const Properties = {
         name: 'Peter Smith',
         email: 'peter@example.com',
         status: 'active',

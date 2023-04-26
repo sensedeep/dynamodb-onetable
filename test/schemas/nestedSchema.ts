@@ -12,7 +12,7 @@ export default {
             sk: {type: String, value: '${_type}#'},
             id: {type: String, generate: 'ulid'},
             accountId: {type: String},
-            name: {type: String},
+            name: {type: String, required: true},
             email: {type: String},
             status: {type: String},
             balance: {type: Number},
@@ -30,7 +30,7 @@ export default {
                 },
             },
         },
-    },
+    } as const,
     params: {
         timestamps: true,
     },
