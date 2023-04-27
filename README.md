@@ -242,18 +242,17 @@ const MySchema = {
     } as const     // Required for TypeScript
 }
 
-//  Fully typed Account object based on the schema (must include "as const" after the models above)
-type AccountType = Entity<typeof MySchema.models.Account>
+//  Fully typed Account object based on the schema
+type Account = Entity<typeof MySchema.models.Account>
 
-let account: AccountType = {
+let account: Account = {
     name: 'Coyote',        //  OK
     unknown: 42,           //  Error
 }
 
-//  Get an Account access model (<AccountType> is inferred)
-let Account = table.getModel('Account')
+let AccountModel: Model<Account> = table.getModel('Account')
 
-let account = await Account.create({
+let account = await AccountModel.create({
     name: 'Acme',               //  OK
     unknown: 42,                //  Error
 })
