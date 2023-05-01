@@ -8,12 +8,9 @@
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import DynamoDbLocal from 'dynamo-db-local'
 
-//  For AWS V3
-// import Dynamo from 'dynamodb-onetable/Dynamo'
 // import { Table } from 'dynamodb-onetable'
 
 //  Use local source when debugging
-import Dynamo from '../../../dist/mjs/Dynamo.js'
 import {Table} from '../../../dist/mjs/index.js'
 
 /*
@@ -25,11 +22,9 @@ import Schema from './schema.js'
 const PORT = 4567
 
 //  Create a client using the AWS V3 helper
-const client = new Dynamo({
-    client: new DynamoDBClient({
-        region: 'local',
-        endpoint: `http://localhost:${PORT}`,
-    }),
+const client = new DynamoDBClient({
+    region: 'local',
+    endpoint: `http://localhost:${PORT}`,
 })
 
 //  Crypto setup for to add additional encryption layer of email addresses

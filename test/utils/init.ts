@@ -20,10 +20,6 @@ const ClientV2 = new DynamoDB.DocumentClient({
     },
 })
 
-/*
-const ClientV3 = new Dynamo({
-    client: new DynamoDBClient({
-*/
 const ClientV3 = new DynamoDBClient({
     endpoint: `http://localhost:${PORT}`,
     region: 'local',

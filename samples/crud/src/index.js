@@ -7,21 +7,16 @@
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import DynamoDbLocal from 'dynamo-db-local'
 
-//  For AWS V3
-// import Dynamo from 'dynamodb-onetable/Dynamo'
 // import { Table } from 'dynamodb-onetable'
 
 //  To debug locally
-import Dynamo from '../../../dist/mjs/Dynamo.js'
 import {Table} from '../../../dist/mjs/index.js'
 
 const PORT = 4567
 
-const client = new Dynamo({
-    client: new DynamoDBClient({
-        region: 'local',
-        endpoint: `http://localhost:${PORT}`,
-    }),
+const client = new DynamoDBClient({
+    region: 'local',
+    endpoint: `http://localhost:${PORT}`,
 })
 
 /*
