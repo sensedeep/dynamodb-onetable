@@ -127,9 +127,7 @@ export class Schema {
         let {indexes, table} = this
         let primary = indexes.primary
         let type = this.keyTypes[primary.hash] || 'string'
-        let fields = {
-            [primary.hash]: {type},
-        }
+        let fields = {[primary.hash]: {type}}
         if (primary.sort) {
             let type = this.keyTypes[primary.sort] || 'string'
             fields[primary.sort] = {type}

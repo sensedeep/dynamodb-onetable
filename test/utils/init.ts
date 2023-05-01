@@ -20,21 +20,23 @@ const ClientV2 = new DynamoDB.DocumentClient({
     },
 })
 
+/*
 const ClientV3 = new Dynamo({
     client: new DynamoDBClient({
-        endpoint: `http://localhost:${PORT}`,
-        region: 'local',
-        credentials: new AWS.Credentials({
-            accessKeyId: 'test',
-            secretAccessKey: 'test',
-        }),
-        logger: {
-            debug: dynamoExecutedCommandsTracer,
-            info: dynamoExecutedCommandsTracer,
-            warn: dynamoExecutedCommandsTracer,
-            error: dynamoExecutedCommandsTracer,
-        },
+*/
+const ClientV3 = new DynamoDBClient({
+    endpoint: `http://localhost:${PORT}`,
+    region: 'local',
+    credentials: new AWS.Credentials({
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
     }),
+    logger: {
+        debug: dynamoExecutedCommandsTracer,
+        info: dynamoExecutedCommandsTracer,
+        warn: dynamoExecutedCommandsTracer,
+        error: dynamoExecutedCommandsTracer,
+    },
 })
 
 const isV2 = () => process.env.DDB_CLIENT_VERSION === 'v2'
@@ -84,4 +86,4 @@ const Match = {
     phone: /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/,
 }
 
-export {AWS, Client, Dynamo, Entity, Match, Model, Table, delay, dump, print, dynamoExecutedCommandsTracer, isV2, isV3}
+export {AWS, Client, Entity, Match, Model, Table, delay, dump, print, dynamoExecutedCommandsTracer, isV2, isV3}

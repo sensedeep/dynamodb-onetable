@@ -8,6 +8,7 @@ import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
 import UID from './UID.js'
+import Dynamo from './Dynamo.js'
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
@@ -99,6 +100,10 @@ export class Table {
     }
 
     setClient(client) {
+        if (client.send && !client.V3) {
+            //  V3 SDK and not yet wrapped by Dynamo
+            client = new Dynamo({client})
+        }
         this.client = client
         this.V3 = client.V3
         this.service = this.V3 ? this.client : this.client.service
