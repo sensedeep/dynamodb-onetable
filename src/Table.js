@@ -4,7 +4,7 @@
     A OneTable Table represents a single (connected) DynamoDB table
  */
 
-import Buffer from 'buffer'
+import {Buffer} from 'buffer'
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
