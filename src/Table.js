@@ -4,6 +4,7 @@
     A OneTable Table represents a single (connected) DynamoDB table
  */
 
+import Buffer from 'buffer'
 import Crypto from 'crypto'
 import UUID from './UUID.js'
 import ULID from './ULID.js'
@@ -13,7 +14,6 @@ import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
 import {Metrics} from './Metrics.js'
 import {OneTableArgError, OneTableError} from './Error.js'
-import {unmarshall} from '@aws-sdk/util-dynamodb'
 
 /*
     AWS V2 DocumentClient methods
@@ -1123,9 +1123,6 @@ export class Table {
     }
 
     unmarshallStreamImage(image, params) {
-        if (!this.V3) {
-            return unmarshall(image)
-        }
         let client = params.client ? params.client : this.client
         let options = client.params.unmarshall
         return client.unmarshall(image, options)

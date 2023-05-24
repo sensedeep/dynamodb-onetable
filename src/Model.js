@@ -3,6 +3,7 @@
 
     A model represents a DynamoDB single-table entity.
 */
+import {Buffer} from 'buffer'
 import {Expression} from './Expression.js'
 import {OneTableError, OneTableArgError} from './Error.js'
 
