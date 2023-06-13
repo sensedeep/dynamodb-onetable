@@ -61,7 +61,10 @@ import {Table} from 'dynamodb-onetable'
 
 If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class. Then create a `DynamoDBClient` instance.
 
-Note: you can use the Table.setClient API to defer setting the client or replace the client at any time.
+```javascript
+import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
+const client = new DynamoDBClient(params)
+```
 
 If you are using the legacy AWS SDK V2, import the AWS `DynamoDB` class and create a `DocumentClient` instance.
 
@@ -70,13 +73,7 @@ import DynamoDB from 'aws-sdk/clients/dynamodb'
 const client = new DynamoDB.DocumentClient(params)
 ```
 
-
-```javascript
-import {Dynamo} from 'dynamodb-onetable/Dynamo'
-import {Model, Table} from 'dynamodb-onetable'
-import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
-const client = new DynamoDBClient(params)
-```
+Note: you can use the Table.setClient API to defer setting the client or replace the client at any time.
 
 Initialize your OneTable `Table` instance and define your models via a schema.
 
