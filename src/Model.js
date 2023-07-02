@@ -270,6 +270,7 @@ export class Model {
     getPropValue(properties, path) {
         let v = properties
         for (let part of path.split('.')) {
+            if (v == null) return v
             v = v[part]
         }
         return v
@@ -1080,6 +1081,7 @@ export class Model {
                 /* eslint-disable-next-line */
                 ;[att, sub] = field.attribute
             }
+            // this.table.log.info(`@@ TR ${name} ${att} ${sub}`, {att, sub, field})
             let value = raw[att]
             if (value === undefined) {
                 if (field.encode) {
@@ -1235,7 +1237,7 @@ export class Model {
                 }
             } else {
                 //  TODO support > >= < <= ..., AND or ...
-                where = `\${${name}} = {${value}}`
+                where = `\${${name}} = "{${value}}"`
             }
         } else {
             value = name
@@ -1249,6 +1251,7 @@ export class Model {
                     continue
                 }
                 name = field.map ? field.map : name
+                //  Does not seem to work with a numeric filter
                 let term = `(contains(\${${name}}, {${filter}}))`
                 where.push(term)
             }
