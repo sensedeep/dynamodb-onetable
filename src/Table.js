@@ -1139,10 +1139,7 @@ export class Table {
             if (!record.dynamodb.NewImage && !record.dynamodb.OldImage) {
                 continue
             }
-
-            const model = {
-                type: record.eventName,
-            }
+            const model = {type: record.eventName}
             let typeNew
             let typeOld
 
@@ -1156,7 +1153,6 @@ export class Table {
                     model.new = this.schema.models[typeNew].transformReadItem('get', jsonNew, {}, params)
                 }
             }
-
             // Unmarshall and transform the Old Image if it exists
             if (record.dynamodb.OldImage) {
                 const jsonOld = this.unmarshallStreamImage(record.dynamodb.OldImage, params)
@@ -1171,12 +1167,10 @@ export class Table {
                     model.old = this.schema.models[typeOld].transformReadItem('get', jsonOld, {}, params)
                 }
             }
-
             const type = typeNew || typeOld
             let list = (result[type] = result[type] || [])
             list.push(model)
         }
-
         return result
     }
 
