@@ -1081,7 +1081,6 @@ export class Model {
                 /* eslint-disable-next-line */
                 ;[att, sub] = field.attribute
             }
-            // this.table.log.info(`@@ TR ${name} ${att} ${sub}`, {att, sub, field})
             let value = raw[att]
             if (value === undefined) {
                 if (field.encode) {
