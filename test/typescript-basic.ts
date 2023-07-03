@@ -23,9 +23,9 @@ describe('TypeScript', () => {
         }
     })
 
-    type UserType = Entity<typeof NestedSchema.models.User>
-    let User = table.getModel('User')
-    let user: UserType
+    type User = Entity<typeof NestedSchema.models.User>
+    let UserModel = table.getModel('User')
+    let user: User | undefined
 
     const Properties = {
         name: 'Peter Smith',
@@ -43,58 +43,58 @@ describe('TypeScript', () => {
     }
 
     test('Create', async () => {
-        user = await User.create(Properties)
+        user = await UserModel.create(Properties)
         expect(user).toMatchObject(Properties)
     })
 
     test('Update', async () => {
-        user = await User.update({id: user.id, status: 'inactive'})
+        user = await UserModel.update({id: user!.id, status: 'inactive'})
     })
 
     test('Remove attribute', async () => {
         //  Remove attribute by setting to null
-        user = await User.update({id: user.id, status: null})
+        user = await UserModel.update({id: user!.id, status: null})
     })
 
     test('Remove attribute 2', async () => {
         //  Update and remove attributes using {remove}
-        user = await User.update({id: user.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk']})
+        user = await UserModel.update({id: user!.id, status: 'active'}, {remove: ['gs1pk', 'gs1sk']})
     })
 
     let users: any
     test('Scan', async () => {
-        users = await User.scan({})
+        users = await UserModel.scan({})
         // console.log('FOUND users', users)
     })
 
     test('Remove', async () => {
         for (let user of users) {
-            await User.remove({id: user.id})
+            await UserModel.remove({id: user.id})
         }
     })
 
     test('Check condition fails', async () => {
         const transaction = {}
-        User.check({id: 'unknownUserId'}, {transaction, exists: true})
-        await User.create(Properties, {transaction})
+        UserModel.check({id: 'unknownUserId'}, {transaction, exists: true})
+        await UserModel.create(Properties, {transaction})
         const result = await table.transact('write', transaction).catch((e) => e)
         expect(result).not.toBe(undefined)
     })
 
     test('Check condition should not exist', async () => {
         const transaction = {}
-        User.check({id: 'unknownUserId'}, {transaction, exists: false})
-        const expected = await User.create(Properties, {transaction})
+        UserModel.check({id: 'unknownUserId'}, {transaction, exists: false})
+        const expected = await UserModel.create(Properties, {transaction})
         await table.transact('write', transaction)
     })
 
     test('Check condition should exist', async () => {
-        const existing = await User.create(Properties)
+        const existing = await UserModel.create(Properties)
 
         const transaction = {}
-        User.check({id: existing.id}, {transaction, exists: true})
+        UserModel.check({id: existing.id}, {transaction, exists: true})
 
-        await User.create(Properties, {transaction})
+        await UserModel.create(Properties, {transaction})
         await table.transact('write', transaction)
     })
 

@@ -41,7 +41,7 @@ test('Create User', async () => {
 })
 
 test('Get User', async () => {
-    user = await User.get({id: user.id})
+    user = await User.get({id: user.id}, {log: true})
     expect(user.name).toBe('Peter Smith')
     expect(user.address).toBe('444 Cherry Tree Lane')
     expect(user.city).toBe('Seattle')

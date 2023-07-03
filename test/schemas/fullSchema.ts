@@ -15,7 +15,7 @@ export default {
             id: {type: String, generate: 'ulid'},
             name: {type: String},
 
-            //  Properties packed into the "data" attribute projected to the gs3 secondary index
+            //  Properties packed into the "data" attribute projected to gs1
             address: {type: String, map: 'data.address'},
             city: {type: String, map: 'data.city'},
             zip: {type: String, map: 'data.zip'},

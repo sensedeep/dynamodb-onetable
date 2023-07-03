@@ -80,8 +80,7 @@ export class Expression {
                 }
             }
         }
-
-        this.addProperties(op, null, fields, properties)
+        this.addProperties(op, this.model.block, null, properties, this.puts)
 
         /*
             Emit mapped attributes that don't correspond to schema fields.
@@ -95,7 +94,8 @@ export class Expression {
                 }
             }
             for (let [k, v] of Object.entries(this.mapped)) {
-                this.add(null, properties, {attribute: [k], name: k, filter: false}, v, properties)
+                let field = {attribute: [k], name: k, filter: false}
+                this.add(op, field, k, properties, v, this.puts)
             }
         }
         if (params.fields) {
@@ -111,35 +111,55 @@ export class Expression {
         }
     }
 
-    addProperties(op, pathname, fields, properties) {
+    /*
+        Add properties to the command. This calls itself recursively for each schema nest level.
+        At each nest level, the pathname describes the property name at that level.
+        Arrays are handled linearly here. The "rec" is only used for put requests.
+     */
+    addProperties(op, block, pathname, properties, rec) {
+        if (!properties || typeof properties != 'object') {
+            return
+        }
+        let fields = block.fields
         for (let [name, value] of Object.entries(properties)) {
-            if (this.already[name]) {
+            let field = fields[name]
+            let path
+            if ((op == 'put')) {
+                path = field ? field.attribute[0] : name
+            } else if (field) {
+                path = pathname ? `${pathname}.${field.attribute[0]}` : field.attribute[0]
+            } else {
+                path = name
+            }
+            if (!field) {
+                if (this.model.generic) {
+                    this.add(op, {attribute: [name], name}, path, properties, value, rec)
+                }
                 continue
             }
-            let field = fields[name]
-            if (field) {
-                let partial = this.model.getPartial(field, this.params)
-                if (op != 'put' && partial) {
-                    if (field.schema && value != null) {
-                        let path = pathname ? `${pathname}.${field.attribute[0]}` : field.attribute[0]
-                        if (field.isArray && Array.isArray(value)) {
-                            let i = 0
-                            for (let rvalue of value) {
-                                let indexPath = path ? `${path}[${i}]` : `${path}[${i}]`
-                                this.addProperties(op, indexPath, field.block.fields, rvalue)
-                                i++
-                            }
-                        } else {
-                            this.addProperties(op, path, field.block.fields, value)
+            let partial = this.model.getPartial(field, this.params)
+
+            if (field.schema && value != null && partial) {
+                if (field.isArray && Array.isArray(value)) {
+                    rec[path] = []
+                    if (op == 'put' || (this.params.batch && op == 'update')) {
+                        for (let i = 0; i < value.length; i++) {
+                            rec[path][i] = {}
+                            this.addProperties(op, field.block, i, value[i], rec[path][i])
                         }
                     } else {
-                        this.add(pathname, properties, field, value)
+                        for (let i = 0; i < value.length; i++) {
+                            let p = `${path}[${i}]`
+                            rec[p][i] = {}
+                            this.addProperties(op, field.block, p, value[i], rec[p][i])
+                        }
                     }
                 } else {
-                    this.add(pathname, properties, field, value)
+                    rec[path] = {}
+                    this.addProperties(op, field.block, path, value, rec[path])
                 }
-            } else if (this.model.generic) {
-                this.add(pathname, properties, {attribute: [name], name}, value)
+            } else {
+                this.add(op, field, path, properties, value, rec)
             }
         }
     }
@@ -147,25 +167,29 @@ export class Expression {
     /*
         Add a field to the command expression
      */
-    add(pathname, properties, field, value) {
-        let op = this.op
-        let attribute = field.attribute
-
+    add(op, field, path, properties, value, rec) {
+        if (this.already[path]) {
+            return
+        }
         /*
             Handle mapped and packed attributes.
             The attribute[0] contains the top level attribute name. Attribute[1] contains a nested mapping name.
         */
+        let attribute = field.attribute
         if (attribute.length > 1) {
+            /*
+                Save in mapped[] the mapped attributes which will be processed soon
+             */
+            //  MOB - test and understand
             let mapped = this.mapped
             let [k, v] = attribute
             mapped[k] = mapped[k] || {}
             mapped[k][v] = value
-            properties[k] = value
+            if (op == 'put') {
+                properties[k] = value
+            }
             return
         }
-        //  May contain a '.'
-        let path = pathname ? `${pathname}.${attribute[0]}` : attribute[0]
-
         if (path == this.hash || path == this.sort) {
             if (op == 'find') {
                 this.addKey(op, field, value)
@@ -177,23 +201,21 @@ export class Expression {
                 this.addKey(op, field, value)
             } else if (op == 'put' || (this.params.batch && op == 'update')) {
                 //  Batch does not use update expressions (Ugh!)
-                this.puts[path] = value
+                rec[path] = value
             }
-        } else {
-            if (op == 'find' || op == 'scan') {
-                //  schema.filter == false disables a field from being used in a filter
-                if (properties[field.name] !== undefined && field.filter !== false) {
-                    if (!this.params.batch) {
-                        //  Batch does not support filter expressions
-                        this.addFilter(path, field, value)
-                    }
+        } else if (op == 'find' || op == 'scan') {
+            //  schema.filter == false disables a field from being used in a filter
+            if (properties[field.name] !== undefined && field.filter !== false) {
+                if (!this.params.batch) {
+                    //  Batch does not support filter expressions
+                    this.addFilter(path, field, value)
                 }
-            } else if (op == 'put' || (this.params.batch && op == 'update')) {
-                //  Batch does not use update expressions (Ugh!)
-                this.puts[path] = value
-            } else if (op == 'update') {
-                this.addUpdate(path, field, value)
             }
+        } else if (op == 'put' || (this.params.batch && op == 'update')) {
+            //  Batch does not use update expressions (Ugh!)
+            rec[path] = value
+        } else if (op == 'update') {
+            this.addUpdate(path, field, value)
         }
     }
 
