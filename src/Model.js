@@ -635,6 +635,12 @@ export class Model {
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
+            if (params.batch) {
+                throw new OneTableError('Need complete keys for batched get operation', {
+                    properties,
+                    code: 'NonUniqueError',
+                })
+            }
             //  Fallback via find when using non-primary indexes
             params.limit = 2
             let items = await this.find(properties, params)
