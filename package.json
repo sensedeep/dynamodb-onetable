@@ -8,11 +8,13 @@
     "exports": {
         ".": {
             "import": "./dist/mjs/index.js",
-            "require": "./dist/cjs/index.js"
+            "require": "./dist/cjs/index.js",
+            "types": "./dist/mjs/index.d.ts"
         },
         "./Dynamo": {
             "import": "./dist/mjs/Dynamo.js",
-            "require": "./dist/cjs/Dynamo.js"
+            "require": "./dist/cjs/Dynamo.js",
+            "types": "./dist/mjs/Dynamo.d.ts"
         }
     },
     "keywords": [
