@@ -433,7 +433,7 @@ export class Model {
         if (op == 'find' || op == 'scan') {
             if (result.LastEvaluatedKey) {
                 items.next = this.table.unmarshall(result.LastEvaluatedKey, params)
-                Object.defineProperty(items, 'next', {enumerable: false})
+                Object.defineProperty(items, 'next', {enumerable: true})
             }
             if (params.count || params.select == 'COUNT') {
                 items.count = count
@@ -497,6 +497,7 @@ export class Model {
                 }
                 results.next = items.next
                 results.prev = items.prev
+                results.count = items.count
                 Object.defineProperty(results, 'next', {enumerable: false})
                 Object.defineProperty(results, 'prev', {enumerable: false})
                 return results
