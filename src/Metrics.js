@@ -186,7 +186,7 @@ export class Metrics {
 
     emitMetrics(timestamp, rec) {
         let {dimensionValues, dimensions, properties, totals} = rec
-        let metrics = this.metrics
+        let metricsParams = this.metrics
 
         let requests = totals.requests
         totals.latency = totals.latency / requests
@@ -194,11 +194,11 @@ export class Metrics {
         totals.scanned = totals.scanned / requests
 
         if (this.log.metrics) {
-            let chan = metrics.chan || 'dbmetrics'
+            let chan = metricsParams.chan || 'dbmetrics'
             this.log.metrics(
                 chan,
                 `OneTable Custom Metrics ${dimensions}`,
-                metrics.namespace,
+                metricsParams.namespace,
                 totals,
                 dimensions,
                 {latency: 'Milliseconds', default: 'Count'},
@@ -215,7 +215,7 @@ export class Metrics {
                         CloudWatchMetrics: [
                             {
                                 Dimensions: [dimensions],
-                                Namespace: metrics.namespace,
+                                Namespace: metricsParams.namespace,
                                 Metrics: metrics,
                             },
                         ],
