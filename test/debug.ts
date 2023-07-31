@@ -17,18 +17,18 @@ const schema = {
         primary: {hash: 'pk', sort: 'sk'},
         gs1: {hash: 'gs1pk', sort: 'gs1sk', project: 'all'},
     },
+    params: {
+        createdField: 'createdAt',
+        updatedField: 'updatedAt',
+        isoDates: true,
+        timestamps: true,
+    },
     models: {
         User: {
-            pk: {type: 'string', value: '${_type}#'},
-            sk: {type: 'string', value: '${_type}#${id}'},
-
-            gs1pk: {type: 'string', value: '${_type}#'},
-            gs1sk: {type: 'string', value: '${_type}#${id}'},
-
-            name: {type: 'string'},
-            email: {type: 'string'},
-            id: {type: 'string', generate: 'ulid'},
-        },
+            pk: { type: String, value: '${_type}#${email}' },
+            sk: { type: String, value: '${_type}#' },
+            email: { type: String, required: true },
+        }
     } as const,
 }
 
@@ -52,10 +52,10 @@ test('Create Table', async () => {
 test('Test', async () => {
     let User = table.getModel('User')
     let user = await User.create({
-        name: "mob"
+        email: "user@example.com",
     })
     dump("USER", user)
-    let users = await User.find({}, {index: 'gs1', count: true, log: true})
+    let result = await User.find({}, {log: true})
     /*
     Put your code here
     */
