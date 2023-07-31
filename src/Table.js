@@ -755,7 +755,7 @@ export class Table {
         Those will be handled here if possible.
     */
     async batchWrite(batch, params = {}) {
-        if (Object.getOwnPropertyNames(batch).length == 0) {
+        if (Object.getOwnPropertyNames(batch).length === 0) {
             return {}
         }
         let retries = 0,
@@ -763,9 +763,8 @@ export class Table {
         do {
             more = false
             let response = await this.execute(GenericModel, 'batchWrite', batch, {}, params)
-            let data = response.data
-            if (data && data.UnprocessedItems && Object.keys(data.UnprocessedItems).length) {
-                batch.RequestItems = data.UnprocessedItems
+            if (response && response.UnprocessedItems && Object.keys(response.UnprocessedItems).length) {
+                batch.RequestItems = response.UnprocessedItems
                 if (params.reprocess === false) {
                     return false
                 }
