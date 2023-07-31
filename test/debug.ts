@@ -51,11 +51,13 @@ test('Create Table', async () => {
 
 test('Test', async () => {
     let User = table.getModel('User')
+    /*
     let user = await User.create({
         email: "user@example.com",
     })
     dump("USER", user)
     let result = await User.find({}, {log: true})
+    */
     /*
     Put your code here
     */
