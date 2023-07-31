@@ -131,6 +131,9 @@ export class Expression {
             } else {
                 path = name
             }
+            if (!path) {
+                this.table.log.info(`@@ path is null`, {op, pathname, fields, field, name, value})
+            }
             if (!field) {
                 if (this.model.generic) {
                     this.add(op, {attribute: [name], name}, path, properties, value, rec)
@@ -142,17 +145,9 @@ export class Expression {
             if (field.schema && value != null && partial) {
                 if (field.isArray && Array.isArray(value)) {
                     rec[path] = []
-                    if (op == 'put' || (this.params.batch && op == 'update')) {
-                        for (let i = 0; i < value.length; i++) {
-                            rec[path][i] = {}
-                            this.addProperties(op, field.block, i, value[i], rec[path][i])
-                        }
-                    } else {
-                        for (let i = 0; i < value.length; i++) {
-                            let p = `${path}[${i}]`
-                            rec[p][i] = {}
-                            this.addProperties(op, field.block, p, value[i], rec[p][i])
-                        }
+                    for (let i = 0; i < value.length; i++) {
+                        rec[path][i] = {}
+                        this.addProperties(op, field.block, i, value[i], rec[path][i])
                     }
                 } else {
                     rec[path] = {}
