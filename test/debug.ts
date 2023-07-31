@@ -51,7 +51,11 @@ test('Create Table', async () => {
 
 test('Test', async () => {
     let User = table.getModel('User')
-    let users = await User.find({})
+    let user = await User.create({
+        name: "mob"
+    })
+    dump("USER", user)
+    let users = await User.find({}, {index: 'gs1', count: true, log: true})
     /*
     Put your code here
     */
