@@ -12,9 +12,9 @@ import Crypto from 'crypto'
 const Letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZZ'
 const LettersLen = Letters.length - 1
 
-export default function UID(size) {
-    let bytes = []
-    let buffer = Crypto.randomBytes(size)
+export default function UID(size: number): string {
+    const bytes = []
+    const buffer = Crypto.randomBytes(size)
     for (let i = 0; i < size; i++) {
         //  Letters is one longer than LettersLen
         bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]

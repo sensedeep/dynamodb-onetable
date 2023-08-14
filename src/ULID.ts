@@ -13,7 +13,8 @@ const RandomLength = 16
 const TimeLen = 10
 
 export default class ULID {
-    constructor(when) {
+    when:Date
+    constructor(when?: string | number | Date) {
         if (when instanceof Date) {
             this.when = new Date(when)
         } else if (typeof when == 'string' || typeof when == 'number') {
@@ -23,19 +24,19 @@ export default class ULID {
         }
     }
 
-    toString() {
+    toString(): string {
         return this.getTime(this.when) + this.getRandom(RandomLength)
     }
 
     //  Decode the time portion of the ULID and return a number
-    decode(ulid) {
+    decode(ulid: string | ULID): number {
         ulid = ulid.toString()
         if (ulid.length !== TimeLen + RandomLength) {
             throw new Error('Invalid ULID')
         }
-        let letters = ulid.substr(0, TimeLen).split('').reverse()
+        const letters = ulid.substr(0, TimeLen).split('').reverse()
         return letters.reduce((accum, c, index) => {
-            let i = Letters.indexOf(c)
+            const i = Letters.indexOf(c)
             if (i < 0) {
                 throw new Error(`Invalid ULID char ${c}`)
             }
@@ -44,9 +45,9 @@ export default class ULID {
         }, 0)
     }
 
-    getRandom(size) {
-        let bytes = []
-        let buffer = Crypto.randomBytes(size)
+    getRandom(size: number): string {
+        const bytes = []
+        const buffer = Crypto.randomBytes(size)
         for (let i = 0; i < size; i++) {
             //  Letters is one longer than LettersLen
             bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
@@ -54,13 +55,13 @@ export default class ULID {
         return bytes.join('')
     }
 
-    getTime(now) {
-        now = now.getTime()
-        let bytes = []
+    getTime(now: Date): string {
+        let time = now.getTime()
+        const bytes = []
         for (let i = 0; i < TimeLen; i++) {
-            let mod = now % LettersLen
+            const mod = time % LettersLen
             bytes[i] = Letters.charAt(mod)
-            now = (now - mod) / LettersLen
+            time = (time - mod) / LettersLen
         }
         return bytes.reverse().join('')
     }
