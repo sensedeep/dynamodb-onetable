@@ -1,13 +1,17 @@
 /*
     OneTable error class
  */
+export interface ErrorContext extends Record<string, unknown> {
+    code?: string,
+    name?: string
+}
 
-function init(self, message, context) {
+function init(self, message: string, context: ErrorContext) {
     self.name = self.constructor.name
     self.message = message
     if (context) {
         self.context = context
-        let code = context.code || context.name
+        const code = context.code || context.name
         if (code) {
             self.code = code
             delete context.code
@@ -22,14 +26,18 @@ function init(self, message, context) {
     }
 }
 
+
 export class OneTableError extends Error {
-    constructor(message, context = {}) {
+    context: ErrorContext
+    code?: string
+
+    constructor(message: string, context: ErrorContext = {}) {
         super(message)
         init(this, message, context)
     }
 
     toString() {
-        let buf = [`message: ${this.message}`]
+        const buf = [`message: ${this.message}`]
         if (this.context.code) {
             buf.push(`code: ${this.code}`)
         }
@@ -39,7 +47,7 @@ export class OneTableError extends Error {
             } catch (err) {
                 //  Incase context has loops in some objects. Try to handle the properties that don't have loops.
                 buf.push('{')
-                for (let [key, value] of Object.entries(this.context)) {
+                for (const [key, value] of Object.entries(this.context)) {
                     try {
                         buf.push(`    ${key}: ${JSON.stringify(value, null, 4)}`)
                     } catch (err) {
@@ -54,8 +62,11 @@ export class OneTableError extends Error {
 }
 
 export class OneTableArgError extends Error {
-    constructor(message, context = {}) {
-        super(message, context)
+    context: ErrorContext
+    code: string
+
+    constructor(message: string, context: ErrorContext = {}) {
+        super(message)
         init(this, message, context)
         this.code = context.code || 'ArgumentError'
     }

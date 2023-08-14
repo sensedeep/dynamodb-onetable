@@ -12,6 +12,7 @@ import {
     DeleteItemCommand,
     DeleteTableCommand,
     DescribeTableCommand,
+    DynamoDBClient,
     GetItemCommand,
     ListTablesCommand,
     PutItemCommand,
@@ -25,8 +26,18 @@ import {
 
 import {marshall, unmarshall} from '@aws-sdk/util-dynamodb'
 
+export interface DynamoParams {
+    client: DynamoDBClient,
+}
+
 export class Dynamo {
-    constructor(params = {}) {
+    client: DynamoDBClient // TODO Confirm type
+    V3: boolean
+    private params: DynamoParams
+    marshall: typeof marshall
+    unmarshall: typeof unmarshall
+
+    constructor(params: DynamoParams) {
         this.client = params.client
         this.params = params
         this.marshall = marshall
@@ -35,77 +46,77 @@ export class Dynamo {
     }
 
     async createTable(params) {
-        let command = new CreateTableCommand(params)
+        const command = new CreateTableCommand(params)
         return await this.send(command)
     }
 
     async deleteTable(params) {
-        let command = new DeleteTableCommand(params)
+        const command = new DeleteTableCommand(params)
         return await this.send(command)
     }
 
     async delete(params) {
-        let command = new DeleteItemCommand(params)
+        const command = new DeleteItemCommand(params)
         return await this.send(command)
     }
 
     async describeTable(params) {
-        let command = new DescribeTableCommand(params)
+        const command = new DescribeTableCommand(params)
         return await this.send(command)
     }
 
     async get(params) {
-        let command = new GetItemCommand(params)
+        const command = new GetItemCommand(params)
         return await this.send(command)
     }
 
     async find(params) {
-        let command = new QueryCommand(params)
+        const command = new QueryCommand(params)
         return await this.send(command)
     }
 
     async listTables(params) {
-        let command = new ListTablesCommand(params)
+        const command = new ListTablesCommand(params)
         return await this.send(command)
     }
 
     async put(params) {
-        let command = new PutItemCommand(params)
+        const command = new PutItemCommand(params)
         return await this.send(command)
     }
 
     async scan(params) {
-        let command = new ScanCommand(params)
+        const command = new ScanCommand(params)
         return await this.send(command)
     }
 
     async update(params) {
-        let command = new UpdateItemCommand(params)
+        const command = new UpdateItemCommand(params)
         return await this.send(command)
     }
 
     async updateTable(params) {
-        let command = new UpdateTableCommand(params)
+        const command = new UpdateTableCommand(params)
         return await this.send(command)
     }
 
     async batchGet(params) {
-        let command = new BatchGetItemCommand(params)
+        const command = new BatchGetItemCommand(params)
         return await this.send(command)
     }
 
     async batchWrite(params) {
-        let command = new BatchWriteItemCommand(params)
+        const command = new BatchWriteItemCommand(params)
         return await this.send(command)
     }
 
     async transactGet(params) {
-        let command = new TransactGetItemsCommand(params)
+        const command = new TransactGetItemsCommand(params)
         return await this.send(command)
     }
 
     async transactWrite(params) {
-        let command = new TransactWriteItemsCommand(params)
+        const command = new TransactWriteItemsCommand(params)
         return await this.send(command)
     }
 

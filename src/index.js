@@ -5,7 +5,7 @@
 import {Expression} from './Expression.js'
 import {Model} from './Model.js'
 import {Table} from './Table.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error'
 import ULID from './ULID'
 import UUID from './UUID'
 

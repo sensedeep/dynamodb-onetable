@@ -3,7 +3,7 @@
  */
 
 import {Model} from './Model.js'
-import {OneTableArgError} from './Error.js'
+import {OneTableArgError} from './Error'
 
 const GenericModel = '_Generic'
 const MigrationModel = '_Migration'

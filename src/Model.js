@@ -5,7 +5,7 @@
 */
 import {Buffer} from 'buffer'
 import {Expression} from './Expression.js'
-import {OneTableError, OneTableArgError} from './Error.js'
+import {OneTableError, OneTableArgError} from './Error'
 
 /*
     Ready / write tags for interceptions
