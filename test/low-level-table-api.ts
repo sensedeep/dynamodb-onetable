@@ -1,6 +1,6 @@
 /*
-   low-level-table-api.ts -
- */
+    low-level-table-api.ts -
+*/
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
@@ -39,6 +39,12 @@ test('Get Item', async () => {
     expect(item).toMatchObject(Properties)
 })
 
+test('Get Item with fields', async() => {
+    item = await table.getItem({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status']})
+    expect(item.status).toBe("idle")
+    expect(item.name).toBeUndefined()
+})
+
 test('Update Item', async () => {
     item = await table.updateItem({pk: Properties.pk, sk: Properties.sk, status: 'active'}, {parse: true})
     expect(item.status).toBe('active')
@@ -60,6 +66,14 @@ test('QueryItems with begins', async () => {
     expect(items.length).toBe(1)
     item = items[0]
     expect(item).toMatchObject(Properties)
+})
+
+test('Query Items with fields', async() => {
+    items = await table.queryItems({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ["status"]})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item.status).toBe("idle")
+    expect(item.name).toBeUndefined()
 })
 
 test('ScanItems', async () => {
