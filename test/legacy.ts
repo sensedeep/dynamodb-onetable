@@ -1,6 +1,6 @@
 /*
     legacy-data.ts - Access non-onetable data in legacy tables
- */
+*/
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 
 // jest.setTimeout(7200 * 1000)
@@ -58,6 +58,14 @@ test('Query Items', async () => {
     expect(users.length).toBe(1)
     user = users[0]
     expect(user.name).toBe('Peter Smith')
+    expect(user.email).toBe('peter@example.com')
+})
+
+test('Query Items with fields', async() => {
+    users = await table.queryItems({name: 'Peter Smith'}, {parse: true, fields: ["email"]})
+    expect(users.length).toBe(1)
+    user = users[0]
+    expect(user.name).toBeUndefined()
     expect(user.email).toBe('peter@example.com')
 })
 
