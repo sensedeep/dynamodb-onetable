@@ -1,6 +1,6 @@
 /*
     crud.ts - Basic create, read, update delete
- */
+*/
 import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
 
@@ -106,6 +106,17 @@ test('Get including hidden', async () => {
     expect(user.updated).toEqual(expect.any(Date))
     expect(user.id).toMatch(Match.ulid)
     expect(user.pk).toMatch(/^User#/)
+})
+
+test('Get with fields', async () => {
+    // Fetch both a reserved keyword ("name") and a regular keyword ("status").
+    // We must also fetch "id" because the next test depends on it being present.
+    user = await User.get({id: user.id}, {fields: ["status", "name", "id"]})
+    expect(user).toMatchObject({
+        status: 'active',
+        name: 'Peter Smith',
+    })
+    expect(user.age).toBeUndefined()
 })
 
 test('Find by ID', async () => {
