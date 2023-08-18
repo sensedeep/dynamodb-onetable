@@ -132,7 +132,7 @@ export class Expression {
                 path = name
             }
             if (!path) {
-                this.table.log.info(`@@ path is null`, {op, pathname, fields, field, name, value})
+                this.table.log.info(`Path is null`, {op, pathname, fields, field, name, value})
             }
             if (!field) {
                 if (this.model.generic) {
@@ -147,7 +147,8 @@ export class Expression {
                     rec[path] = []
                     for (let i = 0; i < value.length; i++) {
                         rec[path][i] = {}
-                        this.addProperties(op, field.block, i, value[i], rec[path][i])
+                        let ipath = `${path}[${i}]`
+                        this.addProperties(op, field.block, ipath, value[i], rec[path][i])
                     }
                 } else {
                     rec[path] = {}
@@ -175,7 +176,6 @@ export class Expression {
             /*
                 Save in mapped[] the mapped attributes which will be processed soon
              */
-            //  MOB - test and understand
             let mapped = this.mapped
             let [k, v] = attribute
             mapped[k] = mapped[k] || {}
