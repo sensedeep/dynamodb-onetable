@@ -63,7 +63,19 @@ beforeAll(async () => {
 
 test('model.get() respects the fields.', async () => {
     // Works as expected, only returns id and name.
-    let userGet = await User.get({pk: userId}, {fields: ["id", "name"], parse: true})
+    const user = await User.get({pk: userId}, {fields: ["id", "name"], parse: true})
+    expect(user).toMatchObject({
+        name: "Daenerys I Targaryen",
+    });
+    expect(user!.id).toMatch(Match.ulid);
+    expect(user!.nickName).toBeUndefined();
+    expect(user!.email).toBeUndefined();
+})
+
+test('model.find() respects the fields.', async () => {
+    // Works as expected, only returns id and name.
+    let users = await User.find({pk: userId}, {fields: ["id", "name"], parse: true})
+    let userGet = users[0]
     expect(userGet).toMatchObject({
         name: "Daenerys I Targaryen",
     });
