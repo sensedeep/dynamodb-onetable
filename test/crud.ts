@@ -131,6 +131,18 @@ test('Find by ID', async () => {
     })
 })
 
+test('Find by ID with fields', async () => {
+    users = await User.find({id: user.id}, {fields: ['status', 'name', 'unknown']})
+    expect(users.length).toBe(1)
+    user = users[0]
+    expect(user).toMatchObject({
+        name: 'Peter Smith',
+        status: 'active',
+    })
+    expect(user.unknown).toBeUndefined()
+    expect(user.age).toBeUndefined()
+})
+
 test('Find by name on GSI', async () => {
     users = await User.find({name: user.name}, {index: 'gs1'})
     expect(users.length).toBe(1)
