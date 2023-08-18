@@ -280,6 +280,7 @@ export type OneParams = {
     type?: string
     tunnel?: object
     where?: string
+    profile?: string
 }
 
 /*

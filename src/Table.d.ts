@@ -14,6 +14,7 @@ import {
     Paged,
     Entity,
 } from './Model'
+import { Metrics } from './Metrics'
 import {DynamoDBRecord} from 'aws-lambda'
 
 export type EntityGroup = {
@@ -78,6 +79,7 @@ type ExtractModel<M> = M extends Entity<infer X> ? X : never
 
 export class Table<Schema extends OneSchema = any> {
     name: string
+    metrics: Metrics
     constructor(params: TableConstructorParams<Schema>)
 
     addContext(context?: {}): Table<Schema>
@@ -97,7 +99,7 @@ export class Table<Schema extends OneSchema = any> {
     getKeys(): Promise<OneIndex>
     getModel<T>(
         name: T extends ModelNames<Schema> ? T : ModelNames<Schema>,
-        options?: {nothrow: boolean}
+        options?: {nothrow?: boolean}
     ): T extends string ? Model<Entity<Schema['models'][T]>> : Model<Entity<ExtractModel<T>>>
     getCurrentSchema(): {}
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup
