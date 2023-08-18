@@ -82,6 +82,93 @@ test('Create', async () => {
     expect(user.sk).toBeUndefined()
 })
 
+test('no duplicate john smiths', async () => {
+    const now = new Date()
+    const paramsJohn = {
+        name: 'John Smith',
+        email: 'john@example.com',
+        profile: {
+            avatar: 'bear',
+        },
+        status: 'active',
+        age: 42,
+        registered: now,
+    }
+    const john = await User.create(paramsJohn, {
+        where: 'attribute_not_exists(${name})',
+    })
+
+    const john2 = User.create(paramsJohn, {
+        where: 'attribute_not_exists(${gs1pk}, @{name}})',
+        substitutions: {
+            johnId: john.id,
+        },
+    })
+
+    expect(john2).rejects.toThrow()
+    await User.remove({id: john.id})
+})
+
+test('no duplicate names', async () => {
+    const now = new Date()
+    const paramsJohn = {
+        name: 'John Smith',
+        email: 'john@example.com',
+        profile: {
+            avatar: 'bear',
+        },
+        status: 'active',
+        age: 42,
+        registered: now,
+    }
+
+    //
+    const john = await User.create(paramsJohn, {
+        where: 'attribute_not_exists(${name})',
+    })
+
+    // no duplicate ids in pk
+    const john2 = User.create(paramsJohn, {
+        where: 'attribute_not_exists(${pk}, @{_type}#@{johnId}})',
+        substitutions: {
+            _type: User.name,
+            johnId: john.id,
+        },
+    })
+    expect(john2).rejects.toThrow()
+
+    await User.remove({id: john.id})
+})
+
+test('no duplicate ids', async () => {
+    const now = new Date()
+    const paramsJohn = {
+        name: 'John Smith',
+        email: 'john@example.com',
+        profile: {
+            avatar: 'bear',
+        },
+        status: 'active',
+        age: 42,
+        registered: now,
+    }
+    const john = await User.create(paramsJohn, {
+        where: 'attribute_not_exists(${name})',
+    })
+
+    // no duplicate ids in pk
+    const john2 = User.create(paramsJohn, {
+        where: 'attribute_not_exists(${pk}, @{_type}#@{johnId}})',
+        substitutions: {
+            _type: User.name,
+            johnId: john.id,
+        },
+    })
+    expect(john2).rejects.toThrow()
+
+    await User.remove({id: john.id})
+})
+
 test('Get', async () => {
     user = await User.get({id: user.id})
     expect(user).toMatchObject({
