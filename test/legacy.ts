@@ -62,9 +62,11 @@ test('Query Items', async () => {
 })
 
 test('Query Items with fields', async() => {
-    users = await table.queryItems({name: 'Peter Smith'}, {parse: true, fields: ["email"]})
+    // Requesting both a known attribute (status) as well as an unknown one to show unknown fields are ignored.
+    users = await table.queryItems({name: 'Peter Smith'}, {parse: true, fields: ['email', 'unknown']})
     expect(users.length).toBe(1)
     user = users[0]
+    expect(user.unknown).toBeUndefined()
     expect(user.name).toBeUndefined()
     expect(user.email).toBe('peter@example.com')
 })

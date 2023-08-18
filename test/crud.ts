@@ -109,13 +109,15 @@ test('Get including hidden', async () => {
 })
 
 test('Get with fields', async () => {
-    // Fetch both a reserved keyword ("name") and a regular keyword ("status").
+    // Fetch a reserved keyword (name), a regular keyword (status) and an unknown keyword.
     // We must also fetch "id" because the next test depends on it being present.
-    user = await User.get({id: user.id}, {fields: ["status", "name", "id"]})
+    user = await User.get({id: user.id}, {fields: ['status', 'name', 'unknown', 'id']})
     expect(user).toMatchObject({
         status: 'active',
         name: 'Peter Smith',
     })
+    expect(user.id).toMatch(Match.ulid)
+    expect(user.unknown).toBeUndefined()
     expect(user.age).toBeUndefined()
 })
 

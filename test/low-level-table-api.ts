@@ -40,8 +40,10 @@ test('Get Item', async () => {
 })
 
 test('Get Item with fields', async() => {
-    item = await table.getItem({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status']})
+    // Requesting both a known attribute (status) as well as an unknown one to show unknown fields are ignored.
+    item = await table.getItem({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status', 'unknown']})
     expect(item.status).toBe("idle")
+    expect(item.unknown).toBeUndefined()
     expect(item.name).toBeUndefined()
 })
 
@@ -69,7 +71,8 @@ test('QueryItems with begins', async () => {
 })
 
 test('Query Items with fields', async() => {
-    items = await table.queryItems({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ["status"]})
+    // Requesting both a known attribute (status) as well as an unknown one to show unknown fields are ignored.
+    items = await table.queryItems({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status', 'unknown']})
     expect(items.length).toBe(1)
     item = items[0]
     expect(item.status).toBe("idle")
