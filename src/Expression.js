@@ -80,7 +80,9 @@ export class Expression {
                 }
             }
         }
-        this.addProperties(op, this.model.block, null, properties, this.puts)
+        //  Batch does not use update expressions (Ugh!)
+        let rec = (op == 'put' || (this.params.batch && op == 'update')) ? this.puts : null
+        this.addProperties(op, this.model.block, null, properties, rec)
 
         /*
             Emit mapped attributes that don't correspond to schema fields.
@@ -95,7 +97,7 @@ export class Expression {
             }
             for (let [k, v] of Object.entries(this.mapped)) {
                 let field = {attribute: [k], name: k, filter: false}
-                this.add(op, field, k, properties, v, this.puts)
+                this.add(op, field, k, properties, v, rec)
             }
         }
         if (params.fields) {
@@ -140,19 +142,47 @@ export class Expression {
                 }
                 continue
             }
-            let partial = this.model.getPartial(field, this.params)
-
-            if (field.schema && value != null && partial) {
+            if (field.schema && value != null) {
                 if (field.isArray && Array.isArray(value)) {
-                    rec[path] = []
-                    for (let i = 0; i < value.length; i++) {
-                        rec[path][i] = {}
-                        let ipath = `${path}[${i}]`
-                        this.addProperties(op, field.block, ipath, value[i], rec[path][i])
+                    if (rec) {
+                        rec[path] = []
+                        for (let i = 0; i < value.length; i++) {
+                            rec[path][i] = {}
+                            let ipath = `${path}[${i}]`
+                            this.addProperties(op, field.block, ipath, value[i], rec[path][i])
+                        }
+                    } else {
+                        for (let i = 0; i < value.length; i++) {
+                            if (value[i] != undefined) {
+                                let ipath = `${path}[${i}]`
+                                this.addProperties(op, field.block, ipath, value[i])
+                            }
+                        }
                     }
                 } else {
-                    rec[path] = {}
-                    this.addProperties(op, field.block, path, value, rec[path])
+                    let partial = this.model.getPartial(field, this.params)
+                    if (partial) {
+                        if (rec) {
+                            //  Put or batch update
+                            rec[path] = {}
+                            this.addProperties(op, field.block, path, value, rec[path])
+                        } else {
+                            this.addProperties(op, field.block, path, value)
+                        }
+                    } else {
+                        /*
+                            If not partial, then update whole object. Must still process each property.
+                         */
+                        if (rec) {
+                            rec[path] = {}
+                            this.addProperties(op, field.block, path, value, rec[path])
+                        } else {
+                            //  Top level object. Gather (mapped) properties in rec and then add.
+                            let gather = {}
+                            this.addProperties(op, field.block, '', value, gather)
+                            this.add(op, field, path, properties, gather, rec)
+                        }
+                    }
                 }
             } else {
                 this.add(op, field, path, properties, value, rec)
@@ -194,7 +224,7 @@ export class Expression {
                 }
             } else if ((op == 'delete' || op == 'get' || op == 'update' || op == 'check') && field.isIndexed) {
                 this.addKey(op, field, value)
-            } else if (op == 'put' || (this.params.batch && op == 'update')) {
+            } else if (rec) {
                 //  Batch does not use update expressions (Ugh!)
                 rec[path] = value
             }
@@ -206,8 +236,7 @@ export class Expression {
                     this.addFilter(path, field, value)
                 }
             }
-        } else if (op == 'put' || (this.params.batch && op == 'update')) {
-            //  Batch does not use update expressions (Ugh!)
+        } else if (rec) {
             rec[path] = value
         } else if (op == 'update') {
             this.addUpdate(path, field, value)

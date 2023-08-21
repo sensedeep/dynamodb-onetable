@@ -171,7 +171,7 @@ export class Table {
         this.updatedField = params.updatedField || 'updated'
 
         if (params.hidden != null) {
-            console.warn(`Schema hidden params should be specified via the Table constructor params`)
+            this.log.warn(`Schema hidden params should be specified via the Table constructor params`, {'@stack': true})
         }
     }
 
