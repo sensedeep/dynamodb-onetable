@@ -5,7 +5,8 @@
 
     Or run VS Code in the top level directory and just run.
  */
-import {Client, Match, Table} from './utils/init'
+import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
+import {OneSchema} from '../src/index.js'
 
 jest.setTimeout(7200 * 1000)
 
@@ -13,7 +14,8 @@ jest.setTimeout(7200 * 1000)
 const schema = {
     version: '0.0.1',
     indexes: {
-        primary: {hash: 'pk'},
+        primary: {hash: 'pk', sort: 'sk'},
+        gs1: {hash: 'gs1pk', sort: 'gs1sk', project: 'all'},
     },
     params: {
         createdField: 'createdAt',
@@ -23,11 +25,8 @@ const schema = {
     },
     models: {
         User: {
-            pk: { type: String, value: '${id}'},
-
-            name: { type: String },
-            nickName: { type: String },
-            id: { type: String, generate: "ulid" },
+            pk: { type: String, value: '${_type}#${email}' },
+            sk: { type: String, value: '${_type}#' },
             email: { type: String, required: true },
         }
     } as const,
@@ -42,58 +41,26 @@ const table = new Table({
     logger: true,
 })
 
-const userProperties = {
-    name: "Daenerys I Targaryen",
-    nickName: "Breaker of chains",
-    email: "iHeartDragons@example.com",
-}
-
-let userId: string
-const User = table.getModel('User')
-
-beforeAll(async () => {
-    //  This will create a local table
+//  This will create a local table
+test('Create Table', async () => {
     if (!(await table.exists())) {
         await table.createTable()
         expect(await table.exists()).toBe(true)
     }
-    let user = await User.create(userProperties)
-    userId = user.id!
 })
 
-test('model.get() respects the fields.', async () => {
-    // Works as expected, only returns id and name.
-    const user = await User.get({pk: userId}, {fields: ["id", "name"], parse: true})
-    expect(user).toMatchObject({
-        name: "Daenerys I Targaryen",
-    });
-    expect(user!.id).toMatch(Match.ulid);
-    expect(user!.nickName).toBeUndefined();
-    expect(user!.email).toBeUndefined();
-})
-
-test('model.find() respects the fields.', async () => {
-    // Works as expected, only returns id and name.
-    let users = await User.find({pk: userId}, {fields: ["id", "name"], parse: true})
-    let userGet = users[0]
-    expect(userGet).toMatchObject({
-        name: "Daenerys I Targaryen",
-    });
-    expect(userGet!.id).toMatch(Match.ulid);
-    expect(userGet!.nickName).toBeUndefined();
-    expect(userGet!.email).toBeUndefined();
-})
-
-test('table.getItem() does not respect the fields.', async () => {
-    // Should break but doesn't because the entire record is returned.
-    let tableGetItem = await table.getItem({pk: userId}, {fields: ["id", "name"], parse: true})
-    expect(tableGetItem).toMatchObject(userProperties);
-})
-    
-test('table.queryItems() does not respect the fields.', async () => {
-    // Should break but doesn't because the entire record is returned.
-    let tableQueryItems = await table.queryItems({pk: userId}, {fields: ["id", "name"], parse: true})
-    expect(tableQueryItems[0]).toMatchObject(userProperties);
+test('Test', async () => {
+    let User = table.getModel('User')
+    /*
+    let user = await User.create({
+        email: "user@example.com",
+    })
+    dump("USER", user)
+    let result = await User.find({}, {log: true})
+    */
+    /*
+    Put your code here
+    */
 })
 
 test('Destroy Table', async () => {
