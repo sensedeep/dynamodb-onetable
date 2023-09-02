@@ -41,7 +41,6 @@ OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeSc
 -   Simple and easy to read source.
 -   Integrated statistics.
 -   Safety options to prevent "rm -fr \*".
--   No external module dependencies.
 -   Support for the AWS SDK v3.
 -   TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
 -   Migrations support via [OneTable Migrate](https://github.com/sensedeep/onetable-migrate) and [OneTable CLI](https://github.com/sensedeep/onetable-cli).

@@ -9,6 +9,7 @@
         "lib": ["esnext"],
         "listEmittedFiles": false,
         "listFiles": false,
+        "moduleResolution": "node",
         "noFallthroughCasesInSwitch": true,
         "noImplicitAny": false,
         "pretty": true,
