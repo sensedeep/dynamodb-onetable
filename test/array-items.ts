@@ -29,6 +29,13 @@ test('Create Table', async () => {
 
 test('Create', async () => {
     item = await Model.create(expected, {})
+    expect(item).toBeDefined()
+    expect(item.id).toBeDefined()
+    expect(item.arrayWithTypedItems).toBeDefined()
+    expect(item.arrayWithTypedItems.length).toBe(1)
+    expect(item.arrayWithTypedItems[0].bar).toBe('Bar')
+    expect(item.arrayWithoutTypedItems.length).toBe(4)
+    expect(item.arrayWithoutTypedItems[0]).toBe('a')
 
     await Model.update({
         id: '1111-2222',

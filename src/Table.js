@@ -4,11 +4,10 @@
     A OneTable Table represents a single (connected) DynamoDB table
  */
 
+import process from 'process'
 import {Buffer} from 'buffer'
 import Crypto from 'crypto'
-import UUID from './UUID.js'
-import ULID from './ULID.js'
-import UID from './UID.js'
+import {UID, ULID, UUID} from './UID.js'
 import Dynamo from './Dynamo.js'
 import {Expression} from './Expression.js'
 import {Schema} from './Schema.js'
@@ -59,6 +58,19 @@ const GenericModel = '_Generic'
 const maxBatchSize = 25
 
 /*
+    On exit, flush any buffered metrics. This requires any Lambda layer to receive this signal
+ */
+process.on(
+    'SIGTERM',
+    /* istanbul ignore next */
+    async () => {
+        /* istanbul ignore next */
+        //  MOB - should flush local metrics too
+        await CustomMetrics.terminate()
+    }
+)
+
+/*
     Represent a single DynamoDB table
  */
 export class Table {
@@ -94,6 +106,10 @@ export class Table {
         this.updatedField = 'updated'
 
         this.schema = new Schema(this, params.schema)
+
+        if (params.metrics) {
+            this.metrics = new Metrics(this, params.metrics)
+        }
         if (params.dataloader) {
             this.dataloader = new params.dataloader((cmds) => this.batchLoaderFunction(cmds), {maxBatchSize})
         }
@@ -153,9 +169,6 @@ export class Table {
 
         this.name = params.name
 
-        if (params.metrics) {
-            this.metrics = new Metrics(this, params.metrics, this.metrics)
-        }
         if (params.monitor) {
             this.monitor = params.monitor
         }
@@ -523,6 +536,9 @@ export class Table {
 
     setLog(log) {
         this.log = log
+        if (this.metrics) {
+            this.metrics.setLog(log)
+        }
     }
 
     /*
@@ -669,7 +685,7 @@ export class Table {
         } finally {
             if (result) {
                 if (this.metrics) {
-                    this.metrics.add(model, op, result, params, mark)
+                    await this.metrics.add(model, op, result, params, mark)
                 }
                 if (this.monitor) {
                     await this.monitor(model, op, result, params, mark)
@@ -1224,6 +1240,10 @@ export class Table {
         return new Promise(function (resolve) {
             setTimeout(() => resolve(true), time)
         })
+    }
+
+    async flushMetrics() {
+        await this.metrics.flushMetrics()
     }
 }
 

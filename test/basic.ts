@@ -1,10 +1,9 @@
 /*
     basic.ts - Basic create / get
  */
-import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
-import {OneSchema} from '../src/index.js'
+import {AWS, Client, Table, print, dump} from './utils/init'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const schema = {
     version: '0.0.1',
@@ -29,7 +28,7 @@ const schema = {
 }
 
 const table = new Table({
-    name: 'DebugTable',
+    name: 'BasicTable',
     client: Client,
     partial: true,
     schema,

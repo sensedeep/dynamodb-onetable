@@ -14,9 +14,7 @@ module.exports = async () => {
     // Run docker for any truthy DOCKER value
     if (USE_DOCKER) {
         const args = [`run`, `-p`, `${PORT}:8000`, `amazon/dynamodb-local`]
-        console.info('\nUsing docker to run dynamoDB', {
-            args,
-        })
+        console.info('\nUsing docker to run dynamoDB', {args})
 
         // Docker errors will be forwarded to the local terminal with stdio: inherit
         dynamodb = spawn(`docker`, args, {
@@ -24,20 +22,13 @@ module.exports = async () => {
             stdio: 'inherit',
         })
     } else {
-        console.info('Using local Java to run dynamoDB')
-        dynamodb = DynamoDbLocal.spawn({port: PORT, stdio: 'inherit'})
+        dynamodb = DynamoDbLocal.spawn({port: PORT})
     }
-
-    console.info('Spawn DynamoDB', dynamodb.pid)
-
     await waitPort({
         host: '0.0.0.0',
         port: PORT,
         timeout: 10000,
     })
-
-    console.info('DynamoDB is ready')
-
     process.env.DYNAMODB_PID = String(dynamodb.pid)
     process.env.DYNAMODB_PORT = String(PORT)
 

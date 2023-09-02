@@ -1,9 +1,9 @@
 /*
     metric.ts - Metrics test
  */
-import {AWS, Client, Entity, Match, Model, Table, print, dump, delay} from './utils/init'
+import {Client, Table, print, dump} from './utils/init'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const schema = {
     version: '0.0.1',

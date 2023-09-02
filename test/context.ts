@@ -1,7 +1,7 @@
 /*
     context.ts - Test context APIs
  */
-import {AWS, Client, Entity, Match, Table, print, dump, delay} from './utils/init'
+import {AWS, Client, Match, Table, print, dump} from './utils/init'
 import {TenantSchema} from './schemas'
 
 // jest.setTimeout(7200 * 1000)
@@ -13,7 +13,6 @@ const table = new Table({
     schema: TenantSchema,
     logger: true,
 })
-const accountId = table.uuid()
 
 test('Create table', async () => {
     if (!(await table.exists())) {
@@ -22,7 +21,6 @@ test('Create table', async () => {
     }
 })
 
-type UserType = Entity<typeof TenantSchema.models.User>
 let User = table.getModel('User')
 let Account = table.getModel('Account')
 let account: any

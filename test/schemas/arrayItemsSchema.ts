@@ -21,11 +21,10 @@ export default {
                     type: Object,
                     schema: {
                         foo: {type: String},
-                        bar: {type: String /* required: true */},
+                        bar: {type: String},
                         when: {type: Date},
                     },
                 },
-                // required: true,
             },
             arrayWithoutTypedItems: {type: Array, required: true},
         },

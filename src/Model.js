@@ -129,13 +129,14 @@ export class Model {
                 field.type = 'string'
                 this.table.log.error(`Missing type field for ${field.name}`, {field})
             }
-            //  Propagate parent schema partial overrides
-            if (parent && field.partial === undefined && parent.partial !== undefined) {
-                field.partial = parent.partial
-            }
+
             field.name = name
             fields[name] = field
             field.isoDates = field.isoDates != null ? field.isoDates : table.isoDates || false
+
+            if (field.partial == null) {
+                field.partial = parent && parent.partial != null ? parent.partial : this.table.partial
+            }
 
             if (field.uuid) {
                 throw new OneTableArgError(
@@ -193,6 +194,9 @@ export class Model {
                         this.sort = attribute
                     }
                 }
+            }
+            if (parent && field.partial === undefined && parent.partial !== undefined) {
+                field.partial = parent.partial
             }
             if (field.value) {
                 //  Value template properties are hidden by default
@@ -826,7 +830,6 @@ export class Model {
         if (index.sort) {
             keys[index.sort] = properties[index.sort]
         }
-
         /*
             Get the prior item so we know the previous unique property values so they can be removed.
             This must be run here, even if part of a transaction.
@@ -850,7 +853,6 @@ export class Model {
             if (isUnchanged) {
                 continue
             }
-
             let scope = ''
             if (field.scope) {
                 scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
@@ -2001,15 +2003,16 @@ export class Model {
         return result
     }
 
+    /*
+        Return if a field supports partial updates of its children.
+        Only relevant for fields with nested schema 
+     */
     getPartial(field, params) {
         let partial = params.partial
         if (partial === undefined) {
             partial = field.partial
-            if (partial == undefined) {
-                partial = this.table.partial
-            }
         }
-        return partial
+        return partial ? true : false
     }
 
     /*  KEEP

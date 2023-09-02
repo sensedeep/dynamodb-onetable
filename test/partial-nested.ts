@@ -127,6 +127,13 @@ test('Test partial array updates', async () => {
     expect(user.list!.length).toBe(1)
     expect(user.list![0].number).toBe(23)
 
+    let u = await User.get({email: user.email})
+    expect(u!.email).toBeDefined()
+    expect(user.email).toBe('admin@example.com')
+    expect(user.list).toBeDefined()
+    expect(user.list!.length).toBe(1)
+    expect(user.list![0].number).toBe(23)
+
     /*
         Cannot do a partial array update (use params {set} instead)
      */
@@ -156,6 +163,27 @@ test('Test partial array updates', async () => {
     expect(user.list).toBeDefined()
     expect(user.list!.length).toBe(1)
     expect(user.list![0].number).toBe(100)
+
+    //  Partial list update will preserve the list (no updates to make)
+    user = await User.update(
+        {
+            email: user.email,
+            list: [],
+        },
+        {partial: true}
+    )
+    expect(user).toBeDefined()
+    expect(user.list!.length).toBe(1)
+
+    //  Set list to empty
+    user = await User.update({
+        email: user.email,
+        list: [],
+    })
+    expect(user).toBeDefined()
+    expect(user.email).toBe('admin@example.com')
+    expect(user.list).toBeDefined()
+    expect(user.list!.length).toBe(0)
 })
 
 test('Destroy Table', async () => {

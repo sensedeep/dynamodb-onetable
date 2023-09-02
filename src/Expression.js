@@ -29,6 +29,7 @@ export class Expression {
         this.mapped = {} //  Mapped fields.
         this.names = {} //  Expression names. Keys are the indexes.
         this.namesMap = {} //  Expression names reverse map. Keys are the names.
+
         this.puts = {} //  Put values
         this.project = [] //  Projection expressions.
         this.values = {} //  Expression values. Keys are the value indexes.
@@ -63,6 +64,7 @@ export class Expression {
     prepare() {
         let {op, params, properties} = this
         let fields = this.model.block.fields
+        this.canPut = op == 'put' || (this.params.batch && op == 'update')
         if (op == 'find') {
             this.addWhereFilters()
         } else if (op == 'delete' || op == 'put' || op == 'update' || op == 'check') {
@@ -81,8 +83,8 @@ export class Expression {
             }
         }
         //  Batch does not use update expressions (Ugh!)
-        let rec = (op == 'put' || (this.params.batch && op == 'update')) ? this.puts : null
-        this.addProperties(op, this.model.block, null, properties, rec)
+        // let rec = op == 'put' || (this.params.batch && op == 'update') ? {} : null
+        this.puts = this.addProperties(op, this.model.block, properties)
 
         /*
             Emit mapped attributes that don't correspond to schema fields.
@@ -96,8 +98,9 @@ export class Expression {
                 }
             }
             for (let [k, v] of Object.entries(this.mapped)) {
-                let field = {attribute: [k], name: k, filter: false}
-                this.add(op, field, k, properties, v, rec)
+                let field = {attribute: [k], name: k, filter: false, path: k}
+                this.add(op, properties, field, k, v)
+                this.puts[k] = v
             }
         }
         if (params.fields) {
@@ -115,91 +118,63 @@ export class Expression {
 
     /*
         Add properties to the command. This calls itself recursively for each schema nest level.
-        At each nest level, the pathname describes the property name at that level.
-        Arrays are handled linearly here. The "rec" is only used for put requests.
+        Emit update/filter expressions if emit is true
      */
-    addProperties(op, block, pathname, properties, rec) {
-        if (!properties || typeof properties != 'object') {
-            return
-        }
+    addProperties(op, block, properties, ppath = '', emit = true) {
+        let rec = {}
         let fields = block.fields
+
+        if (!properties || typeof properties != 'object') {
+            return properties
+        }
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
-            let path
-            if ((op == 'put')) {
-                path = field ? field.attribute[0] : name
-            } else if (field) {
-                path = pathname ? `${pathname}.${field.attribute[0]}` : field.attribute[0]
-            } else {
-                path = name
-            }
-            if (!path) {
-                this.table.log.info(`Path is null`, {op, pathname, fields, field, name, value})
-            }
             if (!field) {
+                field = {attribute: [name], name, path: name}
                 if (this.model.generic) {
-                    this.add(op, {attribute: [name], name}, path, properties, value, rec)
+                    this.add(op, properties, field, name, value)
                 }
-                continue
-            }
-            if (field.schema && value != null) {
-                if (field.isArray && Array.isArray(value)) {
-                    if (rec) {
-                        rec[path] = []
-                        for (let i = 0; i < value.length; i++) {
-                            rec[path][i] = {}
-                            let ipath = `${path}[${i}]`
-                            this.addProperties(op, field.block, ipath, value[i], rec[path][i])
-                        }
-                    } else {
-                        for (let i = 0; i < value.length; i++) {
-                            if (value[i] != undefined) {
-                                let ipath = `${path}[${i}]`
-                                this.addProperties(op, field.block, ipath, value[i])
-                            }
-                        }
-                    }
+            } else {
+                let attribute = field.attribute[0]
+                let path = ppath ? `${ppath}.${attribute}` : attribute
+                if (!field.schema) {
+                    this.add(op, properties, field, path, value, emit)
                 } else {
                     let partial = this.model.getPartial(field, this.params)
-                    if (partial) {
-                        if (rec) {
-                            //  Put or batch update
-                            rec[path] = {}
-                            this.addProperties(op, field.block, path, value, rec[path])
-                        } else {
-                            this.addProperties(op, field.block, path, value)
+                    if (field.isArray && Array.isArray(value)) {
+                        value = value.slice(0)
+                        for (let [key, v] of Object.entries(value)) {
+                            let ipath = `${path}[${key}]`
+                            value[key] = this.addProperties(op, field.block, v, ipath, emit && partial)
+                        }
+                        if (emit && !partial) {
+                            this.add(op, properties, field, path, value, emit)
                         }
                     } else {
-                        /*
-                            If not partial, then update whole object. Must still process each property.
-                         */
-                        if (rec) {
-                            rec[path] = {}
-                            this.addProperties(op, field.block, path, value, rec[path])
-                        } else {
-                            //  Top level object. Gather (mapped) properties in rec and then add.
-                            let gather = {}
-                            this.addProperties(op, field.block, '', value, gather)
-                            this.add(op, field, path, properties, gather, rec)
+                        value = this.addProperties(op, field.block, value, path, emit && partial)
+                        if (emit && !partial) {
+                            this.add(op, properties, field, path, value, true)
                         }
                     }
                 }
-            } else {
-                this.add(op, field, path, properties, value, rec)
             }
+            rec[field.attribute[0]] = value
         }
+        return rec
     }
 
     /*
         Add a field to the command expression
+        If emit is true, then emit update/filter expressions for this property
      */
-    add(op, field, path, properties, value, rec) {
+    add(op, properties, field, path, value, emit = true) {
         if (this.already[path]) {
             return
         }
         /*
             Handle mapped and packed attributes.
-            The attribute[0] contains the top level attribute name. Attribute[1] contains a nested mapping name.
+            The attribute[0] contains the top level attribute name and 
+            Attribute[1] contains a nested mapping name.
         */
         let attribute = field.attribute
         if (attribute.length > 1) {
@@ -220,26 +195,23 @@ export class Expression {
                 this.addKey(op, field, value)
             } else if (op == 'scan') {
                 if (properties[field.name] !== undefined && field.filter !== false) {
-                    this.addFilter(path, field, value)
+                    this.addFilter(field, path, value)
                 }
             } else if ((op == 'delete' || op == 'get' || op == 'update' || op == 'check') && field.isIndexed) {
                 this.addKey(op, field, value)
-            } else if (rec) {
-                //  Batch does not use update expressions (Ugh!)
-                rec[path] = value
             }
-        } else if (op == 'find' || op == 'scan') {
-            //  schema.filter == false disables a field from being used in a filter
-            if (properties[field.name] !== undefined && field.filter !== false) {
-                if (!this.params.batch) {
-                    //  Batch does not support filter expressions
-                    this.addFilter(path, field, value)
+        } else if (emit) {
+            if (op == 'find' || op == 'scan') {
+                //  schema.filter == false disables a field from being used in a filter
+                if (properties[field.name] !== undefined && field.filter !== false) {
+                    if (!this.params.batch) {
+                        //  Batch does not support filter expressions
+                        this.addFilter(field, path, value)
+                    }
                 }
+            } else if (op == 'update') {
+                this.addUpdate(field, path, value)
             }
-        } else if (rec) {
-            rec[path] = value
-        } else if (op == 'update') {
-            this.addUpdate(path, field, value)
         }
     }
 
@@ -339,16 +311,12 @@ export class Expression {
         }
     }
 
-    addFilter(pathname, field, value) {
+    addFilter(field, path, value) {
         let {filters} = this
-        /*
-        let att = field.attribute[0]
-        let pathname = field.pathname || att
-        */
-        if (pathname == this.hash || pathname == this.sort) {
+        if (path == this.hash || path == this.sort) {
             return
         }
-        let [target, variable] = this.prepareKeyValue(pathname, value)
+        let [target, variable] = this.prepareKeyValue(path, value)
         filters.push(`${target} = ${variable}`)
     }
 
@@ -409,13 +377,9 @@ export class Expression {
         }
     }
 
-    addUpdate(pathname, field, value) {
+    addUpdate(field, path, value) {
         let {params, updates} = this
-        /*
-        let att = field.attribute[0]
-        let pathname = field.pathname || att
-        */
-        if (pathname == this.hash || pathname == this.sort) {
+        if (path == this.hash || path == this.sort) {
             return
         }
         if (field.name == this.model.typeField) {
@@ -427,7 +391,7 @@ export class Expression {
         if (params.remove && params.remove.indexOf(field.name) >= 0) {
             return
         }
-        let target = this.prepareKey(pathname)
+        let target = this.prepareKey(path)
         let variable = this.addValueExp(value)
         updates.set.push(`${target} = ${variable}`)
     }

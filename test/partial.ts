@@ -3,7 +3,6 @@
 
  */
 import {Client, Entity, Table, dump} from './utils/init'
-import {OneSchema} from '../src/index.js'
 
 // jest.setTimeout(7200 * 1000)
 
@@ -172,7 +171,7 @@ test('Update Zip Only', async () => {
 })
 
 test('Update Zip Only - partial false', async () => {
-    //  Update full address (!partial). Update zip and remove address
+    //  Update full address (!partial). Update zip and remove rest
     let user = await User.update(
         {
             id: userId,
