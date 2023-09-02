@@ -1,4 +1,5 @@
-export default class ULID {
+export function UID(size: number): string
+export class ULID {
     constructor(when?: string | number | Date)
     when: Date
     toString(): string
@@ -6,3 +7,4 @@ export default class ULID {
     getRandom(): string
     getTime(now: Date): string
 }
+export function UUID(): string

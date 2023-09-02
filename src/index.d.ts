@@ -21,8 +21,7 @@ import {Table} from './Table'
 import {Expression} from './Expression'
 import {OneTableError, OneTableArgError} from './Error'
 
-import ULID from './ULID.js'
-import UUID from './UUID.js'
+import {UID, ULID, UUID} from './UID.js'
 
 export {
     AnyEntity,
@@ -40,6 +39,7 @@ export {
     OneType,
     Paged,
     Table,
+    UID,
     ULID,
     UUID,
 }

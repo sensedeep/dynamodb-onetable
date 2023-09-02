@@ -1,18 +1,22 @@
 /*
-    UID - Unique Crypto-grade ID of a given length.
-
-    If >= 10 in length, suitably unique for most use-cases.
-    Converted to use safe letters -- base 32 excluding I, L, O and U.
-    Note: Not a ULID and not sortable.
+    UID - UUIDs and ULIDs of crypto and non-crypto varieties
 */
-
 import Crypto from 'crypto'
 
+//  Crockford's base 32 excluding I, L, O and U
 //  Repeat Z to make encoding faster for rand == 0xFF
 const Letters = '0123456789ABCDEFGHJKMNPQRSTVWXYZZ'
 const LettersLen = Letters.length - 1
 
-export default function UID(size) {
+const RandomLength = 16
+const TimeLen = 10
+
+/*
+    If >= 10 in length, suitably unique for most use-cases.
+    Converted to use safe letters -- base 32 excluding I, L, O and U.
+    Note: Not a ULID and not sortable.
+ */
+export function UID(size) {
     let bytes = []
     let buffer = Crypto.randomBytes(size)
     for (let i = 0; i < size; i++) {
@@ -20,4 +24,73 @@ export default function UID(size) {
         bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
     }
     return bytes.join('')
+}
+
+/*
+    Simple non-crypto UUID
+*/
+export function UUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = (Math.random() * 16) | 0,
+            v = c == 'x' ? r : (r & 0x3) | 0x8
+        return v.toString(16)
+    })
+}
+
+/*
+    ULID.js -- Universal Unique Lexicographically Sortable Identifier
+    https://github.com/ulid/spec
+ */
+export class ULID {
+    constructor(when) {
+        if (when instanceof Date) {
+            this.when = new Date(when)
+        } else if (typeof when == 'string' || typeof when == 'number') {
+            this.when = new Date(when)
+        } else {
+            this.when = new Date()
+        }
+    }
+
+    toString() {
+        return this.getTime(this.when) + this.getRandom(RandomLength)
+    }
+
+    //  Decode the time portion of the ULID and return a number
+    decode(ulid) {
+        ulid = ulid.toString()
+        if (ulid.length !== TimeLen + RandomLength) {
+            throw new Error('Invalid ULID')
+        }
+        let letters = ulid.substr(0, TimeLen).split('').reverse()
+        return letters.reduce((accum, c, index) => {
+            let i = Letters.indexOf(c)
+            if (i < 0) {
+                throw new Error(`Invalid ULID char ${c}`)
+            }
+            accum += index * Math.pow(LettersLen, i)
+            return accum
+        }, 0)
+    }
+
+    getRandom(size) {
+        let bytes = []
+        let buffer = Crypto.randomBytes(size)
+        for (let i = 0; i < size; i++) {
+            //  Letters is one longer than LettersLen
+            bytes[i] = Letters[Math.floor((buffer.readUInt8(i) / 0xff) * LettersLen)]
+        }
+        return bytes.join('')
+    }
+
+    getTime(now) {
+        now = now.getTime()
+        let bytes = []
+        for (let i = 0; i < TimeLen; i++) {
+            let mod = now % LettersLen
+            bytes[i] = Letters.charAt(mod)
+            now = (now - mod) / LettersLen
+        }
+        return bytes.reverse().join('')
+    }
 }
