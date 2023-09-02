@@ -21,6 +21,7 @@ import {
     TransactWriteItemsCommand,
     UpdateItemCommand,
     UpdateTableCommand,
+    UpdateTimeToLiveCommand,
 } from '@aws-sdk/client-dynamodb'
 
 import {marshall, unmarshall} from '@aws-sdk/util-dynamodb'
@@ -86,6 +87,11 @@ export class Dynamo {
 
     async updateTable(params) {
         let command = new UpdateTableCommand(params)
+        return await this.send(command)
+    }
+
+    async updateTimeToLive(params) {
+        let command = new UpdateTimeToLiveCommand(params)
         return await this.send(command)
     }
 
