@@ -1,6 +1,7 @@
 /*
    Jest configuration
  */
+process.env.AWS_SDK_JS_SUPPRESS_MAINTENANCE_MODE_MESSAGE = '1';
 module.exports = {
     coveragePathIgnorePatterns: ['node_modules', 'test/utils'],
     coverageDirectory: 'coverage',
