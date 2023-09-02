@@ -58,15 +58,15 @@ const GenericModel = '_Generic'
 const maxBatchSize = 25
 
 /*
-    On exit, flush any buffered metrics. This requires any Lambda layer to receive this signal
+    On exit, flush buffered metrics. This requires any Lambda layer to receive this signal.
+    Without lambda layers, users can call flushMetrics() from time to time.
  */
 process.on(
     'SIGTERM',
     /* istanbul ignore next */
     async () => {
         /* istanbul ignore next */
-        //  MOB - should flush local metrics too
-        await CustomMetrics.terminate()
+        await Table.terminate()
     }
 )
 
@@ -1243,7 +1243,11 @@ export class Table {
     }
 
     async flushMetrics() {
-        await this.metrics.flushMetrics()
+        await this.metrics.flush()
+    }
+
+    static async terminate() {
+        await Metrics.terminate()
     }
 }
 

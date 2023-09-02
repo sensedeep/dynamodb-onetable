@@ -37,7 +37,7 @@ type TableConstructorParams<Schema extends OneSchema> = {
     logger?: boolean | ((tag: string, message: string, context: {}) => void) // Logging callback
     //  Intercept table reads and writes
     intercept?: (model: AnyModel, op: string, rec: {}, params: OneParams, raw?: {}) => void
-    metrics?: boolean | object //  Enable CloudWatch metrics.
+    metrics?: boolean | object //  Enable metrics.
     name?: string //  Table name.
     schema?: Schema //  Table models schema.
     senselogs?: {} //  SenseLogs instance for logging
@@ -93,6 +93,7 @@ export class Table<Schema extends OneSchema = any> {
     deleteTable(confirmation: string): Promise<{}>
     describeTable(): Promise<{}>
     exists(): Promise<Boolean>
+    flushMetrics(): Promise<void>
     getContext(): {}
     generate(): string
     getLog(): any
@@ -146,4 +147,6 @@ export class Table<Schema extends OneSchema = any> {
     marshall(item: AnyEntity | AnyEntity[], params?: OneParams): AnyEntity
     unmarshall(item: AnyEntity | AnyEntity[], params?: OneParams): AnyEntity
     stream(records: DynamoDBRecord[], params?: OneParams): StreamEntityGroup
+
+    static terminate(): Promise<void>
 }

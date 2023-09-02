@@ -44,15 +44,15 @@
     },
     "homepage": "https://github.com/sensedeep/dynamodb-onetable",
     "dependencies": {
-        "@aws-sdk/client-dynamodb": "^3.398.0",
-        "@aws-sdk/util-dynamodb": "^3.398.0",
-        "custom-metrics": "^0.7.4"
+        "@aws-sdk/client-dynamodb": "^3.405.0",
+        "@aws-sdk/util-dynamodb": "^3.405.0",
+        "custom-metrics": "^0.7.5"
     },
     "devDependencies": {
         "@types/aws-lambda": "^8.10.119",
         "@types/jest": "^29.5.4",
-        "@types/node": "^20.5.7",
-        "aws-sdk": "^2.1447.0",
+        "@types/node": "^20.5.8",
+        "aws-sdk": "^2.1450.0",
         "dataloader": "^2.2.2",
         "dynamo-db-local": "^7.0.0",
         "eslint": "^8.48.0",

@@ -61,6 +61,10 @@ test('Test Metrics', async () => {
     await table.flushMetrics()
 })
 
+test('Test terminate()', async () => {
+    await Table.terminate()
+})
+
 test('Destroy Table', async () => {
     await table.deleteTable('DeleteTableForever')
     expect(await table.exists()).toBe(false)

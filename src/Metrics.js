@@ -2,15 +2,18 @@
     Metrics.js - DynamoDB metrics class
  */
 
+import {CustomMetrics} from 'custom-metrics'
+
 const DefaultMetrics = {
     chan: 'dbmetrics', //  Default channel
-    dimensions: [
+    custom: true,
+    dimensions: [   // Default dimensions
         'Table',
         'Tenant',
         'Source',
         'Index',
         'Model',
-        'Operation', //  Default dimensions
+        'Operation',
     ],
     enable: true, //  Enabled
     env: true, //  Observe LOG_FILTER for dbmetrics
@@ -19,7 +22,6 @@ const DefaultMetrics = {
     namespace: 'SingleTable/Metrics.1', //  CloudWatch metrics namespace
     period: 60, //  or buffer for 30 seconds
     properties: {}, //  Additional properties to emit
-    queries: true, //  Query profiling
     source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default', //  Default source name
     tenant: null,
 }
@@ -50,9 +52,8 @@ const ReadWrite = {
     transactWrite: 'write',
 }
 
-/*
-    Represent a single DynamoDB table
- */
+var Instances = {}
+
 export class Metrics {
     constructor(table, params = {}, prior = {}) {
         this.table = table
@@ -64,12 +65,28 @@ export class Metrics {
             //  Params takes priority
             metrics = Object.assign({}, DefaultMetrics, params)
         }
+        if (metrics.custom && table.V3) {
+            let {hash, sort} = table.schema.indexes.primary
+            this.custom = new CustomMetrics({
+                table: table.name,
+                client: table.client,
+                primaryKey: hash,
+                sortKey: sort,
+                log: this.log,
+            })
+            Instances[`${table.name}`] = this
+        }
         if (metrics.env && process.env) {
-            //  Need a better senselogs test than 'metrics'. Senselogs relies on the dbmetrics channel to be enabled.
-            if (!this.log.metrics) {
-                let filter = process.env.LOG_FILTER
-                if (!filter || filter.indexOf('dbmetrics') < 0) {
-                    metrics.enable = false
+            let filter = process.env.LOG_FILTER
+            metrics.enable = false
+            if (filter && filter.indexOf('dbmetrics') >= 0) {
+                metrics.enable = true
+            } else {
+                if (process.env.LOG_OVERRIDE != null) {
+                    let [expire, filter] = process.env.LOG_OVERRIDE.split(':')
+                    if (filter && filter.indexOf('dbmetrics') >= 0 && expire > Date.now()) {
+                        metrics.enable = true
+                    }
                 }
             }
             metrics.dimensions = process.env.LOG_ONETABLE_DIMENSIONS || metrics.dimensions
@@ -91,13 +108,12 @@ export class Metrics {
         this.metrics = metrics
     }
 
-    add(model, op, result, params, mark) {
+    async add(model, op, result, params, mark) {
         let metrics = this.metrics
         if (!metrics.enable || !this.log.enabled(metrics.chan)) {
             return
         }
         let timestamp = Date.now()
-
         let capacity = 0
         let consumed = result.ConsumedCapacity
         if (consumed) {
@@ -120,51 +136,61 @@ export class Metrics {
             op,
             capacity,
         }
-        let dimensionValues = {
+        let dimensions = {
             Table: this.table.name,
-            Tenant: metrics.tenant,
             Source: params.source || metrics.source,
             Index: params.index || 'primary',
             Model: model,
             Operation: DynamoOps[op],
         }
+        if (metrics.tenant) {
+            dimensions.Tenant = metrics.tenant
+        }
+        /*
+            Add properties to be added to EMF records
+         */
         let properties
         if (typeof metrics.properties == 'function') {
             properties = metrics.properties(op, params, result)
         } else {
             properties = metrics.properties || {}
         }
-        this.addMetricGroup(values, dimensionValues, properties)
+        this.addResultsToGroup(values, dimensions, properties)
 
-        if (metrics.queries && params.profile) {
-            dimensionValues.Profile = params.profile
-            this.addMetric('Profile', values, ['Profile'], dimensionValues, properties)
+        if (params.profile) {
+            // dimensionValues.Profile = params.profile
+            this.addResults(`Profile-${params.profile}`, values, {Profile: params.profile}, properties)
         }
         if (++metrics.count >= metrics.max || metrics.lastFlushed + metrics.period < timestamp) {
-            this.flushMetrics(timestamp)
+            await this.flush(timestamp)
             metrics.count = 0
             metrics.lastFlushed = timestamp
         }
     }
 
-    addMetricGroup(values, dimensionValues, properties) {
-        let dimensions = [],
+    /*
+        Add results to a group of dimensions
+     */
+    addResultsToGroup(values, allDimensions, properties) {
+        let dimensions = {},
             keys = []
         for (let name of this.metrics.dimensions) {
-            let dimension = dimensionValues[name]
+            let dimension = allDimensions[name]
             if (dimension) {
                 keys.push(dimension)
-                dimensions.push(name)
-                this.addMetric(keys.join('.'), values, dimensions, dimensionValues, properties)
+                dimensions[name] = dimension
+                this.addResults(keys.join('.'), values, dimensions, properties)
             }
         }
     }
 
-    addMetric(key, values, dimensions, dimensionValues, properties) {
+    /*
+        Add results to a specific dimension set
+     */
+    addResults(key, values, dimensions, properties) {
         let rec = (this.metrics.counters[key] = this.metrics.counters[key] || {
             totals: {count: 0, latency: 0, read: 0, requests: 0, scanned: 0, write: 0},
-            dimensions: dimensions.slice(0),
-            dimensionValues,
+            dimensions: Object.assign({}, dimensions),
             properties,
         })
         let totals = rec.totals
@@ -175,37 +201,53 @@ export class Metrics {
         totals.requests++ //  Number of requests
     }
 
-    flushMetrics(timestamp = Date.now()) {
+    static async terminate() {
+        await Metrics.flushAll()
+    }
+
+    static async flushAll() {
+        for (let instance of Object.values(Instances)) {
+            await instance.flush()
+        }
+    }
+
+    async flush(timestamp = Date.now()) {
         if (!this.metrics.enable) return
         for (let rec of Object.values(this.metrics.counters)) {
-            Object.keys(rec).forEach((field) => rec[field] === 0 && delete rec[field])
-            this.emitMetrics(timestamp, rec)
+            Object.keys(rec.totals).forEach((field) => rec.totals[field] === 0 && delete rec.totals[field])
+            await this.emitMetrics(timestamp, rec)
+        }
+        if (this.custom) {
+            await this.custom.flush()
         }
         this.metrics.counters = {}
     }
 
-    emitMetrics(timestamp, rec) {
-        let {dimensionValues, dimensions, properties, totals} = rec
-        let metricsParams = this.metrics
-
+    async emitMetrics(timestamp, rec) {
+        let {dimensions, properties, totals} = rec
         let requests = totals.requests
         totals.latency = totals.latency / requests
         totals.count = totals.count / requests
         totals.scanned = totals.scanned / requests
+        let namespace = this.metrics.namespace
+        let dkeys = Object.keys(dimensions)
 
-        if (this.log.metrics) {
-            let chan = metricsParams.chan || 'dbmetrics'
+        if (this.custom) {
+            for (let [metric, value] of Object.entries(totals)) {
+                await this.custom.emit(namespace, metric, value, [dimensions], {buffer: {elapsed: 10 * 1000}})
+            }
+        } else if (this.log.metrics) {
             this.log.metrics(
-                chan,
-                `OneTable Custom Metrics ${dimensions}`,
-                metricsParams.namespace,
+                this.metrics.chan || 'dbmetrics',
+                `OneTable Custom Metrics`,
+                namespace,
                 totals,
-                dimensions,
+                dkeys,
                 {latency: 'Milliseconds', default: 'Count'},
-                Object.assign({}, dimensionValues, properties)
+                Object.assign({}, dimensions, properties)
             )
         } else {
-            let metrics = dimensions.map((v) => {
+            let metrics = dkeys.map((v) => {
                 return {Name: v, Unit: v == 'latency' ? 'Milliseconds' : 'Count'}
             })
             let data = Object.assign(
@@ -214,18 +256,22 @@ export class Metrics {
                         Timestamp: timestamp,
                         CloudWatchMetrics: [
                             {
-                                Dimensions: [dimensions],
-                                Namespace: metricsParams.namespace,
+                                dkeys,
+                                Namespace: namespace,
                                 Metrics: metrics,
                             },
                         ],
                     },
                 },
                 totals,
-                dimensionValues,
+                dimensions,
                 properties
             )
-            console.log(`OneTable Custom Metrics ${dimensions}` + JSON.stringify(data))
+            console.log(`OneTable Custom Metrics ` + JSON.stringify(data))
         }
+    }
+
+    setLog(log) {
+        this.log = log
     }
 }
