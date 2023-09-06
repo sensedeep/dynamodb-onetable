@@ -39,6 +39,14 @@ test('Get Item', async () => {
     expect(item).toMatchObject(Properties)
 })
 
+test('Get Item with fields', async() => {
+    // Requesting both a known attribute (status) as well as an unknown one to show unknown fields are ignored.
+    item = await table.getItem({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status', 'unknown']})
+    expect(item.status).toBe("idle")
+    expect(item.unknown).toBeUndefined()
+    expect(item.name).toBeUndefined()
+})
+
 test('Update Item', async () => {
     item = await table.updateItem({pk: Properties.pk, sk: Properties.sk, status: 'active'}, {parse: true})
     expect(item.status).toBe('active')
@@ -60,6 +68,15 @@ test('QueryItems with begins', async () => {
     expect(items.length).toBe(1)
     item = items[0]
     expect(item).toMatchObject(Properties)
+})
+
+test('Query Items with fields', async() => {
+    // Requesting both a known attribute (status) as well as an unknown one to show unknown fields are ignored.
+    items = await table.queryItems({pk: Properties.pk, sk: Properties.sk}, {parse: true, fields: ['status', 'unknown']})
+    expect(items.length).toBe(1)
+    item = items[0]
+    expect(item.status).toBe("idle")
+    expect(item.name).toBeUndefined()
 })
 
 test('ScanItems', async () => {

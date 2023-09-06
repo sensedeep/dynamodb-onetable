@@ -108,6 +108,9 @@ export class Expression {
                 if (op == 'batchGet') {
                     //  BatchGet params.project must provide attributes not properties
                     this.project.push(`#_${this.addName(name)}`)
+                } else if (this.model.generic){
+                    // Generic models don't know which attributes exist, so we allow requesting all
+                    this.project.push(`#_${this.addName(name)}`)
                 } else if (fields[name]) {
                     let att = fields[name].attribute[0]
                     this.project.push(`#_${this.addName(att)}`)
