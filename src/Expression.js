@@ -602,7 +602,9 @@ export class Expression {
                     if (this.params.index != 'primary') {
                         let {hash, sort} = this.model.indexes.primary
                         start[hash] = cursor[hash]
-                        start[sort] = cursor[sort]
+                        if (cursor[sort] != null) {
+                            start[sort] = cursor[sort]
+                        }
                     }
                     args.ExclusiveStartKey = this.table.marshall(start, params)
                 }

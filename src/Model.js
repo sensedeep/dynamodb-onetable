@@ -418,7 +418,9 @@ export class Model {
                     if (cursor && params.index != 'primary') {
                         let {hash, sort} = this.indexes.primary
                         prev[hash] = items[0][hash]
-                        prev[sort] = items[0][sort]
+                        if (sort != null) {
+                            prev[sort] = items[0][sort]
+                        }
                     }
                 }
             }
