@@ -3,7 +3,7 @@
  */
 import {AWS, Client, Entity, Match, Table, print, dump, delay} from '../utils/init'
 
-jest.setTimeout(7200 * 1000)
+// jest.setTimeout(7200 * 1000)
 
 const MaxUsers = 250
 const PerPage = 50
@@ -31,7 +31,7 @@ const Schema = {
 }
 
 const table = new Table({
-    name: 'PaginationTestTable',
+    name: 'PaginationWithoutSortKeyTestTable',
     client: Client,
     partial: false,
     schema: Schema,
