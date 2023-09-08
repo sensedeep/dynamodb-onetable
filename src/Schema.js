@@ -183,7 +183,7 @@ export class Schema {
             status: {type: 'string'},
         })
         if (primary.sort) {
-            fields[primary.sort] = {type: 'string', value: `${MigrationKey}:\${version}`}
+            fields[primary.sort] = {type: 'string', value: `${MigrationKey}:\${version}:\${date}`}
         }
         this.models[MigrationModel] = new Model(this.table, MigrationModel, {fields, indexes})
     }
