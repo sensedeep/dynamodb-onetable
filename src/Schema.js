@@ -180,6 +180,7 @@ export class Schema {
             description: {type: 'string', required: true},
             path: {type: 'string', required: true},
             version: {type: 'string', required: true},
+            status: {type: 'string'},
         })
         if (primary.sort) {
             fields[primary.sort] = {type: 'string', value: `${MigrationKey}:\${version}`}
