@@ -7,7 +7,8 @@ import {CustomMetrics} from 'custom-metrics'
 const DefaultMetrics = {
     chan: 'dbmetrics', //  Default channel
     custom: true,
-    dimensions: [   // Default dimensions
+    dimensions: [
+        // Default dimensions
         'Table',
         'Tenant',
         'Source',
@@ -20,7 +21,7 @@ const DefaultMetrics = {
     hot: false, //  Hot partition tracking
     max: 100, //  Buffer metrics for 100 requests
     namespace: 'SingleTable/Metrics.1', //  CloudWatch metrics namespace
-    period: 60, //  or buffer for 30 seconds
+    period: 60, //  or buffer for 60 seconds
     properties: {}, //  Additional properties to emit
     source: process.env.AWS_LAMBDA_FUNCTION_NAME || 'Default', //  Default source name
     tenant: null,
