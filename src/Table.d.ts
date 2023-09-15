@@ -58,7 +58,7 @@ type TableConstructorParams<Schema extends OneSchema> = {
     // https://www.npmjs.com/package/dataloader DataLoader constructor
     dataloader?: new (batchLoadFn: any, options?: any) => any
 
-    partial?: boolean //  Allow partial updates of nested schemas. Default false.
+    partial?: boolean //  Allow partial updates of nested schemas. Default true.
     warn?: boolean //  Issue warnings
     hidden?: boolean //  Hide key and value template attributes in Javascript properties. Default true.
 
