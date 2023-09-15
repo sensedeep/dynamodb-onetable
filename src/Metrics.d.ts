@@ -17,11 +17,11 @@ export class Metrics {
         source: string;
         tenant: any;
     };
-    async add(model: any, op: any, result: any, params: any, mark: any): Promise<void>;
+    add(model: any, op: any, result: any, params: any, mark: any): Promise<void>;
     addMetricGroup(values: any, dimensionValues: any, properties: any): void;
     addMetric(key: any, values: any, dimensions: any, dimensionValues: any, properties: any): void;
-    async flush(timestamp?: number): Promise<void>;
-    async emit(timestamp: any, rec: any): Promise<void>;
-    async terminate(): Promise<void>;
+    flush(timestamp?: number): Promise<void>;
+    emit(timestamp: any, rec: any): Promise<void>;
+    terminate(): Promise<void>;
     setLog(log: any): void
 }
