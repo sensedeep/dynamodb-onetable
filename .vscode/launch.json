@@ -12,7 +12,7 @@
             "env": {
                 "DDB_CLIENT_VERSION": "v3"
             },
-            "args": ["--runInBand", "--watchAll=false", "pagination-without.ts"]
+            "args": ["--runInBand", "--watchAll=false", "debug.ts"]
         }
     ]
 }
