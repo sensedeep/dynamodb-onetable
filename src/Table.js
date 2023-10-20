@@ -150,9 +150,7 @@ export class Table {
         if (params.partial == null) {
             console.warn(
                 'OneTable: Must set Table constructor "partial" param to true or false. ' +
-                    'This param permits updating partial nested schemas. Currently defaults to false, ' +
-                    'but in a future version will default to true. ' +
-                    'Set to false to future proof or set to true for the new behavior.'
+                    'This param permits updating partial nested schemas. Defaults to true.'
             )
             params.partial = true
         }
