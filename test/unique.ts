@@ -169,7 +169,7 @@ test('Create non-unique email', async () => {
         user = await User.create(props)
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot create unique attributes "email, phone, interpolated, uniqueEmail" for "User". An item of the same name already exists.`,
+            `Cannot create unique attributes "email, phone, interpolated, uniqueEmail, uniqueCode" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -189,7 +189,7 @@ test('Update non-unique email', async () => {
         await User.update(props, {return: 'none'})
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot update unique attributes "email, phone, interpolated, uniqueEmail" for "User". An item of the same name already exists.`,
+            `Cannot update unique attributes "email, phone, interpolated, uniqueEmail, uniqueCode" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -216,6 +216,38 @@ test('Soft delete user and create with same email', async () => {
     const createProps = {
         name: 'Another Peter Smith',
         email: 'peter@example.com',
+    }
+    user = await User.create(createProps)
+
+    items = await table.scanItems()
+    expect(items.length).toBe(11)
+})
+
+test('Unique Code is updated', async () => {
+    // Soft delete the user
+    let props = {
+        name: 'John Smith',
+        email: 'john@smith.com',
+        code: '12345678',
+    }
+    await User.create(props, {return: 'none'})
+
+    let items = await table.scanItems()
+    // Expect the uniqueEmail record to be gone, but the user to still exist
+    // expect(items.length).toBe(7)
+
+    // Update the user's code
+    let updateProps = {
+        name: 'John Smith',
+        code: '87654321',
+    }
+    await User.update(updateProps, {return: 'none'})
+
+    // Create a new user with the same code
+    const createProps = {
+        name: 'Jane Doe',
+        email: 'jane@doe.com',
+        code: '12345678',
     }
     user = await User.create(createProps)
 

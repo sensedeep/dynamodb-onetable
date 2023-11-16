@@ -15,9 +15,11 @@ export default {
             email: {type: String, unique: true, required: true},
             phone: {type: String, unique: true},
             age: {type: Number},
+            code: {type: String},
             deletedAt: {type: Date},
             interpolated: {type: String, value: '${name}#${email}', unique: true},
             uniqueEmail: {type: String, value: true, unique: true},
+            uniqueCode: {type: String, value: '${code}', unique: true}
         },
     } as const,
     params: {},
