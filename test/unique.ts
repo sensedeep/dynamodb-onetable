@@ -201,8 +201,8 @@ test('Update non-unique email', async () => {
     expect(items.length).toBe(7)
 })
 
-test('Soft delete user and create with same email', async () => {
-    // Soft delete the user
+test('Update to remove uniqueValueFunction unique record', async () => {
+    // Update the user to trigger the uniqueValueFunction to be removed
     let props = {
         name: 'Peter Smith',
         deletedAt: new Date(),
@@ -210,10 +210,9 @@ test('Soft delete user and create with same email', async () => {
     await User.update(props, {return: 'none'})
 
     let items = await table.scanItems()
-    // Expect the uniqueEmail record to be gone, but the user to still exist
     expect(items.length).toBe(6)
 
-    // Create a new user with the same email
+    // Create a new user with the same emails
     const createProps = {
         name: 'Another Peter Smith',
         email: 'another-peter@example.com',
@@ -225,7 +224,8 @@ test('Soft delete user and create with same email', async () => {
     expect(items.length).toBe(10)
 })
 
-test('Unique Code is updated', async () => {
+test('Update to remove uniqueValueTemplate unique record', async () => {
+    // Create a user with a "code" that will set the uniqueValueTemplate
     let props = {
         name: 'John Smith',
         email: 'john@smith.com',
