@@ -7,12 +7,35 @@ import {OneTableError} from '../src'
 
 // jest.setTimeout(7200 * 1000)
 
+function valueGenerator(
+  model,
+  fieldName,
+  properties,
+) {
+    // Unique Email
+    if (fieldName === 'uniqueEmail') {
+        // If the item is deleted then remove the uniqueEmail
+        if (properties.deletedAt) {
+            return null;
+        }
+
+        // If no email then there is no change to uniqueEmail field
+        if (!properties.email) {
+            return undefined;
+        }
+
+        // Set uniqueEmail as the email address
+        return properties.email;
+    }
+}
+
 const table = new Table({
     name: 'UniqueTestTable',
     client: Client,
     partial: false,
     schema: UniqueSchema,
     logger: true,
+    value: valueGenerator,
 })
 
 type UserType = Entity<typeof UniqueSchema.models.User>
@@ -29,6 +52,9 @@ test('Create Table', async () => {
         expect(await table.exists()).toBe(true)
     }
     User = table.getModel('User')
+
+    let items = await table.scanItems()
+    expect(items.length).toBe(0)
 })
 
 test('Create user 1', async () => {
@@ -40,7 +66,7 @@ test('Create user 1', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(3)
+    expect(items.length).toBe(4)
 
     let pk = (() => {
         if (isV3()) {
@@ -67,7 +93,7 @@ test('Create user 2', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(9)
 })
 
 test('Update user 2 with the same email', async () => {
@@ -79,7 +105,7 @@ test('Update user 2 with the same email', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(9)
 })
 
 test('Update user 2 with unique email', async () => {
@@ -91,7 +117,7 @@ test('Update user 2 with unique email', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(9)
 })
 
 test('Update non-unique property', async () => {
@@ -103,7 +129,7 @@ test('Update non-unique property', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(9)
 })
 
 test('Update with unknown property', async () => {
@@ -117,7 +143,7 @@ test('Update with unknown property', async () => {
     expect(user).toMatchObject(expectedProps)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(9)
 })
 
 test('Update to remove optional unique property', async () => {
@@ -131,7 +157,7 @@ test('Update to remove optional unique property', async () => {
     expect(user.phone).toBeUndefined()
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(8)
 })
 
 test('Create non-unique email', async () => {
@@ -143,7 +169,7 @@ test('Create non-unique email', async () => {
         user = await User.create(props)
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot create unique attributes "email, phone, interpolated" for "User". An item of the same name already exists.`,
+            `Cannot create unique attributes "email, phone, interpolated, uniqueEmail" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -151,11 +177,11 @@ test('Create non-unique email', async () => {
     )
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(8)
 })
 
 test('Update non-unique email', async () => {
-    const props = {
+    let props = {
         name: 'Judy Smith',
         email: 'peter@example.com',
     }
@@ -163,7 +189,7 @@ test('Update non-unique email', async () => {
         await User.update(props, {return: 'none'})
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot update unique attributes "email, phone, interpolated" for "User". An item of the same name already exists.`,
+            `Cannot update unique attributes "email, phone, interpolated, uniqueEmail" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -171,24 +197,47 @@ test('Update non-unique email', async () => {
     )
 
     let items = await table.scanItems()
-    expect(items.length).toBe(6)
+    expect(items.length).toBe(8)
+})
+
+test('Soft delete user and create with same email', async () => {
+    // Soft delete the user
+    let props = {
+        name: 'Peter Smith',
+        deletedAt: new Date(),
+    }
+    await User.update(props, {return: 'none'})
+
+    let items = await table.scanItems()
+    // Expect the uniqueEmail record to be gone, but the user to still exist
+    expect(items.length).toBe(7)
+
+    // Create a new user with the same email
+    const createProps = {
+        name: 'Another Peter Smith',
+        email: 'peter@example.com',
+    }
+    user = await User.create(createProps)
+
+    items = await table.scanItems()
+    expect(items.length).toBe(11)
 })
 
 test('Remove user 1', async () => {
     users = await User.scan()
-    expect(users.length).toBe(2)
+    expect(users.length).toBe(3)
 
     await User.remove(users[0])
     users = await User.scan()
-    expect(users.length).toBe(1)
+    expect(users.length).toBe(2)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(3)
+    expect(items.length).toBe(8)
 })
 
 test('Remove all users', async () => {
     users = await User.scan({})
-    expect(users.length).toBe(1)
+    expect(users.length).toBe(2)
     for (let user of users) {
         await User.remove(user)
     }
