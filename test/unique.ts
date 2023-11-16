@@ -13,19 +13,19 @@ function valueGenerator(
   properties,
 ) {
     // Unique Email
-    if (fieldName === 'uniqueEmail') {
+    if (fieldName === 'uniqueValueFunction') {
         // If the item is deleted then remove the uniqueEmail
         if (properties.deletedAt) {
             return null;
         }
 
         // If no email then there is no change to uniqueEmail field
-        if (!properties.email) {
+        if (!properties.otherEmail) {
             return undefined;
         }
 
         // Set uniqueEmail as the email address
-        return properties.email;
+        return properties.otherEmail;
     }
 }
 
@@ -61,6 +61,7 @@ test('Create user 1', async () => {
     const props = {
         name: 'Peter Smith',
         email: 'peter@example.com',
+        otherEmail: 'peter@smith.com',
     }
     user = await User.create(props)
     expect(user).toMatchObject(props)
@@ -93,7 +94,7 @@ test('Create user 2', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(9)
+    expect(items.length).toBe(8)
 })
 
 test('Update user 2 with the same email', async () => {
@@ -105,7 +106,7 @@ test('Update user 2 with the same email', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(9)
+    expect(items.length).toBe(8)
 })
 
 test('Update user 2 with unique email', async () => {
@@ -117,7 +118,7 @@ test('Update user 2 with unique email', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(9)
+    expect(items.length).toBe(8)
 })
 
 test('Update non-unique property', async () => {
@@ -129,7 +130,7 @@ test('Update non-unique property', async () => {
     expect(user).toMatchObject(props)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(9)
+    expect(items.length).toBe(8)
 })
 
 test('Update with unknown property', async () => {
@@ -143,7 +144,7 @@ test('Update with unknown property', async () => {
     expect(user).toMatchObject(expectedProps)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(9)
+    expect(items.length).toBe(8)
 })
 
 test('Update to remove optional unique property', async () => {
@@ -157,7 +158,7 @@ test('Update to remove optional unique property', async () => {
     expect(user.phone).toBeUndefined()
 
     let items = await table.scanItems()
-    expect(items.length).toBe(8)
+    expect(items.length).toBe(7)
 })
 
 test('Create non-unique email', async () => {
@@ -169,7 +170,7 @@ test('Create non-unique email', async () => {
         user = await User.create(props)
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot create unique attributes "email, phone, interpolated, uniqueEmail, uniqueCode" for "User". An item of the same name already exists.`,
+            `Cannot create unique attributes "email, phone, interpolated, uniqueValueFunction, uniqueValueTemplate" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -177,7 +178,7 @@ test('Create non-unique email', async () => {
     )
 
     let items = await table.scanItems()
-    expect(items.length).toBe(8)
+    expect(items.length).toBe(7)
 })
 
 test('Update non-unique email', async () => {
@@ -189,7 +190,7 @@ test('Update non-unique email', async () => {
         await User.update(props, {return: 'none'})
     }).rejects.toThrow(
         new OneTableError(
-            `Cannot update unique attributes "email, phone, interpolated, uniqueEmail, uniqueCode" for "User". An item of the same name already exists.`,
+            `Cannot update unique attributes "email, phone, interpolated, uniqueValueFunction, uniqueValueTemplate" for "User". An item of the same name already exists.`,
             {
                 code: 'UniqueError',
             }
@@ -197,7 +198,7 @@ test('Update non-unique email', async () => {
     )
 
     let items = await table.scanItems()
-    expect(items.length).toBe(8)
+    expect(items.length).toBe(7)
 })
 
 test('Soft delete user and create with same email', async () => {
@@ -210,21 +211,21 @@ test('Soft delete user and create with same email', async () => {
 
     let items = await table.scanItems()
     // Expect the uniqueEmail record to be gone, but the user to still exist
-    expect(items.length).toBe(7)
+    expect(items.length).toBe(6)
 
     // Create a new user with the same email
     const createProps = {
         name: 'Another Peter Smith',
-        email: 'peter@example.com',
+        email: 'another-peter@example.com',
+        otherEmail: 'peter@smith.com'
     }
     user = await User.create(createProps)
 
     items = await table.scanItems()
-    expect(items.length).toBe(11)
+    expect(items.length).toBe(10)
 })
 
 test('Unique Code is updated', async () => {
-    // Soft delete the user
     let props = {
         name: 'John Smith',
         email: 'john@smith.com',
@@ -233,8 +234,7 @@ test('Unique Code is updated', async () => {
     await User.create(props, {return: 'none'})
 
     let items = await table.scanItems()
-    // Expect the uniqueEmail record to be gone, but the user to still exist
-    // expect(items.length).toBe(7)
+    expect(items.length).toBe(14)
 
     // Update the user's code
     let updateProps = {
@@ -242,6 +242,8 @@ test('Unique Code is updated', async () => {
         code: '87654321',
     }
     await User.update(updateProps, {return: 'none'})
+    items = await table.scanItems()
+    console.log(items)
 
     // Create a new user with the same code
     const createProps = {
@@ -252,24 +254,24 @@ test('Unique Code is updated', async () => {
     user = await User.create(createProps)
 
     items = await table.scanItems()
-    expect(items.length).toBe(11)
+    expect(items.length).toBe(18)
 })
 
 test('Remove user 1', async () => {
     users = await User.scan()
-    expect(users.length).toBe(3)
+    expect(users.length).toBe(5)
 
     await User.remove(users[0])
     users = await User.scan()
-    expect(users.length).toBe(2)
+    expect(users.length).toBe(4)
 
     let items = await table.scanItems()
-    expect(items.length).toBe(8)
+    expect(items.length).toBe(15)
 })
 
 test('Remove all users', async () => {
     users = await User.scan({})
-    expect(users.length).toBe(2)
+    expect(users.length).toBe(4)
     for (let user of users) {
         await User.remove(user)
     }

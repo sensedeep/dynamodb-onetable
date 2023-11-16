@@ -797,8 +797,15 @@ export class Model {
         /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
-            let hasUniqueProperties = Object.entries(properties).find((pair) => {
-                return this.block.fields[pair[0]] && this.block.fields[pair[0]].unique
+            params.prepared = properties = this.prepareProperties('update', properties, params)
+
+            const fieldNames = Object.keys(properties)
+            if (params.remove) {
+                fieldNames.push(...params.remove)
+            }
+
+            let hasUniqueProperties = fieldNames.find((fieldName) => {
+                return this.block.fields[fieldName] && this.block.fields[fieldName].unique
             })
             if (hasUniqueProperties) {
                 return await this.updateUnique(properties, params)
@@ -825,7 +832,6 @@ export class Model {
         let index = this.indexes.primary
         let {hash, sort} = index
 
-        params.prepared = properties = this.prepareProperties('update', properties, params)
         let keys = {
             [index.hash]: properties[index.hash],
         }
@@ -1038,7 +1044,10 @@ export class Model {
                 }
             }
         }
-        properties = this.prepareProperties('update', properties, params)
+
+        if (!params.prepared) {
+            properties = this.prepareProperties('update', properties, params)
+        }
         let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
     }

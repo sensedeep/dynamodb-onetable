@@ -13,13 +13,14 @@ export default {
             sk: {type: String, value: '${_type}#'},
             name: {type: String},
             email: {type: String, unique: true, required: true},
+            otherEmail: {type: String},
             phone: {type: String, unique: true},
             age: {type: Number},
             code: {type: String},
             deletedAt: {type: Date},
             interpolated: {type: String, value: '${name}#${email}', unique: true},
-            uniqueEmail: {type: String, value: true, unique: true},
-            uniqueCode: {type: String, value: '${code}', unique: true}
+            uniqueValueFunction: {type: String, value: true, unique: true},
+            uniqueValueTemplate: {type: String, value: '${code}', unique: true}
         },
     } as const,
     params: {},
