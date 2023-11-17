@@ -243,7 +243,6 @@ test('Update to remove uniqueValueTemplate unique record', async () => {
     }
     await User.update(updateProps, {return: 'none'})
     items = await table.scanItems()
-    console.log(items)
 
     // Create a new user with the same code
     const createProps = {
