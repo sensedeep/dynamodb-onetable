@@ -110,7 +110,7 @@ type EntityFieldFromType<T extends OneField> = T['type'] extends ArrayConstructo
     : T['type'] extends NumberConstructor | 'number'
     ? number
     : T['type'] extends ObjectConstructor | 'object'
-    ? Entity<Exclude<T['schema'], undefined>>
+    ? (T['schema'] extends object ? Entity<Exclude<T['schema'], undefined>> : Record<any, any>)
     : T['type'] extends DateConstructor | 'date'
     ? Date
     : T['type'] extends ArrayBufferConstructor
