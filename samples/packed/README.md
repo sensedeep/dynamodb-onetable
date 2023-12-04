@@ -15,7 +15,7 @@ It has the following features:
 
 ## Read the Code
 
-* [Packed Attributes Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/packed/src/index.js)
+* [Packed Attributes Source](/samples/packed/src/index.js)
 
 ## Requirements
 

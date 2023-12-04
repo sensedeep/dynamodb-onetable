@@ -15,7 +15,7 @@
         "dynamodb-onetable": "^2"
     },
     "devDependencies": {
-        "dynamo-db-local": "^4.0.2",
+        "dynamo-db-local": "^7.1.0",
         "typescript": "^4.1.3"
     }
 }

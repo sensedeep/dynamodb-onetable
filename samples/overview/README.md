@@ -15,7 +15,7 @@ It has the following features:
 
 ## Read the Code
 
-* [Overview Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/overview/src/index.js)
+* [Overview Source](/samples/overview/src/index.js)
 
 ## Building
 
