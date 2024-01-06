@@ -1,11 +1,13 @@
-![OneTable](https://www.sensedeep.com/images/ring-short.png?renew)
+![OneTable](https://www.sensedeep.com/images/ring-short.png)
 
 _One Table to Rule Them All_
 
+<div id="shields">
 [![Build Status](https://img.shields.io/github/actions/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)](https://img.shields.io/github/actions/workflow/status/sensedeep/dynamodb-onetable/build.yml?branch=main)
 [![npm](https://img.shields.io/npm/v/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![npm](https://img.shields.io/npm/l/dynamodb-onetable.svg)](https://www.npmjs.com/package/dynamodb-onetable)
 [![Coverage Status](https://coveralls.io/repos/github/sensedeep/dynamodb-onetable/badge.svg?branch=main)](https://coveralls.io/github/sensedeep/dynamodb-onetable?branch=main)
+</div>
 
 ## The Easiest Way to Create DynamoDB Single Table Designs.
 
@@ -263,3 +265,9 @@ account.unknown = 42            //  Error
 Please try our [SenseDeep Serverless Developer Studio](https://www.sensedeep.com/) that includes a full DynamoDB suite with single-table aware data browser, single-table designer, migration manager, provisioning planner and metrics.
 
 ![SenseDeep Developer Studio](https://www.sensedeep.com/images/sensedeep/table-browse.png).
+
+<script>
+    if (window.location.host == 'www.npmjs.com') {
+        document.getElementById('shields').style.display = 'none'
+    }
+</script>
