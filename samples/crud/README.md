@@ -12,9 +12,10 @@ It has the following features:
 * AWS V3 SDK
 * Starts own DynamoDB instance on port 4567
 
+
 ## Read the Code
 
-* [CRUD Source](https://github.com/sensedeep/dynamodb-onetable/tree/main/samples/crud/src/index.js)
+* [CRUD Source](/samples/crud/src/index.js)
 
 
 ## Building
@@ -35,3 +36,4 @@ make run
 ```
 code .
 ```
+

@@ -5,6 +5,10 @@
     This sample runs its own local dynamodb instance on port 4567.
  */
 
+// ensure required env vars are set
+process.env['AWS_ACCESS_KEY_ID'] = 'dynamodb'
+process.env['AWS_SECRET_ACCESS_KEY'] = 'doesntmatter'
+
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
 import DynamoDbLocal from 'dynamo-db-local'
 
@@ -52,7 +56,7 @@ let dynamodb = null
 async function start() {
     //  Start the dynamodb instance and then short wait for it to open a listening port.
     dynamodb = DynamoDbLocal.spawn({port: PORT})
-    await delay(1000)
+    await delay(2000) // increase upon `ECONNREFUSED` error
 }
 
 async function stop() {
@@ -206,6 +210,12 @@ async function test() {
     let accounts = await Account.find({}, {index: 'gs1'})
     users = await User.find({}, {index: 'gs1'})
     invoices = await Invoice.find({}, {index: 'gs1'})
+
+    /*
+        Print DB contents
+    */
+
+    console.dir(await table.scanItems({}))
 
     /*
         Cleanup
