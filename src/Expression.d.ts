@@ -1,4 +1,4 @@
-import {OneParams, OneProperties, OneIndex} from './Model'
+import {OneParams, OneProperties, OneIndex} from './Model.js'
 export class Expression<ModelT> {
     constructor(model: ModelT, op: string, properties: OneProperties, params?: OneParams)
     add(field: string, value: any): void

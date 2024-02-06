@@ -15,11 +15,11 @@ import {
     OneSchema,
     OneType,
     Paged,
-} from './Model'
+} from './Model.js'
 
-import {Table} from './Table'
-import {Expression} from './Expression'
-import {OneTableError, OneTableArgError} from './Error'
+import {Table} from './Table.js'
+import {Expression} from './Expression.js'
+import {OneTableError, OneTableArgError} from './Error.js'
 
 import {UID, ULID, UUID} from './UID.js'
 

@@ -13,8 +13,8 @@ import {
     OneSchema,
     Paged,
     Entity,
-} from './Model'
-import {Metrics} from './Metrics'
+} from './Model.js'
+import {Metrics} from './Metrics.js'
 import {DynamoDBRecord} from 'aws-lambda'
 
 export type EntityGroup = {
