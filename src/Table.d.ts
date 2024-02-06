@@ -85,7 +85,8 @@ export class Table<Schema extends OneSchema = any> {
     addContext(context?: {}): Table<Schema>
     addModel(name: string, fields: OneModel): void
 
-    batchGet(batch: any, params?: OneParams): Promise<{}[]>
+    batchGet<T = {}>(batch: any, params?: OneParams): Promise<T[]>
+    // batchGet(batch: any, params?: OneParams): Promise<{}[]>
     batchWrite(batch: any, params?: OneParams): Promise<{}>
     clearContext(): Table<Schema>
     getTableDefinition(params?: {}): {}
