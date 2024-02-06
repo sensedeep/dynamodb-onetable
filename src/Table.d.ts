@@ -108,7 +108,7 @@ export class Table<Schema extends OneSchema = any> {
         getModel<T extends ModelNames<Schema>>(name: T, options?: {nothrow?: boolean}): Model<Entity<Schema['models'][T]>>
     */
 
-    getCurrentSchema(): {}
+    getCurrentSchema(): OneSchema | null
     groupByType(items: AnyEntity[], params?: OneParams): EntityGroup
     listModels(): AnyModel[]
     listTables(): string[]
