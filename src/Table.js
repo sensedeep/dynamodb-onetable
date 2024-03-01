@@ -71,6 +71,18 @@ process.on(
 )
 
 /*
+    Check if string is valid JSON.
+*/
+const isJSON = (text) => {
+    try {
+        JSON.parse(text);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/*
     Represent a single DynamoDB table
  */
 export class Table {
@@ -1034,7 +1046,7 @@ export class Table {
     }
 
     decrypt(text, inCode = 'base64', outCode = 'utf8') {
-        if (text) {
+        if (text && !isJSON(text)) {
             let [name, tag, iv, data] = text.split(':')
             if (!data || !iv || !tag || !name) {
                 return text
