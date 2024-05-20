@@ -606,7 +606,9 @@ export class Expression {
                             start[sort] = cursor[sort]
                         }
                     }
-                    args.ExclusiveStartKey = this.table.marshall(start, params)
+                    if (start[hash]) {
+                        args.ExclusiveStartKey = this.table.marshall(start, params)
+                    }
                 }
             }
             if (op == 'scan') {
