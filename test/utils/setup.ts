@@ -3,7 +3,7 @@
  */
 import {spawn} from 'child_process'
 const waitPort = require('wait-port')
-import DynamoDbLocal from 'dynamo-db-local'
+import * as DynamoDbLocal from 'dynamo-db-local'
 
 const PORT = parseInt(process.env.PORT || '4567')
 const USE_DOCKER = Boolean(process.env.DOCKER)
@@ -17,10 +17,7 @@ module.exports = async () => {
         console.info('\nUsing docker to run dynamoDB', {args})
 
         // Docker errors will be forwarded to the local terminal with stdio: inherit
-        dynamodb = spawn(`docker`, args, {
-            cwd: __dirname,
-            stdio: 'inherit',
-        })
+        dynamodb = spawn(`docker`, args, {cwd: __dirname, stdio: 'inherit'})
     } else {
         dynamodb = DynamoDbLocal.spawn({port: PORT})
     }
