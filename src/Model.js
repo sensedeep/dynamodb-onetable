@@ -797,8 +797,16 @@ export class Model {
         /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
-            let hasUniqueProperties = Object.entries(properties).find((pair) => {
-                return this.block.fields[pair[0]] && this.block.fields[pair[0]].unique
+            const newParams = {...params}
+            let newProperties = {...properties}
+            newProperties = this.prepareProperties('update', newProperties, newParams)
+            const fieldNames = Object.keys(newProperties)
+            if (newParams.remove) {
+                fieldNames.push(...newParams.remove)
+            }
+
+            let hasUniqueProperties = fieldNames.find((fieldName) => {
+                return this.block.fields[fieldName] && this.block.fields[fieldName].unique
             })
             if (hasUniqueProperties) {
                 return await this.updateUnique(properties, params)
@@ -825,12 +833,15 @@ export class Model {
         let index = this.indexes.primary
         let {hash, sort} = index
 
-        params.prepared = properties = this.prepareProperties('update', properties, params)
+
+        const newParams = {...params}
+        let newProperties = {...properties}
+        newProperties = this.prepareProperties('update', newProperties, newParams)
         let keys = {
-            [index.hash]: properties[index.hash],
+            [index.hash]: newProperties[index.hash],
         }
         if (index.sort) {
-            keys[index.sort] = properties[index.sort]
+            keys[index.sort] = newProperties[index.sort]
         }
         /*
             Get the prior item so we know the previous unique property values so they can be removed.
@@ -839,8 +850,8 @@ export class Model {
         let prior = await this.get(keys, {hidden: true})
         if (prior) {
             prior = this.prepareProperties('update', prior)
-        } else if (params.exists === undefined || params.exists == true) {
-            throw new OneTableError('Cannot find existing item to update', {properties, code: 'NotFoundError'})
+        } else if (newParams.exists === undefined || newParams.exists == true) {
+            throw new OneTableError('Cannot find existing item to update', {newProperties, code: 'NotFoundError'})
         }
         /*
             Create all required unique properties. Remove prior unique properties if they have changed.
@@ -850,19 +861,19 @@ export class Model {
         )
 
         for (let field of fields) {
-            let toBeRemoved = params.remove && params.remove.includes(field.name)
-            let isUnchanged = prior && properties[field.name] === prior[field.name]
+            let toBeRemoved = newParams.remove && newParams.remove.includes(field.name)
+            let isUnchanged = prior && newProperties[field.name] === prior[field.name]
             if (isUnchanged) {
                 continue
             }
             let scope = ''
             if (field.scope) {
-                scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+                scope = this.runTemplate(null, null, field, newProperties, newParams, field.scope) + '#'
             }
-            let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
+            let pk = `_unique#${scope}${this.name}#${field.attribute}#${newProperties[field.name]}`
             let sk = `_unique#`
             // If we had a prior value AND value is changing or being removed, remove old value
-            if (prior && prior[field.name] && (properties[field.name] !== undefined || toBeRemoved)) {
+            if (prior && prior[field.name] && (newProperties[field.name] !== undefined || toBeRemoved)) {
                 /*
                     Remove prior unique properties if they have changed and create new unique property.
                 */
@@ -876,21 +887,21 @@ export class Model {
                     {
                         transaction,
                         exists: null,
-                        execute: params.execute,
-                        log: params.log,
+                        execute: newParams.execute,
+                        log: newParams.log,
                     }
                 )
             }
             // If value is changing, add new unique value
-            if (properties[field.name] !== undefined) {
+            if (newProperties[field.name] !== undefined) {
                 await this.schema.uniqueModel.create(
                     {[this.hash]: pk, [this.sort]: sk},
                     {
                         transaction,
                         exists: false,
                         return: 'NONE',
-                        log: params.log,
-                        execute: params.execute,
+                        log: newParams.log,
+                        execute: newParams.execute,
                     }
                 )
             }
@@ -925,10 +936,10 @@ export class Model {
         }
         if (params.return == 'get') {
             return await this.get(keys, {
-                hidden: params.hidden,
-                log: params.log,
-                parse: params.parse,
-                execute: params.execute,
+                hidden: newParams.hidden,
+                log: newParams.log,
+                parse: newParams.parse,
+                execute: newParams.execute,
             })
         }
         if (this.table.warn !== false) {
@@ -1038,6 +1049,7 @@ export class Model {
                 }
             }
         }
+
         properties = this.prepareProperties('update', properties, params)
         let expression = new Expression(this, 'update', properties, params)
         return await this.run('update', expression)
