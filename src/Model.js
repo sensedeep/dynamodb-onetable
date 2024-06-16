@@ -588,6 +588,14 @@ export class Model {
                 let scope = ''
                 if (field.scope) {
                     scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+                    if (scope == undefined) {
+                        throw new OneTableError('Missing properties to resolve unique scope', {
+                            properties,
+                            field,
+                            scope: field.scope,
+                            code: 'UniqueError',
+                        })
+                    }
                 }
                 let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
                 let sk = '_unique#'
@@ -759,6 +767,15 @@ export class Model {
             let scope = ''
             if (field.scope) {
                 scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+                if (scope == undefined) {
+                    throw new OneTableError('Missing properties to resolve unique scope', {
+                        properties,
+                        field,
+                        params,
+                        scope: field.scope,
+                        code: 'UniqueError',
+                    })
+                }
             }
             // If we had a prior record, remove unique values that existed
             if (prior && prior[field.name]) {
@@ -858,6 +875,14 @@ export class Model {
             let scope = ''
             if (field.scope) {
                 scope = this.runTemplate(null, null, field, properties, params, field.scope) + '#'
+                if (scope == undefined) {
+                    throw new OneTableError('Missing properties to resolve unique scope', {
+                        properties,
+                        field,
+                        scope: field.scope,
+                        code: 'UniqueError',
+                    })
+                }
             }
             let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
             let sk = `_unique#`
@@ -1668,13 +1693,15 @@ export class Model {
             Consider unresolved template variables. If field is the sort key and doing find,
             then use sort key prefix and begins_with, (provide no where clause).
          */
-        if (value.indexOf('${') >= 0 && index) {
-            if (field.attribute[0] == index.sort) {
-                if (op == 'find') {
-                    //  Strip from first ${ onward and retain fixed prefix portion
-                    value = value.replace(/\${.*/g, '')
-                    if (value) {
-                        return {begins: value}
+        if (value.indexOf('${') >= 0) {
+            if (index) {
+                if (field.attribute[0] == index.sort) {
+                    if (op == 'find') {
+                        //  Strip from first ${ onward and retain fixed prefix portion
+                        value = value.replace(/\${.*/g, '')
+                        if (value) {
+                            return {begins: value}
+                        }
                     }
                 }
             }

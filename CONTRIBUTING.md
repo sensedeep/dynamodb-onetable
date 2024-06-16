@@ -31,20 +31,6 @@ You can run the test suite locally with:
 npm test
 ```
 
-If you do not have Java installed, then you can run via docker with:
-
-```bash
-DOCKER=yes npm test
-```
-
-If you need to change the port, that local dynamodb runs on, then set the `PORT` environment variable.
-
-```bash
-PORT=12345 npm test
-# This is also compatible with docker
-DOCKER=true PORT=12344 npm test
-```
-
 You can run the linter with:
 
 ```bash
