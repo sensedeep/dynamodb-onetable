@@ -1254,7 +1254,7 @@ export class Model {
         NOTE: this is prototype code and definitely not perfect! Use at own risk.
      */
     convertFilter(properties, params, index) {
-        let filter = params.filter
+        let filter = params.filter.toString()
         let fields = this.block.fields
         let where
         //  TODO support > >= < <= ..., AND or ...
@@ -1268,11 +1268,10 @@ export class Model {
                 if (field.encode) {
                     properties[name] = value
                 } else {
-                    where = `\${${name}} = {${value}}`
+                    where = `\${${name}} = {"${value}"}`
                 }
             } else {
-                //  TODO support > >= < <= ..., AND or ...
-                where = `\${${name}} = "{${value}}"`
+                where = `\${${name}} = {"${value}"}`
             }
         } else {
             value = name
@@ -1286,17 +1285,16 @@ export class Model {
                     continue
                 }
                 name = field.map ? field.map : name
-                //  Does not seem to work with a numeric filter
-                let term = `(contains(\${${name}}, {${filter}}))`
-                where.push(term)
+                where.push(`(contains(\${${name}}, {"${filter}"}))`)
             }
             if (where) {
                 where = where.join(' or ')
             }
         }
         params.where = where
-        //  TODO SANITY
-        params.maxPages = 25
+        params.maxPages = params.maxPages || 25
+        //  Remove limit otherwise the search will only search "limit" items at a time
+        delete params.limit
     }
 
     //  Handle fallback for get/delete as GSIs only support find and scan
