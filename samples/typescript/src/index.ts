@@ -133,7 +133,7 @@ async function test() {
     let i = 0,
         count = 0
     while (i++ < 200) {
-        User.create({name: `user${i}`, email: `user${i}@acme.com`}, {batch})
+        await User.create({name: `user${i}`, email: `user${i}@acme.com`}, {batch})
         if (++count >= 25) {
             await table.batchWrite(batch)
             batch = {}
