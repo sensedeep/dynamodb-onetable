@@ -88,7 +88,7 @@ test('Update', async () => {
 test('Remove attribute', async () => {
     //  Remove attribute by setting to null
     user = await table.update('User', {id: user.id, status: null})
-    expect(user.status).toBeUndefined()
+    expect(user.status).toBe('idle')
 })
 
 test('Remove attribute 2', async () => {

@@ -167,9 +167,9 @@ test('Update', async () => {
 })
 
 test('Remove attribute', async () => {
-    //  Remove attribute by setting to null
+    //  Remove attribute by setting to null -- but status has a default value
     user = await User.update({id: user.id, status: null})
-    expect(user.status).toBeUndefined()
+    expect(user.status).toBe('idle')
 })
 
 test('Remove attribute 2', async () => {

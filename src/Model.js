@@ -1123,18 +1123,17 @@ export class Model {
                     let [att, sep, index] = field.encode
                     value = (raw[att] || '').split(sep)[index]
                 }
-                if (value === undefined) {
-                    continue
-                }
             }
-            if (sub) {
+            if (sub && value) {
                 value = value[sub]
             }
             if (field.crypt && params.decrypt !== false) {
                 value = this.decrypt(value)
             }
             if (field.default !== undefined && value === undefined) {
-                value = field.default
+                if (!params.fields || params.fields.indexOf(name) >= 0) {
+                    rec[name] = field.default
+                }
             } else if (value === undefined) {
                 if (field.required) {
                     this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {

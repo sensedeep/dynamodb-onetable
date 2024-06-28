@@ -14,7 +14,6 @@ const table = new Table({
     client: Client,
     partial: false,
     schema: MappedSchema,
-    // _logger: true,
 })
 
 test('Create Table', async () => {
