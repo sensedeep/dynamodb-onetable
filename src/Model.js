@@ -830,7 +830,7 @@ export class Model {
     }
 
     /*
-        Update an item with unique attributes and actually updating a unique property.
+        Update an item with unique attributes.
         Use a transaction to update a unique item for each unique attribute.
      */
     async updateUnique(properties, params) {
@@ -1136,12 +1136,15 @@ export class Model {
                 }
             } else if (value === undefined) {
                 if (field.required) {
-                    this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
-                        model: this.name,
-                        raw,
-                        params,
-                        field,
-                    })
+                    /*  
+                        Transactions transform the properties to return something, but 
+                        does not have all the properties and required fields may be missing)
+                     */
+                    if (!params.transaction) {
+                        this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
+                            model: this.name, raw, params, field,
+                        })
+                    }
                 }
             } else if (field.schema && value !== null && typeof value == 'object') {
                 if (field.items && Array.isArray(value)) {

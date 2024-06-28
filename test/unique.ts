@@ -39,22 +39,18 @@ test('Create user 1', async () => {
     user = await User.create(props)
     expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
+    let items = await table.scanItems({}, {parse: true})
     expect(items.length).toBe(3)
 
-    let pk = (() => {
-        if (isV3()) {
-            let unique = items.filter((item) => item.pk.S.indexOf('interpolated') >= 0)
-            return unique[0].pk.S
-        }
-        if (isV2()) {
-            let unique = items.filter((item) => item.pk.indexOf('interpolated') >= 0)
-            return unique[0].pk
-        }
+    let upk = (() => {
+        let unique = items.filter((item) => 
+            item.pk?.indexOf('interpolated') >= 0
+    )
+        return unique[0].pk
     })()
-    expect(pk.indexOf('Peter Smith') >= 0).toBe(true)
-    expect(pk.indexOf('peter@example.com') >= 0).toBe(true)
-    expect(pk.indexOf('User') >= 0).toBe(true)
+    expect(upk.indexOf('Peter Smith') >= 0).toBe(true)
+    expect(upk.indexOf('peter@example.com') >= 0).toBe(true)
+    expect(upk.indexOf('User') >= 0).toBe(true)
 })
 
 test('Create user 2', async () => {
@@ -66,7 +62,7 @@ test('Create user 2', async () => {
     user = await User.create(props)
     expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
+    let items = await table.scanItems({}, {parse: true})
     expect(items.length).toBe(7)
 })
 
@@ -78,7 +74,7 @@ test('Update user 2 with the same email', async () => {
     user = await User.update(props, {return: 'get'})
     expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
+    let items = await table.scanItems({}, {parse: true})
     expect(items.length).toBe(7)
 })
 
@@ -90,7 +86,7 @@ test('Update user 2 with unique email', async () => {
     user = await User.update(props, {return: 'get'})
     expect(user).toMatchObject(props)
 
-    let items = await table.scanItems()
+    let items = await table.scanItems({}, {parse: true})
     expect(items.length).toBe(7)
 })
 
@@ -116,7 +112,7 @@ test('Update with unknown property', async () => {
     const {unknown, ...expectedProps} = props
     expect(user).toMatchObject(expectedProps)
 
-    let items = await table.scanItems()
+    let items = await table.scanItems({}, {parse: true})
     expect(items.length).toBe(7)
 })
 
@@ -125,7 +121,7 @@ test('Update to remove optional unique property', async () => {
         name: 'Judy Smith',
         phone: null,
     }
-    user = await User.update(props, {return: 'get', log: false})
+    user = await User.update(props, {return: 'get'})
     const {phone, ...expectedProps} = props
     expect(user).toMatchObject(expectedProps)
     expect(user.phone).toBeUndefined()
