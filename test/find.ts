@@ -1,16 +1,25 @@
 /*
     find-and-scan.ts - Basic find and scan options
  */
-import {AWS, Client, Match, Table, print, dump, delay} from './utils/init'
 import {DefaultSchema} from './schemas'
+import {Client, Table} from './utils/init'
 
 // jest.setTimeout(7200 * 1000)
 
+const onErrorLog = jest.fn();
 const table = new Table({
     name: 'FindTable',
     client: Client,
     partial: false,
     schema: DefaultSchema,
+    logger: (level, message, ctx) => {
+        if (level === 'info') return console.log({message, ctx})
+        if (level === 'warn') return console.warn({message, ctx})
+        if (level === 'error') {
+            onErrorLog({message, ctx})
+            return console.error({message, ctx})
+        }
+    },
 })
 
 test('Create Table', async () => {
@@ -21,6 +30,7 @@ test('Create Table', async () => {
 })
 
 let User = table.getModel('User')
+let Pet = table.getModel('Pet')
 let user: any
 let users: any
 
@@ -97,6 +107,13 @@ test('List with begins_with', async () => {
         }
     )
     expect(items.length).toBe(1)
+})
+
+test('Find Pets names only (should not log error on missing required fields)', async () => {
+    await Pet.create({name: 'Guinness', race: 'dog', breed:'shih-tzu'})
+    let items = await Pet.find({}, {fields: ['name']})
+    expect(items).toHaveLength(1)
+    expect(onErrorLog).not.toHaveBeenCalled();
 })
 
 test('Destroy Table', async () => {
