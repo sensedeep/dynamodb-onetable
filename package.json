@@ -28,9 +28,9 @@
         "lint-fix": "eslint src --fix",
         "prepare": "npm run build",
         "_prepublishOnly": "npm test && npm run lint",
-        "test": "jest basic",
-        "test:v2": "DDB_CLIENT_VERSION=v2 jest basic",
-        "test:v3": "DDB_CLIENT_VERSION=v3 jest basic",
+        "test": "jest",
+        "test:v2": "DDB_CLIENT_VERSION=v2 jest",
+        "test:v3": "DDB_CLIENT_VERSION=v3 jest",
         "test-cov": "jest --coverage",
         "test-cov:v2": "npm run test:v2 -- --coverage",
         "test-cov:v3": "npm run test:v3 -- --coverage"
