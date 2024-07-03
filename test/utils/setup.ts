@@ -21,11 +21,14 @@ module.exports = async () => {
     } else {
         dynamodb = DynamoDbLocal.spawn({port: PORT})
     }
-    await waitPort({
+    let result = await waitPort({
         host: '0.0.0.0',
         port: PORT,
         timeout: 20000,
     })
+    if (!result.open) {
+        throw new Error('Cannot open port: ' + PORT)
+    }
     process.env.DYNAMODB_PID = String(dynamodb.pid)
     process.env.DYNAMODB_PORT = String(PORT)
 
