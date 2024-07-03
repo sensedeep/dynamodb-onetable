@@ -1136,11 +1136,12 @@ export class Model {
                 }
             } else if (value === undefined) {
                 if (field.required) {
-                    /*  
-                        Transactions transform the properties to return something, but 
-                        does not have all the properties and required fields may be missing)
+                    /*
+                        Transactions transform the properties to return something, but
+                        does not have all the properties and required fields may be missing).
+                        Also find operation with fields selections may not include required fields.
                      */
-                    if (!params.transaction) {
+                    if (!params.transaction && !params.fields) {
                         this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
                             model: this.name, raw, params, field,
                         })
@@ -1607,7 +1608,7 @@ export class Model {
                 delete properties[name]
                 if (this.getPartial(field, params) === false && pathname.match(/[[.]/)) {
                     /*
-                        Partial disabled for a nested object 
+                        Partial disabled for a nested object
                         Don't create remove entry as the entire object is being created/updated
                      */
                     continue
@@ -2034,7 +2035,7 @@ export class Model {
 
     /*
         Return if a field supports partial updates of its children.
-        Only relevant for fields with nested schema 
+        Only relevant for fields with nested schema
      */
     getPartial(field, params) {
         let partial = params.partial
