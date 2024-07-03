@@ -35,6 +35,14 @@ export default {
             gs3pk: {type: String, value: '${_type}#${status}'},
             gs3sk: {type: String, value: '${_type}#${name}'},
         },
+        Pet: {
+            pk: {type: String, value: '${_type}', hidden: true},
+            sk: {type: String, value: '${_type}#${id}', hidden: true},
+            id: {type: String, generate: 'ulid'},
+            name: {type: String},
+            race: {type: String, enum: ['dog', 'cat', 'fish'], required: true},
+            breed: {type: String, required: true},
+        }
     },
     params: {
         isoDates: true,
