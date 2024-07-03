@@ -24,7 +24,7 @@ module.exports = async () => {
     await waitPort({
         host: '0.0.0.0',
         port: PORT,
-        timeout: 10000,
+        timeout: 20000,
     })
     process.env.DYNAMODB_PID = String(dynamodb.pid)
     process.env.DYNAMODB_PORT = String(PORT)
