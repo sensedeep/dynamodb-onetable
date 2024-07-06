@@ -1158,7 +1158,7 @@ export class Model {
                         does not have all the properties and required fields may be missing).
                         Also find operation with fields selections may not include required fields.
                      */
-                    if (!params.transaction && !params.fields && !field.encode && !params.noerror) {
+                    if (!params.transaction && !params.batch && !params.fields && !field.encode && !params.noerror) {
                         this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
                             model: this.name, raw, params, field,
                         })
