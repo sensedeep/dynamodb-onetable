@@ -144,6 +144,23 @@ export class Model {
                 )
             }
 
+            if (field.encode) {
+                let schema = this.schema.definition
+                if (typeof field.encode == 'string' && this.table.separator) {
+                    let def = schema.models[this.name][field.encode]
+                    if (def?.value) {
+                        let parts = def.value.match(/\${(.*?)}/g)
+                        let index = parts.indexOf('${' + field.name + '}')
+                        if (index >= 0) {
+                            field.encode = [field.encode, this.table.separator, index]
+                        }
+                    }
+                    if (typeof field.encode == 'string') {
+                        throw new OneTableArgError(`Cannot resolve encoded reference for ${this.name}.${field.name}`)
+                    }
+                }
+            }
+
             field.type = this.checkType(field)
 
             /*
