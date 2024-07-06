@@ -92,6 +92,7 @@ export type OneSchemaParams = {
     isoDates?: boolean //  Set to true to store dates as Javascript ISO Date strings. Default false.
     nulls?: boolean //  Store nulls in database attributes. Default false.
     timestamps?: boolean | string //  Make "created" and "updated" timestamps. Set to true, 'create' or 'update'. Default true.
+    separator?: string // Separator string uses in value templates
     typeField?: string //  Name of model type attribute. Default "_type".
     updatedField?: string //  Name of "updated" timestamp attribute. Default 'updated'.
 }

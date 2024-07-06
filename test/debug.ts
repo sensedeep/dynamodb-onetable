@@ -22,6 +22,7 @@ const schema = {
         updatedField: 'updatedAt',
         isoDates: true,
         timestamps: true,
+        separator: '#',
     },
     models: {
         User: {

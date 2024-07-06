@@ -265,6 +265,9 @@ export class Schema {
         if (params.nulls == null) {
             params.nulls = false
         }
+        if (params.separator == null) {
+            params.separator = '#'
+        }
         if (params.timestamps == null) {
             params.timestamps = false
         }

@@ -102,6 +102,7 @@ export class Table {
         this.createdField = 'created'
         this.isoDates = false
         this.nulls = false
+        this.separator = '#'
         this.timestamps = false
         this.updatedField = 'updated'
 
@@ -130,6 +131,7 @@ export class Table {
             params.createdField != null ||
             this.isoDates != null ||
             this.nulls != null ||
+            this.separator != null ||
             this.timestamps != null ||
             this.typeField != null ||
             this.updatedField != null
@@ -177,6 +179,7 @@ export class Table {
         this.createdField = params.createdField || 'created'
         this.isoDates = params.isoDates || false
         this.nulls = params.nulls || false
+        this.separator = params.separator != null ? params.separator : '#'
         this.timestamps = params.timestamps != null ? params.timestamps : false
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
@@ -191,6 +194,7 @@ export class Table {
             createdField: this.createdField,
             isoDates: this.isoDates,
             nulls: this.nulls,
+            separator: this.separator,
             timestamps: this.timestamps,
             typeField: this.typeField,
             updatedField: this.updatedField,
