@@ -563,7 +563,6 @@ export class Model {
         Create/Put a new item. Will overwrite existing items if exists: null.
     */
     async create(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true, exists: false}))
         let result
         if (this.hasUniqueFields) {
@@ -649,7 +648,6 @@ export class Model {
     }
 
     async check(properties, params) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         properties = this.prepareProperties('get', properties, params)
         const expression = new Expression(this, 'check', properties, params)
@@ -657,13 +655,11 @@ export class Model {
     }
 
     async find(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return await this.queryItems(properties, params)
     }
 
     async get(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         properties = this.prepareProperties('get', properties, params)
         if (params.fallback) {
@@ -690,7 +686,6 @@ export class Model {
     }
 
     async load(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
@@ -698,13 +693,11 @@ export class Model {
     }
 
     init(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return this.initItem(properties, params)
     }
 
     async remove(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, exists: null, high: true}))
 
         properties = this.prepareProperties('delete', properties, params)
@@ -822,13 +815,11 @@ export class Model {
     }
 
     async scan(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {parse: true, high: true}))
         return await this.scanItems(properties, params)
     }
 
     async update(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params, {exists: true, parse: true, high: true}))
         if (this.hasUniqueFields) {
             let hasUniqueProperties = Object.entries(properties).find((pair) => {
@@ -986,7 +977,6 @@ export class Model {
 
     /* private */
     async deleteItem(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
             properties = this.prepareProperties('delete', properties, params)
@@ -997,7 +987,6 @@ export class Model {
 
     /* private */
     async getItem(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('get', properties, params)
         let expression = new Expression(this, 'get', properties, params)
@@ -1006,7 +995,6 @@ export class Model {
 
     /* private */
     initItem(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         let fields = this.block.fields
         this.setDefaults('init', fields, properties, params)
@@ -1022,7 +1010,6 @@ export class Model {
 
     /* private */
     async putItem(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (!params.prepared) {
             if (params.timestamps !== false) {
@@ -1045,7 +1032,6 @@ export class Model {
 
     /* private */
     async queryItems(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('find', properties, params)
         let expression = new Expression(this, 'find', properties, params)
@@ -1055,7 +1041,6 @@ export class Model {
     //  Note: scanItems will return all model types
     /* private */
     async scanItems(properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         properties = this.prepareProperties('scan', properties, params)
         let expression = new Expression(this, 'scan', properties, params)
@@ -1064,7 +1049,6 @@ export class Model {
 
     /* private */
     async updateItem(properties, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (this.timestamps === true || this.timestamps == 'update') {
             if (params.timestamps !== false) {
@@ -1087,7 +1071,6 @@ export class Model {
 
     /* private */
     async fetch(models, properties = {}, params = {}) {
-        /* eslint-disable-next-line */
         ;({properties, params} = this.checkArgs(properties, params))
         if (models.length == 0) {
             return {}
@@ -1131,7 +1114,6 @@ export class Model {
             if (op == 'put') {
                 att = field.name
             } else {
-                /* eslint-disable-next-line */
                 ;[att, sub] = field.attribute
             }
             let value = raw[att]
