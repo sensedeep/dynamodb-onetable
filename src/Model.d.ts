@@ -100,13 +100,9 @@ export type OneSchemaParams = {
 /*
     Entity field signature generated from the schema
  */
-type EntityField<T extends OneField> = T['type'] extends 'array' | ArrayConstructor | ArrayBufferConstructor
-    ? T['items'] extends object
-        ? EntityField<T['items']>[]
-        : EntityFieldFromType<T>
-    : T['enum'] extends readonly EntityFieldFromType<T>[]
-        ? T['enum'][number]
-        : EntityFieldFromType<T>
+type EntityField<T extends OneField> = T['enum'] extends readonly EntityFieldFromType<T>[]
+    ? T['enum'][number]
+    : EntityFieldFromType<T>
 
 type EntityFieldFromType<T extends OneField> = T['type'] extends ArrayConstructor | 'array'
     ? ArrayItemType<T>[]
@@ -128,7 +124,9 @@ type EntityFieldFromType<T extends OneField> = T['type'] extends ArrayConstructo
     ? EntityFieldFromType<Exclude<T['items'], undefined>>[]
     : never
 
-type ArrayItemType<T extends OneField> = T extends {items: OneField} ? EntityFieldFromType<T['items']> : any
+type ArrayItemType<T extends OneField> = T extends {items: OneField}
+    ? EntityField<T['items']>
+    : EntityFieldFromType<T>
 /*
     Select the required properties from a model
 */
