@@ -100,7 +100,9 @@ export type OneSchemaParams = {
 /*
     Entity field signature generated from the schema
  */
-type EntityField<T extends OneField> = T['enum'] extends readonly EntityFieldFromType<T>[]
+type EntityField<T extends OneField> = T['items'] extends object
+  ? EntityField<T['items']>[]
+  : T['enum'] extends readonly EntityFieldFromType<T>[]
     ? T['enum'][number]
     : EntityFieldFromType<T>
 
