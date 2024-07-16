@@ -126,7 +126,7 @@ type EntityFieldFromType<T extends OneField> = T['type'] extends ArrayConstructo
 
 type ArrayItemType<T extends OneField> = T extends {items: OneField}
     ? EntityField<T['items']>
-    : EntityFieldFromType<T>
+    : any
 /*
     Select the required properties from a model
 */
