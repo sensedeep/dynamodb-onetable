@@ -36,7 +36,7 @@ test('Create', async () => {
     expect(item.arrayWithTypedItems).toBeDefined()
     expect(item.arrayWithTypedItems.length).toBe(1)
     expect(item.arrayWithTypedItems[0].bar).toBe('Bar')
-    expect(item.arrayWithEnumItems).toBe(expected.arrayWithEnumItems)
+    expect(item.arrayWithEnumItems).toStrictEqual(expected.arrayWithEnumItems)
     expect(item.arrayWithoutTypedItems.length).toBe(4)
     expect(item.arrayWithoutTypedItems[0]).toBe('a')
 
