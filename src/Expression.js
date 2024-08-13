@@ -83,7 +83,6 @@ export class Expression {
             }
         }
         //  Batch does not use update expressions (Ugh!)
-        // let rec = op == 'put' || (this.params.batch && op == 'update') ? {} : null
         this.puts = this.addProperties(op, this.model.block, properties)
 
         /*

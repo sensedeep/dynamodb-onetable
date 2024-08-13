@@ -53,6 +53,9 @@ const DynamoOps = {
     transactWrite: 'transactWrite',
 }
 
+/*
+    The generic model is used for the low-level API and batch operations
+ */
 const GenericModel = '_Generic'
 
 const maxBatchSize = 25
@@ -721,8 +724,6 @@ export class Table {
             def.ExpressionAttributeNames = cmd.ExpressionAttributeNames
         }
         def.ConsistentRead = params.consistent ? true : false
-
-        // let result = await this.execute(GenericModel, 'batchGet', batch, {}, params)
 
         let result,
             retries = 0,
