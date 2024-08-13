@@ -61,16 +61,12 @@ export class Model {
 
         //  Cache table properties
         this.createdField = table.createdField
-        this.generic = options.generic
         this.nested = false
         this.nulls = table.nulls
         this.tableName = table.name
         this.typeField = options.typeField || table.typeField
         this.generic = options.generic != null ? options.generic : table.generic
-        this.timestamps = options.timestamps
-        if (this.timestamps == null) {
-            this.timestamps = table.timestamps
-        }
+        this.timestamps = options.timestamps != null ? options.timestamps : table.timestamps
         this.updatedField = table.updatedField
         this.block = {fields: {}, deps: []}
 
@@ -143,7 +139,6 @@ export class Model {
                     'The "uuid" schema property is deprecated. Please use "generate": "uuid or ulid" instead'
                 )
             }
-
             if (field.encode) {
                 let schema = this.schema.definition
                 if (typeof field.encode == 'string' && this.table.separator) {
