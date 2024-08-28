@@ -45,6 +45,7 @@ describe('Typescript infer', () => {
 
     test('Create', async () => {
         const properties = {
+            name: 'john',
             email: 'user@example.com',
         }
 
