@@ -95,6 +95,7 @@ export type OneSchemaParams = {
     separator?: string // Separator string uses in value templates
     typeField?: string //  Name of model type attribute. Default "_type".
     updatedField?: string //  Name of "updated" timestamp attribute. Default 'updated'.
+    warn?: boolean // Emit warnings for some conditions. Default false.
 }
 
 /*
@@ -261,6 +262,7 @@ export type OneParams = {
     many?: boolean
     maxPages?: number
     next?: object
+    //  DEPRECATED
     noerror?: boolean
     parse?: boolean
     partial?: boolean
@@ -283,6 +285,7 @@ export type OneParams = {
     transaction?: object
     type?: string
     tunnel?: object
+    warn?: Boolean
     where?: string
     profile?: string
 }

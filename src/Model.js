@@ -330,7 +330,7 @@ export class Model {
                 params.expression = expression
                 let items = (t.TransactItems = t.TransactItems || [])
                 items.push({[top]: cmd})
-                return this.transformReadItem(op, properties, properties, params)
+                return this.transformReadItem(op, properties, properties, params, expression)
             } else {
                 throw new OneTableArgError(`Unknown transaction operation ${op}`)
             }
@@ -345,12 +345,12 @@ export class Model {
             if (op == 'get') {
                 let list = (ritems[this.tableName] = ritems[this.tableName] || {Keys: []})
                 list.Keys.push(cmd.Keys)
-                return this.transformReadItem(op, properties, properties, params)
+                return this.transformReadItem(op, properties, properties, params, expression)
             } else {
                 let list = (ritems[this.tableName] = ritems[this.tableName] || [])
                 let bop = BatchOps[op]
                 list.push({[bop]: cmd})
-                return this.transformReadItem(op, properties, properties, params)
+                return this.transformReadItem(op, properties, properties, params, expression)
             }
         }
         /*
@@ -548,7 +548,7 @@ export class Model {
                     //  Special "unique" model for unique fields. Don't return in result.
                     continue
                 }
-                items[index] = model.transformReadItem(op, item, properties, params)
+                items[index] = model.transformReadItem(op, item, properties, params, expression)
             }
         }
         return items
@@ -959,7 +959,7 @@ export class Model {
                 execute: params.execute,
             })
         }
-        if (this.table.warn !== false) {
+        if (this.table.warn) {
             console.warn(
                 `Update with unique items uses transactions and cannot return the updated item.` +
                     `Use params {return: 'none'} to squelch this warning. ` +
@@ -1089,14 +1089,14 @@ export class Model {
     /*
         Map Dynamo types to Javascript types after reading data
      */
-    transformReadItem(op, raw, properties, params) {
+    transformReadItem(op, raw, properties, params, expression) {
         if (!raw) {
             return raw
         }
-        return this.transformReadBlock(op, raw, properties, params, this.block.fields)
+        return this.transformReadBlock(op, raw, properties, params, this.block.fields, expression)
     }
 
-    transformReadBlock(op, raw, properties, params, fields) {
+    transformReadBlock(op, raw, properties, params, fields, expression) {
         let rec = {}
         for (let [name, field] of Object.entries(fields)) {
             //  Skip hidden params. Follow needs hidden params to do the follow.
@@ -1135,10 +1135,10 @@ export class Model {
                         does not have all the properties and required fields may be missing).
                         Also find operation with fields selections may not include required fields.
                      */
-                    if (!params.transaction && !params.batch && !params.fields && !field.encode && !params.noerror) {
-                        this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {
-                            model: this.name, raw, params, field,
-                        })
+                    if (!params.transaction && !params.batch && !params.fields && !field.encode && !expression.index.project) {
+                        if (params.warn || this.table.warn) {
+                            this.table.log.error(`Required field "${name}" in model "${this.name}" not defined in table item`, {model: this.name, raw, params, field})
+                        }
                     }
                 }
             } else if (field.schema && value !== null && typeof value == 'object') {
@@ -1413,7 +1413,7 @@ export class Model {
     */
     tunnelProperties(properties, params) {
         if (params.tunnel) {
-            if (this.table.warn !== false) {
+            if (this.table.warn) {
                 console.warn(
                     'WARNING: tunnel properties should not be required for typescript and will be removed soon.'
                 )

@@ -108,6 +108,7 @@ export class Table {
         this.separator = '#'
         this.timestamps = false
         this.updatedField = 'updated'
+        this.warn = false
 
         this.schema = new Schema(this, params.schema)
 
@@ -186,6 +187,7 @@ export class Table {
         this.timestamps = params.timestamps != null ? params.timestamps : false
         this.typeField = params.typeField || '_type'
         this.updatedField = params.updatedField || 'updated'
+        this.warn = params.warn || false
 
         if (params.hidden != null) {
             this.log.warn(`Schema hidden params should be specified via the Table constructor params`, {'@stack': true})

@@ -23,11 +23,12 @@ const schema = {
         isoDates: true,
         timestamps: true,
         separator: '#',
+        warn: false,
     },
     models: {
         User: {
-            pk: { type: String, value: '${_type}#${email}' },
-            sk: { type: String, value: '${_type}#' },
+            pk: { type: String, value: 'user#' },
+            sk: { type: String, value: 'user#${email}' },
             email: { type: String, required: true },
         }
     } as const,
@@ -51,16 +52,15 @@ test('Create Table', async () => {
 })
 
 test('Test', async () => {
-    let User = table.getModel('User')
     /*
+        Put your code here
+
+    let User = table.getModel('User')
     let user = await User.create({
         email: "user@example.com",
     })
     dump("USER", user)
     let result = await User.find({}, {log: true})
-    */
-    /*
-    Put your code here
     */
 })
 

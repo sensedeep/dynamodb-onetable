@@ -271,6 +271,9 @@ export class Schema {
         if (params.timestamps == null) {
             params.timestamps = false
         }
+        if (params.warn == null) {
+            params.warn = false
+        }
         return params
     }
 
