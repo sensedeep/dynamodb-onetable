@@ -1615,8 +1615,10 @@ export class Model {
                 let path = pathname ? `${pathname}.${field.name}` : field.name
                 params.remove.push(path)
             } else if (typeof value == 'object' && (field.type == 'object' || field.type == 'array')) {
-                //  Remove nested empty strings because DynamoDB cannot handle these nested in objects or arrays
-                properties[name] = this.handleEmpties(field, value)
+                //  LEGACY: Remove nested empty strings because DynamoDB cannot handle these nested in objects or arrays
+                if (this.table.params.legacyEmpties === true) {
+                    properties[name] = this.handleEmpties(field, value)
+                }
             }
         }
     }

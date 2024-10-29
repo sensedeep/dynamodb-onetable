@@ -96,6 +96,8 @@ export type OneSchemaParams = {
     typeField?: string //  Name of model type attribute. Default "_type".
     updatedField?: string //  Name of "updated" timestamp attribute. Default 'updated'.
     warn?: boolean // Emit warnings for some conditions. Default false.
+
+    legacyEmpties?: boolean // Remove empty strings
 }
 
 /*
