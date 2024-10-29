@@ -597,11 +597,14 @@ export class Expression {
                 let cursor = params.next || params.prev
                 if (cursor) {
                     let {hash, sort} = this.index
-                    let start = {[hash]: cursor[hash], [sort]: cursor[sort]}
+                    let start = {[hash]: cursor[hash]}
+                    if (sort && cursor[sort]) {
+                        start[sort] = cursor[sort]
+                    }
                     if (this.params.index != 'primary') {
                         let {hash, sort} = this.model.indexes.primary
                         start[hash] = cursor[hash]
-                        if (cursor[sort] != null) {
+                        if (sort && cursor[sort] != null) {
                             start[sort] = cursor[sort]
                         }
                     }
