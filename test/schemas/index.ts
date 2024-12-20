@@ -1,4 +1,5 @@
 import CryptoSchema from './cryptoSchema'
+import CustomGenerateSchema from './customGenerateSchema'
 import DataTypesSchema from './dataTypesSchema'
 import DefaultSchema from './defaultSchema'
 import FullSchema from './fullSchema'
@@ -15,6 +16,7 @@ import ArrayItemsSchema from './arrayItemsSchema'
 export {
     ArrayItemsSchema,
     CryptoSchema,
+    CustomGenerateSchema,
     DataTypesSchema,
     DefaultSchema,
     FullSchema,
