@@ -1561,6 +1561,8 @@ export class Model {
                     let generate = field.generate
                     if (generate === true) {
                         value = this.table.generate()
+                    } else if (typeof generate === 'function') {
+                        value = generate()
                     } else if (generate == 'uuid') {
                         value = this.table.uuid()
                     } else if (generate == 'ulid') {
