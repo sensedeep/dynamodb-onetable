@@ -11,7 +11,7 @@ _One Table to Rule Them All_
 
 OneTable is the most evolved API for DynamoDB. It provides a dry, high-level, elegant syntax while enabling full access to the DynamoDB API.
 
-OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
+OneTable works with JavaScript and TypeScript. For TypeScript, OneTable will create fully typed entities from your data schemas automatically.
 
 ## Full Documentation
 
@@ -41,7 +41,6 @@ OneTable works with AWS V2 and V3 SDKs for JavaScript and TypeScript. For TypeSc
 -   Simple and easy to read source.
 -   Integrated statistics.
 -   Safety options to prevent "rm -fr \*".
--   Support for the AWS SDK v3.
 -   TypeScript type inference from schema for full type validation on APIs, parameters, returns, and entities and attributes.
 -   Migrations support via [OneTable Migrate](https://github.com/sensedeep/onetable-migrate) and [OneTable CLI](https://github.com/sensedeep/onetable-cli).
 -   Graphical monitoring of single-table performance via [SenseDeep](https://www.sensedeep.com).
@@ -58,11 +57,18 @@ Import the OneTable library. If you are not using ES modules or TypeScript, use 
 import {Table} from 'dynamodb-onetable'
 ```
 
-If you are using the AWS SDK V3, import the AWS V3 `DynamoDBClient` class. Then create a `DynamoDBClient` instance.
+Import the `DynamoDBClient` class and create a `DynamoDBClient` instance.
 
 ```javascript
 import {DynamoDBClient} from '@aws-sdk/client-dynamodb'
-const client = new DynamoDBClient(params)
+const client = new DynamoDBClient({
+    endpoint: `http://localhost:${PORT}`,
+    region: 'local',
+    credentials: new AWS.Credentials({
+        accessKeyId: 'test',
+        secretAccessKey: 'test',
+    }),
+})
 ```
 
 If you are using the legacy AWS SDK V2, import the AWS `DynamoDB` class and create a `DocumentClient` instance.

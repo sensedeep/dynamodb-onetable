@@ -91,12 +91,6 @@ export class Table {
         }
         if (params.crypto) {
             this.initCrypto(params.crypto)
-            this.crypto = Object.assign(params.crypto)
-            for (let [name, crypto] of Object.entries(this.crypto)) {
-                crypto.secret = Crypto.createHash('sha256').update(crypto.password, 'utf8').digest()
-                this.crypto[name] = crypto
-                this.crypto[name].name = name
-            }
         }
         this.setParams(params)
 
