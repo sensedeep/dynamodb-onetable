@@ -594,6 +594,8 @@ export class Model {
         }
         params.prepared = properties = this.prepareProperties('put', properties, params)
 
+        let ttlField = fields.find(f => f.ttl)
+
         for (let field of fields) {
             if (properties[field.name] !== undefined) {
                 let scope = ''
@@ -610,8 +612,17 @@ export class Model {
                 }
                 let pk = `_unique#${scope}${this.name}#${field.attribute}#${properties[field.name]}`
                 let sk = '_unique#'
+                let uproperties = {[this.hash]: pk, [this.sort]: sk}
+
+                if (ttlField) {
+                    /*
+                        Add a TTL expiry property to the unique record
+                     */
+                    let value = properties[ttlField.name]
+                    uproperties[ttlField.name] = new Date(new Date(value).getTime() * 1000)
+                }
                 await this.schema.uniqueModel.create(
-                    {[this.hash]: pk, [this.sort]: sk},
+                    uproperties,
                     {transaction, exists: false, return: 'NONE'}
                 )
             }
@@ -868,6 +879,7 @@ export class Model {
         let fields = Object.values(this.block.fields).filter(
             (f) => f.unique && f.attribute != hash && f.attribute != sort
         )
+        let ttlField = fields.find(f => f.ttl)
 
         for (let field of fields) {
             let toBeRemoved = params.remove && params.remove.includes(field.name)
@@ -911,8 +923,16 @@ export class Model {
             }
             // If value is changing, add new unique value
             if (properties[field.name] !== undefined) {
+                let uproperties = {[this.hash]: pk, [this.sort]: sk}
+                if (ttlField) {
+                    /*
+                        Add a TTL expiry property to the unique record
+                     */
+                    let value = properties[ttlField.name]
+                    uproperties[ttlField.name] = new Date(new Date(value).getTime() * 1000)
+                }
                 await this.schema.uniqueModel.create(
-                    {[this.hash]: pk, [this.sort]: sk},
+                    uproperties,
                     {
                         transaction,
                         exists: false,
