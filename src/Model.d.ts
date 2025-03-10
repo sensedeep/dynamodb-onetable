@@ -198,12 +198,12 @@ type Entity<T extends OneModel> = Flatten<Merge<Required<T>, OptionalOrUndefined
 /*
     Entity Parameters are partial Entities.
  */
-type EntityParameters<Entity> = Partial<Entity>
+export type EntityParameters<Entity> = Partial<Entity>
 
 /*
     Special case for find to allow query operators
 */
-type EntityParametersForFind<T> = Partial<{
+export type EntityParametersForFind<T> = Partial<{
     [K in keyof T]:
         | T[K]
         | Begins<T, K>
@@ -234,7 +234,7 @@ export type AnyEntity = {
     [key: string]: any
 }
 
-type ModelConstructorOptions = {
+export type ModelConstructorOptions = {
     fields?: OneModel
     indexes?: {
         [key: string]: OneIndex
@@ -328,7 +328,7 @@ type GetKeys<T> = T extends T ? keyof T : never
 
     type EntityParametersForCreate<M extends OneModel> = Required<M> & Optional<M>
 */
-type EntityParametersForCreate<T extends OneModel> = Omit<
+export type EntityParametersForCreate<T extends OneModel> = Omit<
     Omit<Omit<Omit<Required<T>, GetKeys<Defaulted<T>>>, GetKeys<Generated<T>>>, GetKeys<ValueTemplates<T>>>,
     GetKeys<TimestampValue<T>>
 > &
@@ -338,9 +338,9 @@ type EntityParametersForCreate<T extends OneModel> = Omit<
     Partial<ValueTemplates<T>> &
     Partial<TimestampValue<T>>
 
-type EntityParametersForUpdate<T extends OneModel> = Partial<Required<T> & OptionalOrNull<T>>
+export type EntityParametersForUpdate<T extends OneModel> = Partial<Required<T> & OptionalOrNull<T>>
 
-type TransactionalOneParams = OneParams & {transaction: object}
+export type TransactionalOneParams = OneParams & {transaction: object}
 
 export class Model<T> {
     constructor(table: any, name: string, options?: ModelConstructorOptions)
