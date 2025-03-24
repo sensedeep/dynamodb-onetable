@@ -40,7 +40,7 @@ export type OneField = {
     encode?: readonly (string | RegExp | number)[] | string
     enum?: readonly string[]
     filter?: boolean
-    generate?: string | boolean | function
+    generate?: string | boolean | Function
     hidden?: boolean
     items?: OneField
     map?: string
