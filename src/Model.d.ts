@@ -37,9 +37,11 @@ export type OneIndex = {
 export type OneField = {
     crypt?: boolean
     default?: string | number | boolean | object | Array<any>
+    drop?: boolean | string | object
     encode?: readonly (string | RegExp | number)[] | string
     enum?: readonly string[]
     filter?: boolean
+    fixed?: boolean | string
     generate?: string | boolean | Function
     hidden?: boolean
     items?: OneField
@@ -256,6 +258,7 @@ export type OneParams = {
     execute?: boolean
     exists?: boolean | null
     fields?: string[]
+    fixed?: boolean
     follow?: boolean
     hidden?: boolean
     index?: string
