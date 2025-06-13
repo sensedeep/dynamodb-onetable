@@ -36,7 +36,6 @@ test('Get', async () => {
     expect(user).toMatchObject({
         name: 'Peter Smith',
     })
-    console.log(user)
     expect(user.id).toMatch(Match.customUuid)
 })
 

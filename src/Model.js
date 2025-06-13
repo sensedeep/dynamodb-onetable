@@ -1256,7 +1256,7 @@ export class Model {
         }
         if (op != 'scan' && this.getHash(rec, this.block.fields, index, params) == null) {
             this.table.log.error(`Empty hash key`, {properties, params, op, rec, index, model: this.name})
-            throw new OneTableError(`Empty hash key. Check hash key and any value template variable references.`, {
+            throw new OneTableError(`Cannot ${op} data for "${this.name}". Missing data index key.`, {
                 properties,
                 rec,
                 code: 'MissingError',
@@ -1457,6 +1457,12 @@ export class Model {
             NOTE: Value templates for unique items may need other properties when removing unique items
         */
         for (let [name, field] of Object.entries(block.fields)) {
+            if (field.fixed && op == 'update' && params.exists !== true) {
+                if (field.fixed && params.fixed !== true) {
+                    this.table.log.info(`Skipping fixed field ${this.name}.${name} for update`)
+                    continue
+                }
+            }
             if (field.schema) continue
             let omit = false
 

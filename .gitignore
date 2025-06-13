@@ -13,3 +13,5 @@ yarn.lock
 .tags*
 *.bak
 src/metrics
+.promoted
+.prompt
