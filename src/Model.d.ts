@@ -150,7 +150,9 @@ type OptionalOrNull<T extends OneModel> = {
     -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]> | null
 }
 type OptionalOrUndefined<T extends OneModel> = {
-    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: EntityField<T[P]> | undefined
+    -readonly [P in keyof T as T[P]['required'] extends true ? never : P]?: T[P]['nulls'] extends true
+        ? EntityField<T[P]> | null | undefined 
+        : EntityField<T[P]> | undefined
 }
 
 /*
