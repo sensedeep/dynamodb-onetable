@@ -1404,8 +1404,10 @@ export class Model {
                 let ctx = context[name] || {}
                 let partial = this.getPartial(field, params)
 
-                if (value === null && field.nulls === true) {
-                    rec[name] = null
+                if (value === null) {
+                    if (field.nulls === true) {
+                        rec[name] = null
+                    }
                 } else if (value !== undefined) {
                     if (field.items && Array.isArray(value)) {
                         rec[name] = []
@@ -1618,7 +1620,7 @@ export class Model {
     convertNulls(op, pathname, fields, properties, params) {
         for (let [name, value] of Object.entries(properties)) {
             let field = fields[name]
-            if (!field || field.schema) continue
+            if (!field) continue
             if (value === null && field.nulls !== true) {
                 //  create with null/undefined, or update with null property
                 if (
